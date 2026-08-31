@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Works today with no SDK installs: the react-native-web target in
+      // Chrome, with breakpoints hit in VS Code against the real app source.
+      // Start Metro first and leave it running:  pnpm dev:app  then press `w`
+      // (or `pnpm dev:app:web`). Metro's server root is the monorepo root,
+      // which is why webRoot is the workspace folder, not packages/app.
+      "name": "Debug app (web, Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:8081",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "http://localhost:8081/*": "${workspaceFolder}/*",
+        "webpack:///./*": "${workspaceFolder}/*"
+      }
+    }
+  ]
+}

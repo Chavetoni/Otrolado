@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>body{margin:0;background:#F4F6F9;font-family:'Public Sans',system-ui,sans-serif}a{color:#17427A}a:hover{color:#0F2E56}code{background:#EDF0F4;border-radius:4px;padding:1px 5px;font-size:12px;font-family:ui-monospace,Menlo,monospace}</style></helmet>
+<div style="max-width:900px;margin:0 auto;padding:48px 32px 80px;display:flex;flex-direction:column;gap:40px">
+
+  <div style="display:flex;flex-direction:column;gap:8px;border-bottom:2px solid #17427A;padding-bottom:20px">
+    <div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:9px;background:#17427A;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff">O</div><span style="font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#5A6B80">Otrolado · Engineering plan</span></div>
+    <h1 style="margin:0;font-size:32px;font-weight:800;color:#0B1F33;letter-spacing:-0.5px">How we build and scale CrossQ</h1>
+    <p style="margin:0;font-size:14px;color:#5A6B80;line-height:1.6;max-width:680px">Solo developer, React Native on both platforms, required accounts, planned for 1M+ users across both borders. The core insight that makes this cheap: <strong style="color:#0B1F33">wait data is identical for every user</strong> — only ~150 ports exist, so almost everything is cacheable. <a href="CrossQ API Spec.dc.html" style="font-weight:700">← Integration spec</a> · <a href="CrossQ Prototype v3.dc.html" style="font-weight:700">Prototype</a></p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">1 · Tech stack</h2>
+    <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:1fr 1.4fr 1.6fr;background:#EDF0F4;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#5A6B80"><span>Layer</span><span>Choice</span><span>Why (solo dev, 1M users)</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr 1.6fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Mobile app</span><span>React Native + Expo (TypeScript)</span><span>One codebase, both stores; Expo EAS handles builds/signing/OTA updates — no Mac farm, no Gradle wrestling</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr 1.6fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">App state / data</span><span>TanStack Query + MMKV persistence</span><span>Stale-while-revalidate matches our data shape exactly; MMKV gives instant offline reads</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr 1.6fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">API backend</span><span>Node.js (Fastify, TypeScript) on Fly.io / Railway</span><span>Same language as the app; containers not lambdas — pollers and the rules engine are long-running</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr 1.6fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Database</span><span>Postgres (Neon/Supabase) + TimescaleDB extension</span><span>One database: relational for users/trips, hypertables for years of wait history the model trains on</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr 1.6fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Cache / queue</span><span>Redis (Upstash)</span><span>Port snapshots + forecast cache; BullMQ queues for polling, alert fan-out, push delivery</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr 1.6fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Auth</span><span>Managed auth (Clerk or Supabase Auth) — Apple + Google sign-in</span><span>Required accounts means auth must be bulletproof; never hand-roll it solo. App Store requires Sign in with Apple anyway</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr 1.6fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Prediction model</span><span>Python job (LightGBM), runs on a schedule</span><span>Gradient-boosted trees on tabular time features beat deep nets here and train in minutes; serves as static forecast rows, not a live model server</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr 1.6fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Push</span><span>APNs + FCM via a thin wrapper (Expo Push or raw)</span><span>Both platforms from one send path; delivery receipts logged</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr 1.6fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Observability</span><span>Sentry (app + API) + Grafana Cloud free tier</span><span>Crash + error tracking day one; feed-health dashboards (§9)</span></div>
+    </div>
+    <p style="margin:0;font-size:12px;color:#8595A8;line-height:1.6">Principle: boring, managed, one language where possible. Every piece has a free tier that survives launch and a paid tier that survives scale.</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">2 · Architecture — why 1M users is cheap here</h2>
+    <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px">
+      <svg width="100%" viewBox="0 0 840 250" style="display:block">
+        <rect x="8" y="20" width="140" height="40" rx="9" fill="#EDF0F4" stroke="#C6CFDA"></rect><text x="78" y="38" text-anchor="middle" font-family="Public Sans" font-size="11.5" font-weight="700" fill="#0B1F33">CBP / CBSA feeds</text><text x="78" y="52" text-anchor="middle" font-family="Public Sans" font-size="9.5" fill="#5A6B80">poll workers · 5–15 min</text>
+        <rect x="8" y="76" width="140" height="40" rx="9" fill="#EDF0F4" stroke="#C6CFDA"></rect><text x="78" y="94" text-anchor="middle" font-family="Public Sans" font-size="11.5" font-weight="700" fill="#0B1F33">Google Routes</text><text x="78" y="108" text-anchor="middle" font-family="Public Sans" font-size="9.5" fill="#5A6B80">server-side, batched</text>
+        <path d="M148 40 C190 40 190 86 226 92" fill="none" stroke="#8FA5BE" stroke-width="1.6"></path>
+        <path d="M148 96 L226 96" fill="none" stroke="#8FA5BE" stroke-width="1.6"></path>
+        <rect x="228" y="66" width="150" height="60" rx="9" fill="#E3EAF4" stroke="#9DB8DB"></rect><text x="303" y="90" text-anchor="middle" font-family="Public Sans" font-size="11.5" font-weight="700" fill="#17427A">Ingest workers</text><text x="303" y="105" text-anchor="middle" font-family="Public Sans" font-size="9.5" fill="#5A6B80">normalize → Timescale + Redis</text>
+        <path d="M378 96 L416 96" fill="none" stroke="#8FA5BE" stroke-width="1.6"></path>
+        <rect x="418" y="66" width="150" height="60" rx="9" fill="#17427A"></rect><text x="493" y="86" text-anchor="middle" font-family="Public Sans" font-size="11.5" font-weight="700" fill="#fff">Redis snapshot</text><text x="493" y="101" text-anchor="middle" font-family="Public Sans" font-size="9.5" fill="#B9CCE4">all ports + forecasts</text><text x="493" y="115" text-anchor="middle" font-family="Public Sans" font-size="9.5" fill="#B9CCE4">one blob, ~200 KB</text>
+        <path d="M568 96 L606 96" fill="none" stroke="#8FA5BE" stroke-width="1.6"></path>
+        <rect x="608" y="66" width="110" height="60" rx="9" fill="#E3EAF4" stroke="#9DB8DB"></rect><text x="663" y="90" text-anchor="middle" font-family="Public Sans" font-size="11.5" font-weight="700" fill="#17427A">Fastify API</text><text x="663" y="105" text-anchor="middle" font-family="Public Sans" font-size="9.5" fill="#5A6B80">stateless, N replicas</text>
+        <path d="M718 96 L756 96" fill="none" stroke="#8FA5BE" stroke-width="1.6"></path>
+        <rect x="758" y="66" width="74" height="60" rx="9" fill="#0B1F33"></rect><text x="795" y="90" text-anchor="middle" font-family="Public Sans" font-size="11.5" font-weight="700" fill="#fff">CDN</text><text x="795" y="105" text-anchor="middle" font-family="Public Sans" font-size="9.5" fill="#9DB8DB">30 s TTL</text>
+        <rect x="228" y="170" width="150" height="54" rx="9" fill="#FDF3E3" stroke="#E3B96A"></rect><text x="303" y="192" text-anchor="middle" font-family="Public Sans" font-size="11.5" font-weight="700" fill="#8A5A0B">LightGBM trainer</text><text x="303" y="206" text-anchor="middle" font-family="Public Sans" font-size="9.5" fill="#A98246">nightly · writes forecast rows</text>
+        <rect x="418" y="170" width="150" height="54" rx="9" fill="#FDF3E3" stroke="#E3B96A"></rect><text x="493" y="192" text-anchor="middle" font-family="Public Sans" font-size="11.5" font-weight="700" fill="#8A5A0B">Rules engine</text><text x="493" y="206" text-anchor="middle" font-family="Public Sans" font-size="9.5" fill="#A98246">feed deltas → APNs / FCM</text>
+        <path d="M303 126 L303 168" fill="none" stroke="#E3B96A" stroke-width="1.6" stroke-dasharray="4 3"></path>
+        <path d="M493 126 L493 168" fill="none" stroke="#E3B96A" stroke-width="1.6" stroke-dasharray="4 3"></path>
+      </svg>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="background:#F4F6F9;border-radius:10px;padding:14px 16px;font-size:13px;color:#33465C;line-height:1.6"><strong style="color:#0B1F33">Read path scales for free.</strong> ~150 ports × waits + forecasts fits in one ~200 KB Redis blob rebuilt every poll. The API serves it with <code>ETag</code> + 30 s CDN cache — 1M users generate cache hits, not database queries. Zero per-user compute on the hot path.</div>
+        <div style="background:#F4F6F9;border-radius:10px;padding:14px 16px;font-size:13px;color:#33465C;line-height:1.6"><strong style="color:#0B1F33">Drive ETAs stay client-cheap.</strong> The app sends one coarse location (rounded to ~1 km); the server batches a Routes matrix call for nearby ports and caches it 2 min per grid cell — so 10k users in San Diego share the same matrix result.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">3 · REST API contracts</h2>
+    <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:1.6fr 2fr;background:#EDF0F4;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#5A6B80"><span>Endpoint</span><span>Returns / notes</span></div>
+      <div style="display:grid;grid-template-columns:1.6fr 2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span><code>GET /v1/ports</code></span><span>Static port directory (id, name, coords, lanes, hours). Cached 24 h, shipped in the app bundle as fallback</span></div>
+      <div style="display:grid;grid-template-columns:1.6fr 2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span><code>GET /v1/waits?ports=all</code></span><span>Current wait per port/lane/direction + <code>feedAgeSec</code> + <code>estimated</code> flag. CDN-cached 30 s, ETag'd</span></div>
+      <div style="display:grid;grid-template-columns:1.6fr 2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span><code>GET /v1/forecast/:portId?lane=standard&amp;h=12</code></span><span>Hourly <code>{p20,p50,p80}</code> array + model version. Cached until next model run</span></div>
+      <div style="display:grid;grid-template-columns:1.6fr 2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span><code>POST /v1/etas</code> <span style="font-size:11px;color:#8595A8">{lat,lng rounded, portIds[]}</span></span><span>Drive seconds per port from the shared grid-cell cache; response says <code>cacheAge</code></span></div>
+      <div style="display:grid;grid-template-columns:1.6fr 2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span><code>GET/POST/DELETE /v1/trips</code></span><span>Saved trips: target arrival, port, lane. Server owns the leave-by solve and re-solves on each poll tick</span></div>
+      <div style="display:grid;grid-template-columns:1.6fr 2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span><code>PUT /v1/alerts/prefs</code> · <code>POST /v1/devices</code></span><span>Alert thresholds per port + push token registration (token, platform, locale)</span></div>
+      <div style="display:grid;grid-template-columns:1.6fr 2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span><code>GET /v1/me</code> · <code>DELETE /v1/me</code></span><span>Profile + full account deletion (store requirement). Auth: <code>Authorization: Bearer &lt;JWT&gt;</code> on everything except <code>/ports</code> and <code>/waits</code></span></div>
+    </div>
+    <p style="margin:0;font-size:12px;color:#8595A8;line-height:1.6">Versioned under <code>/v1</code>; additive changes only within a version. Public reads stay unauthenticated so the CDN can cache them for everyone.</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">4 · Database schema</h2>
+    <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:1.1fr 2.5fr;background:#EDF0F4;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#5A6B80"><span>Table</span><span>Key columns</span></div>
+      <div style="display:grid;grid-template-columns:1.1fr 2.5fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">ports</span><span><code>id</code>, name, country_pair, lat/lng, lanes[], hours_json, tz — ~150 rows, effectively static</span></div>
+      <div style="display:grid;grid-template-columns:1.1fr 2.5fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">wait_observations <span style="font-size:10px;color:#C77E14;font-weight:700">HYPERTABLE</span></span><span><code>time</code>, port_id, lane, direction, wait_min, lanes_open, source, feed_age — the model's training set; compressed after 30 days, ~5M rows/yr</span></div>
+      <div style="display:grid;grid-template-columns:1.1fr 2.5fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">forecasts</span><span>port_id, lane, direction, hour_ts, p20/p50/p80, model_version — overwritten each model run, ~50k rows live</span></div>
+      <div style="display:grid;grid-template-columns:1.1fr 2.5fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">users</span><span><code>id</code> (from auth provider), email, home_region, engine_pref, created_at — no passwords stored, ever</span></div>
+      <div style="display:grid;grid-template-columns:1.1fr 2.5fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">devices</span><span>user_id, push_token, platform, locale, last_seen — pruned when APNs/FCM report token dead</span></div>
+      <div style="display:grid;grid-template-columns:1.1fr 2.5fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">trips</span><span>user_id, port_id, lane, arrive_by_ts, leave_by_ts (computed), status — indexed on <code>(status, arrive_by_ts)</code> for the solver sweep</span></div>
+      <div style="display:grid;grid-template-columns:1.1fr 2.5fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">alert_rules</span><span>user_id, port_id, kind (spike/leave/closure/reroute), threshold, quiet_hours — evaluated by the rules engine per poll tick</span></div>
+      <div style="display:grid;grid-template-columns:1.1fr 2.5fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">alert_log</span><span>rule_id, fired_at, payload — dedupe window (don't re-fire same spike within 90 min) + delivery audit</span></div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">5 · Prediction model</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:18px;font-size:13px;color:#33465C;line-height:1.7"><strong style="color:#0B1F33">Features.</strong> Hour-of-day × day-of-week, US/MX/CA holiday flags (and school-break calendars), lanes_open, rolling 1/4/24 h wait averages, same-hour-last-week, port fixed effects. One quantile LightGBM per horizon bucket (0–3 h, 3–12 h) predicting P20/P50/P80 — quantiles give the UI its honest ± range for free.</div>
+      <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:18px;font-size:13px;color:#33465C;line-height:1.7"><strong style="color:#0B1F33">Ops.</strong> Nightly retrain on the Timescale archive (minutes on one box), writes <code>forecasts</code> rows, bumps <code>model_version</code>. A blend layer nudges the next 2 h toward the live feed when it diverges. Backtest gate: new model ships only if P50 MAE beats current on the last 28 days. Cold-start ports fall back to hour×weekday medians.</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">6 · Alerts rules engine</h2>
+    <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:1fr 1.6fr 1.4fr;background:#EDF0F4;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#5A6B80"><span>Alert</span><span>Trigger</span><span>Guardrails</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.6fr 1.4fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Wait spike</span><span>Port wait crosses user threshold OR jumps &gt;20 min between polls</span><span>90-min dedupe; quiet hours; only for watched ports</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.6fr 1.4fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Time to leave</span><span>Trip's re-solved leave_by enters the next 15 min, or slips &gt;10 min from last notified value</span><span>Max 2 corrections per trip; silent after departure confirmed</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.6fr 1.4fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Closure</span><span>Feed reports lane/port closed or CBSA planned-closure window starts</span><span>Fires once per closure event id</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1.6fr 1.4fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Mid-route reroute</span><span>Active trip + a sibling port's total beats current choice by &gt;15 min</span><span>Requires live-activity opt-in; max 1 per trip</span></div>
+    </div>
+    <p style="margin:0;font-size:12px;color:#8595A8;line-height:1.6">The engine runs after each ingest tick: diff new snapshot vs previous, join against <code>alert_rules</code>, enqueue matches to BullMQ, workers fan out to APNs/FCM. Everything evaluated server-side — the app never needs background polling.</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">7 · Caching &amp; cost control</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:18px;font-size:13px;color:#33465C;line-height:1.7"><strong style="color:#0B1F33">Cache ladder.</strong> Device (MMKV, stale-while-revalidate) → CDN (30 s for <code>/waits</code>, 1 h for <code>/forecast</code>, 24 h for <code>/ports</code>) → Redis snapshot → Postgres. A user opening the app typically touches only the first two layers.</div>
+      <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:18px;font-size:13px;color:#33465C;line-height:1.7"><strong style="color:#0B1F33">The only scary bill is Google Routes.</strong> Grid-cell ETA sharing (§2) caps calls at ~(active grid cells × nearby ports / 2 min), independent of user count. Budget alarm at $50/day; degrade path: fall back to great-circle-distance × historical speed and label ETAs "approx".</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">8 · Auth, security &amp; offline</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:18px;font-size:13px;color:#33465C;line-height:1.7"><strong style="color:#0B1F33">Auth.</strong> Sign in with Apple + Google via managed provider; short-lived JWTs, refresh in secure storage (Keychain/Keystore). Location never stored server-side beyond the rounded grid cell of the last ETA request; trips store the port, not your house. Rate limits per token; account deletion is one endpoint, cascades everything.</div>
+      <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:18px;font-size:13px;color:#33465C;line-height:1.7"><strong style="color:#0B1F33">Offline.</strong> Border zones have terrible cell coverage — the app must degrade honestly: last snapshot + forecasts persist in MMKV, every number shows its age ("as of 12 min ago"), the ESTIMATED badge appears past 30 min, and leave-by times freeze with a stale banner rather than silently drifting. Port directory ships in the bundle so first launch works offline.</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">9 · Deploy, CI/CD &amp; monitoring</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:18px;font-size:13px;color:#33465C;line-height:1.7"><strong style="color:#0B1F33">Ship path.</strong> Monorepo (app + api + model). GitHub Actions: typecheck/test → deploy API to Fly (blue-green) → EAS build on release tags; JS-only fixes go out same-day as OTA updates, native changes ride store review. Staging env polls the same public feeds (they're free).</div>
+      <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:18px;font-size:13px;color:#33465C;line-height:1.7"><strong style="color:#0B1F33">Feed health is THE metric.</strong> Grafana panels: per-source feed age, parse failures, ports reporting, alert queue depth, Routes spend. Page (solo dev: phone push) when a feed is &gt;45 min stale or parse errors spike — the product's honesty features (§8) are the user-facing half of this same system.</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">10 · Monthly cost estimate</h2>
+    <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;background:#EDF0F4;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#5A6B80"><span>Item</span><span>Launch (~5k MAU)</span><span>100k MAU</span><span>1M MAU</span></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;padding:11px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">API + workers (Fly)</span><span>$0–10</span><span>~$50</span><span>~$300</span></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;padding:11px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Postgres + Timescale</span><span>$0–19</span><span>~$70</span><span>~$250</span></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;padding:11px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Redis + queue</span><span>$0</span><span>~$20</span><span>~$80</span></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;padding:11px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Auth (managed)</span><span>$0</span><span>~$100</span><span>~$550</span></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;padding:11px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Google Routes (capped by grid cache)</span><span>~$20</span><span>~$150</span><span>~$400</span></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;padding:11px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">CDN, Sentry, EAS, misc</span><span>$0–30</span><span>~$80</span><span>~$250</span></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;padding:12px 16px;border-top:2px solid #D8DFE8;font-size:13px;background:#F8FAFC"><span style="font-weight:800;color:#0B1F33">Total / month</span><span style="font-weight:800;color:#17427A">≈ $20–80</span><span style="font-weight:800;color:#17427A">≈ $470</span><span style="font-weight:800;color:#17427A">≈ $1,830</span></div>
+    </div>
+    <p style="margin:0;font-size:12px;color:#8595A8;line-height:1.6">Sub-linear in users because the hot path is shared-cache reads. Rough planning numbers, not quotes — auth and Routes are the two lines worth renegotiating (or replacing: self-hosted auth, OSRM self-hosted routing) if they dominate.</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">11 · Build order (solo)</h2>
+    <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:0">
+      <div style="display:flex;gap:14px;padding:10px 0;border-bottom:1px solid #EBEFF4;font-size:13px;color:#33465C;align-items:baseline"><span style="min-width:84px;font-weight:800;color:#17427A;font-size:12px">WEEKS 1–2</span><span><strong style="color:#0B1F33">Ingest first.</strong> Pollers + schema + Redis snapshot. Start archiving history NOW — the model is only as good as the archive is long.</span></div>
+      <div style="display:flex;gap:14px;padding:10px 0;border-bottom:1px solid #EBEFF4;font-size:13px;color:#33465C;align-items:baseline"><span style="min-width:84px;font-weight:800;color:#17427A;font-size:12px">WEEKS 3–5</span><span><strong style="color:#0B1F33">App core.</strong> RN app: home ranking, port detail, map. Reads only <code>/waits</code> + <code>/etas</code>; forecasts show hour×weekday medians until the model has data.</span></div>
+      <div style="display:flex;gap:14px;padding:10px 0;border-bottom:1px solid #EBEFF4;font-size:13px;color:#33465C;align-items:baseline"><span style="min-width:84px;font-weight:800;color:#17427A;font-size:12px">WEEKS 6–7</span><span><strong style="color:#0B1F33">Accounts + trips + alerts.</strong> Auth, trip solver, rules engine, push. This is the retention layer.</span></div>
+      <div style="display:flex;gap:14px;padding:10px 0;font-size:13px;color:#33465C;align-items:baseline"><span style="min-width:84px;font-weight:800;color:#17427A;font-size:12px">WEEK 8+</span><span><strong style="color:#0B1F33">Model + polish + ship.</strong> LightGBM once ≥6 weeks of archive exists; offline hardening; store review. TestFlight/Play beta from week 5.</span></div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

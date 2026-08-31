@@ -1,0 +1,33 @@
+{
+  "name": "@otrolado/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false --exclude '**/node_modules/**' --exclude '../../node_modules/**' --env-file=../../.env src/server.ts",
+    "start": "node --env-file=../../.env dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "migrate": "tsx --env-file=../../.env scripts/migrate.ts",
+    "db:reset": "tsx --env-file=../../.env scripts/migrate.ts --reset",
+    "seed": "tsx --env-file=../../.env scripts/seed-ports.ts",
+    "ingest": "tsx --env-file=../../.env scripts/ingest-once.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "@otrolado/shared": "workspace:*",
+    "fastify": "^5.2.0",
+    "ioredis": "^5.4.2",
+    "kysely": "^0.27.5",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.11"
+  }
+}

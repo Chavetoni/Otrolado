@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>body{margin:0;background:#F4F6F9;font-family:'Public Sans',system-ui,sans-serif}a{color:#17427A}a:hover{color:#0F2E56}</style></helmet>
+<div style="max-width:860px;margin:0 auto;padding:48px 32px 80px;display:flex;flex-direction:column;gap:36px">
+  <div style="display:flex;flex-direction:column;gap:8px;border-bottom:2px solid #17427A;padding-bottom:20px">
+    <div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:9px;background:#17427A;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff">O</div><span style="font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#5A6B80">Otrolado · Integration spec</span></div>
+    <h1 style="margin:0;font-size:32px;font-weight:800;color:#0B1F33;letter-spacing:-0.5px">Where every number on screen comes from</h1>
+    <p style="margin:0;font-size:14px;color:#5A6B80;line-height:1.6;max-width:640px">All sources are public, documented APIs. Wait times come from government feeds; drive times from a user-selectable routing engine; predictions are computed server-side from feed history. <a href="CrossQ Prototype.dc.html" style="font-weight:700">← Back to the prototype</a> · <a href="CrossQ Engineering Plan.dc.html" style="font-weight:700">Engineering plan →</a></p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">1 · Data sources</h2>
+    <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:1.5fr 2fr 1fr 1fr;gap:0;background:#EDF0F4;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#5A6B80"><span>Source</span><span>What we take</span><span>Cadence</span><span>Auth</span></div>
+      <div style="display:grid;grid-template-columns:1.5fr 2fr 1fr 1fr;padding:13px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C;align-items:start"><span style="font-weight:700;color:#0B1F33">CBP Border Wait Times<br><span style="font-weight:500;font-size:11.5px;color:#8595A8">bwt.cbp.gov (XML/JSON)</span></span><span>Current waits per US port &amp; lane type (standard / SENTRI / Ready / FAST), lanes open, port hours — both borders, US-bound</span><span>~15 min</span><span>None</span></div>
+      <div style="display:grid;grid-template-columns:1.5fr 2fr 1fr 1fr;padding:13px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C;align-items:start"><span style="font-weight:700;color:#0B1F33">CBSA Border Wait Times<br><span style="font-weight:500;font-size:11.5px;color:#8595A8">Open Government API</span></span><span>Canada-bound waits per crossing, commercial + traveller flow, planned closures</span><span>~15 min</span><span>None</span></div>
+      <div style="display:grid;grid-template-columns:1.5fr 2fr 1fr 1fr;padding:13px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C;align-items:start"><span style="font-weight:700;color:#0B1F33">Google Routes API<br><span style="font-weight:500;font-size:11.5px;color:#8595A8">routes.googleapis.com · computeRoutes</span></span><span>Traffic-aware drive time &amp; distance to each port, TRAFFIC_AWARE_OPTIMAL; departure-time ETAs for the planner</span><span>On demand</span><span>API key</span></div>
+      <div style="display:grid;grid-template-columns:1.5fr 2fr 1fr 1fr;padding:13px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C;align-items:start"><span style="font-weight:700;color:#0B1F33">Apple MapKit<br><span style="font-weight:500;font-size:11.5px;color:#8595A8">MKDirections / MapKit JS ETA</span></span><span>Alternative drive-time engine (user-selectable in Settings); map tiles on iOS</span><span>On demand</span><span>App bundle</span></div>
+      <div style="display:grid;grid-template-columns:1.5fr 2fr 1fr 1fr;padding:13px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C;align-items:start"><span style="font-weight:700;color:#0B1F33">Otrolado Prediction Service<br><span style="font-weight:500;font-size:11.5px;color:#8595A8">our backend</span></span><span>Per-port hourly wait forecasts + confidence ranges, trained on archived CBP/CBSA history (hour, weekday, holidays, events)</span><span>5 min</span><span>App token</span></div>
+      <div style="display:grid;grid-template-columns:1.5fr 2fr 1fr 1fr;padding:13px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C;align-items:start"><span style="font-weight:700;color:#0B1F33">APNs<br><span style="font-weight:500;font-size:11.5px;color:#8595A8">Apple Push Notification service</span></span><span>Wait-spike, time-to-leave, closure and mid-route alerts</span><span>Event</span><span>Cert</span></div>
+    </div>
+    <p style="margin:0;font-size:12px;color:#8595A8;line-height:1.6">Mexico-bound (southbound) waits have no official federal feed; v1 scopes predictions to US/Canada-bound directions where government data exists.</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">2 · Data flow</h2>
+    <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:22px">
+      <svg width="100%" viewBox="0 0 800 210" style="display:block">
+        <rect x="8" y="14" width="150" height="44" rx="9" fill="#EDF0F4" stroke="#C6CFDA"></rect><text x="83" y="33" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="12" font-weight="700" fill="#0B1F33">CBP BWT feed</text><text x="83" y="48" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="10" fill="#5A6B80">poll · 15 min</text>
+        <rect x="8" y="76" width="150" height="44" rx="9" fill="#EDF0F4" stroke="#C6CFDA"></rect><text x="83" y="95" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="12" font-weight="700" fill="#0B1F33">CBSA feed</text><text x="83" y="110" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="10" fill="#5A6B80">poll · 15 min</text>
+        <rect x="8" y="152" width="150" height="44" rx="9" fill="#EDF0F4" stroke="#C6CFDA"></rect><text x="83" y="171" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="12" font-weight="700" fill="#0B1F33">Google Routes / MapKit</text><text x="83" y="186" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="10" fill="#5A6B80">on demand, from app</text>
+        <path d="M158 36 C200 36 200 82 236 88" fill="none" stroke="#8FA5BE" stroke-width="1.6"></path>
+        <path d="M158 98 L236 98" fill="none" stroke="#8FA5BE" stroke-width="1.6"></path>
+        <rect x="238" y="66" width="150" height="62" rx="9" fill="#E3EAF4" stroke="#9DB8DB"></rect><text x="313" y="92" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="12" font-weight="700" fill="#17427A">Normalize + archive</text><text x="313" y="107" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="10" fill="#5A6B80">per-port, per-lane history</text>
+        <path d="M388 97 L428 97" fill="none" stroke="#8FA5BE" stroke-width="1.6"></path>
+        <rect x="430" y="66" width="160" height="62" rx="9" fill="#17427A"></rect><text x="510" y="88" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="12" font-weight="700" fill="#fff">Prediction model</text><text x="510" y="103" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="10" fill="#B9CCE4">hourly forecast ± range</text><text x="510" y="117" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="10" fill="#B9CCE4">stale feed → interpolate, flag</text>
+        <path d="M590 97 L630 97" fill="none" stroke="#8FA5BE" stroke-width="1.6"></path>
+        <rect x="632" y="66" width="160" height="62" rx="9" fill="#0B1F33"></rect><text x="712" y="88" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="12" font-weight="700" fill="#fff">Otrolado app</text><text x="712" y="103" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="10" fill="#9DB8DB">total = drive ETA + wait(arrival)</text><text x="712" y="117" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="10" fill="#9DB8DB">re-ranks as you move</text>
+        <path d="M158 174 C400 178 560 150 640 128" fill="none" stroke="#8FA5BE" stroke-width="1.6" stroke-dasharray="4 3"></path>
+        <path d="M510 66 C510 30 620 26 690 26 L712 26 L712 64" fill="none" stroke="#C77E14" stroke-width="1.6" stroke-dasharray="4 3"></path><text x="608" y="18" text-anchor="middle" font-family="Public Sans, sans-serif" font-size="10" font-weight="600" fill="#C77E14">alert triggers → APNs push</text>
+      </svg>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">3 · Screen element → API mapping</h2>
+    <div style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:1.3fr 2.2fr;background:#EDF0F4;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#5A6B80"><span>UI element</span><span>Computed from</span></div>
+      <div style="display:grid;grid-template-columns:1.3fr 2.2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Home · total minutes</span><span><code style="background:#EDF0F4;border-radius:4px;padding:1px 5px;font-size:12px">Routes.computeRoutes(user→port).duration</code> + prediction service wait at ETA hour, per selected lane type</span></div>
+      <div style="display:grid;grid-template-columns:1.3fr 2.2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Home · "wait on arrival"</span><span>Forecast curve sampled at now + drive time; falls back to current CBP/CBSA wait if horizon &lt; 20 min</span></div>
+      <div style="display:grid;grid-template-columns:1.3fr 2.2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Trend arrow</span><span>Sign of forecast slope over next 60 min (▲ ▼ ▬)</span></div>
+      <div style="display:grid;grid-template-columns:1.3fr 2.2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Map pin bubbles</span><span>Same total as Home; pin coordinates from CBP port geodata; tiles MapKit (iOS)</span></div>
+      <div style="display:grid;grid-template-columns:1.3fr 2.2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Detail · headline ± range</span><span>Prediction service P50 at arrival hour; ± is the P20–P80 spread</span></div>
+      <div style="display:grid;grid-template-columns:1.3fr 2.2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Detail · 12-hr bars + bands</span><span>Hourly P50 bars; shaded cap = P80; lane tabs re-query per lane type (CBP reports each separately)</span></div>
+      <div style="display:grid;grid-template-columns:1.3fr 2.2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">"ESTIMATED" badge</span><span>Feed age &gt; 30 min → value interpolated from history and flagged (never silently shown as live)</span></div>
+      <div style="display:grid;grid-template-columns:1.3fr 2.2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Trips · leave-by time</span><span>Solve leave-time t where t + drive(t) + wait(t + drive) = target arrival; drive(t) via Routes departure-time ETAs</span></div>
+      <div style="display:grid;grid-template-columns:1.3fr 2.2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Route handoff</span><span>Deep links: <code style="background:#EDF0F4;border-radius:4px;padding:1px 5px;font-size:12px">comgooglemaps://?daddr=…</code> / <code style="background:#EDF0F4;border-radius:4px;padding:1px 5px;font-size:12px">maps://?daddr=…</code> to port plaza coordinates</span></div>
+      <div style="display:grid;grid-template-columns:1.3fr 2.2fr;padding:12px 16px;border-top:1px solid #EBEFF4;font-size:13px;color:#33465C"><span style="font-weight:700;color:#0B1F33">Alerts (4 types)</span><span>Server rules on feed deltas + trip windows + route corridor geofences → APNs; local notifications mirror when app is foregrounded</span></div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <h2 style="margin:0;font-size:18px;font-weight:800;color:#0B1F33">4 · Honest limits</h2>
+    <ul style="margin:0;padding-left:20px;font-size:13px;color:#33465C;line-height:1.8">
+      <li>CBP waits are officer-reported at ~hourly-or-better cadence — treat them as ±10 min ground truth, which is why the UI leads with predictions and ranges, not raw feed numbers.</li>
+      <li>Southbound (into Mexico) has no official feed; those directions would need crowdsourcing or camera partnerships and are out of v1 scope.</li>
+      <li>Google Routes pricing means ETAs are batched (one matrix call per re-rank, not per port) and cached for 2 min.</li>
+    </ul>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

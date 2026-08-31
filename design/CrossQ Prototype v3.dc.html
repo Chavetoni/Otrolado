@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>body{margin:0;background:#E8ECF1;font-family:'Schibsted Grotesk',system-ui,sans-serif}a{color:#17427A}a:hover{color:#0F2E56}</style></helmet>
+<div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:32px;padding:32px">
+<div data-screen-label="App" style="display:flex;flex-direction:column;align-items:center;gap:14px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#F4F6F9;font-family:'Schibsted Grotesk',system-ui,sans-serif;position:relative">
+
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+    <div style="padding:72px 20px 0;display:flex;align-items:flex-start;justify-content:space-between">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div onClick="{{ openCity }}" style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#5A6B80;cursor:pointer"><svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="none" stroke="#1E8E5A" stroke-width="1.5"></circle><circle cx="5" cy="5" r="1.6" fill="#1E8E5A"></circle></svg>{{ nearTxt }}<svg width="8" height="5" viewBox="0 0 8 5"><path d="M1 1l3 3 3-3" stroke="#8595A8" stroke-width="1.4" fill="none" stroke-linecap="round"></path></svg></div>
+        <div onClick="{{ openPersona }}" style="font-size:28px;font-weight:800;color:#0B1F33;letter-spacing:-0.5px;cursor:pointer">Crossings</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <div onClick="{{ openPersona }}" style="width:38px;height:38px;border-radius:19px;background:#E3EAF4;border:1px solid #C6D4E6;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="border-color:#17427A">
+          <sc-if value="{{ personaIsVeh }}" hint-placeholder-val="{{ true }}"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" fill="#17427A"></path></svg></sc-if>
+          <sc-if value="{{ personaIsWalk }}" hint-placeholder-val="{{ false }}"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.56-.89-1.68-1.25-2.65-.84L6 8.3V13h2V9.6l1.8-.7z" fill="#17427A"></path></svg></sc-if>
+          <sc-if value="{{ personaIsCargo }}" hint-placeholder-val="{{ false }}"><svg width="19" height="19" viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" fill="#17427A"></path></svg></sc-if>
+        </div>
+        <div onClick="{{ openSettings }}" style="width:38px;height:38px;border-radius:19px;background:#fff;border:1px solid #D8DFE8;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="border-color:#17427A"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.6" fill="none" stroke="#17427A" stroke-width="1.5"></circle><path d="M9 1.8v2M9 14.2v2M1.8 9h2M14.2 9h2M3.9 3.9l1.4 1.4M12.7 12.7l1.4 1.4M14.1 3.9l-1.4 1.4M5.3 12.7l-1.4 1.4" stroke="#17427A" stroke-width="1.5" stroke-linecap="round"></path></svg></div>
+      </div>
+    </div>
+    <sc-if value="{{ surge }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:12px 20px 0;background:#FBEAE6;border:1px solid #EFC5BB;border-radius:12px;padding:10px 14px;display:flex;gap:10px;align-items:center"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1.5L15 14H1L8 1.5z" fill="none" stroke="#C0392B" stroke-width="1.5" stroke-linejoin="round"></path><path d="M8 6v3.4" stroke="#C0392B" stroke-width="1.5" stroke-linecap="round"></path><circle cx="8" cy="11.6" r="0.9" fill="#C0392B"></circle></svg><div style="flex:1;font-size:12px;color:#7A3B31;line-height:1.4"><span style="font-weight:700">Gateway: 2 of 5 lanes open</span> until 5 PM — construction. Waits are climbing fast.</div></div>
+    </sc-if>
+    <div style="margin:12px 20px 0;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #D8DFE8;border-radius:12px;padding:10px 12px">
+      <div style="width:30px;height:30px;border-radius:15px;background:#E3EAF4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 1.5l3 3H9v4H7v-4H5l3-3zM8 14.5l-3-3h2v-4h2v4h2l-3 3z" fill="#17427A"></path></svg></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:1px;min-width:0">
+        <span style="font-size:13px;font-weight:700;color:#0B1F33">{{ dirHeadTxt }}</span>
+        <span style="font-size:10.5px;color:#8595A8">{{ dirNote }}</span>
+      </div>
+      <div onClick="{{ flipDir }}" style="display:flex;align-items:center;gap:5px;background:#EDF0F4;border-radius:8px;padding:6px 10px;cursor:pointer;flex-shrink:0" style-hover="background:#E2E7EE"><svg width="11" height="11" viewBox="0 0 14 14"><path d="M3 5h7L8 3M11 9H4l2 2" stroke="#17427A" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="font-size:11px;font-weight:700;color:#17427A">Flip</span></div>
+    </div>
+    <div style="margin:12px 20px 0;position:relative;display:flex;background:#E2E7EE;border-radius:10px;padding:3px">
+      <div style="position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / 3);transform:translateX({{ modePillX }});background:#fff;border-radius:8px;box-shadow:0 1px 2px rgba(11,31,51,.1);transition:transform .32s cubic-bezier(.3,.9,.35,1)"></div>
+      <sc-for list="{{ modeTabs }}" as="m" hint-placeholder-count="3">
+        <div onClick="{{ m.set }}" style="flex:1;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0 5px;border-radius:8px;cursor:pointer">
+          <div style="height:16px;display:flex;align-items:center">
+            <sc-if value="{{ m.isVeh }}" hint-placeholder-val="{{ true }}"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" fill="{{ m.col }}"></path></svg></sc-if>
+            <sc-if value="{{ m.isWalk }}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.56-.89-1.68-1.25-2.65-.84L6 8.3V13h2V9.6l1.8-.7z" fill="{{ m.col }}"></path></svg></sc-if>
+            <sc-if value="{{ m.isCargo }}" hint-placeholder-val="{{ false }}"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" fill="{{ m.col }}"></path></svg></sc-if>
+          </div>
+          <span style="font-size:11.5px;font-weight:{{ m.fw }};color:{{ m.col }}">{{ m.label }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div onClick="{{ openBest }}" style="margin:14px 20px 0;background:#17427A;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;cursor:pointer">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9DB8DB">Fastest door-to-door</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="font-size:17px;font-weight:700;color:#fff">{{ best.name }}</div>
+          <div style="font-size:12px;color:#B9CCE4">{{ best.saveTxt }}</div>
+        </div>
+        <div style="background:#1E8E5A;border-radius:10px;padding:8px 14px;display:flex;align-items:baseline;gap:2px"><span style="font-size:22px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums">{{ best.total }}</span><span style="font-size:12px;font-weight:600;color:#CDEDDD">min</span></div>
+      </div>
+      <sc-if value="{{ bestWhy }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:flex-start;gap:6px;border-top:1px solid rgba(255,255,255,.14);padding-top:8px"><svg width="12" height="12" viewBox="0 0 16 16" style="margin-top:1px;flex-shrink:0"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#F2C14E" stroke-width="1.5"></circle><path d="M8 5v3.4M8 10.8v.4" stroke="#F2C14E" stroke-width="1.5" stroke-linecap="round"></path></svg><span style="font-size:11px;color:#B9CCE4;line-height:1.4">{{ bestWhyTxt }}</span></div>
+      </sc-if>
+    </div>
+    <div style="margin:14px 20px 0;border-radius:16px;overflow:hidden;border:1px solid #D8DFE8;position:relative;background:#EFEDE6;height:260px;flex-shrink:0">
+      <svg width="100%" height="100%" viewBox="0 0 362 260" preserveAspectRatio="xMidYMid slice">
+        <rect width="362" height="260" fill="#EFEDE6"></rect>
+        <path d="M-10 53 C60 65 90 94 118 118 C150 146 148 177 180 202 C204 221 260 232 372 238 L372 270 L-10 270 Z" fill="#E7E2D4"></path>
+        <path d="M-10 50 C60 62 92 91 120 115 C152 143 150 174 182 199 C206 218 262 229 372 234" fill="none" stroke="#A9C7E4" stroke-width="12" stroke-linecap="round"></path>
+        <path d="M235 260 L235 182 C235 155 240 122 232 83 C228 60 234 22 240 -6" fill="none" stroke="#fff" stroke-width="6"></path>
+        <path d="M235 182 C200 166 150 144 96 128 C70 121 40 105 24 88" fill="none" stroke="#fff" stroke-width="4.5"></path>
+        <path d="M235 111 C280 105 320 100 372 97" fill="none" stroke="#fff" stroke-width="4.5"></path>
+        <path d="M212 260 C214 243 222 227 235 215" fill="none" stroke="#fff" stroke-width="4.5"></path>
+        <text x="243" y="70" font-family="Schibsted Grotesk, sans-serif" font-size="9.5" font-weight="700" fill="#B9B2A0">I-35</text>
+        <text x="100" y="142" font-family="Schibsted Grotesk, sans-serif" font-size="9.5" font-weight="700" fill="#B9B2A0" transform="rotate(17 100 142)">FM 1472 · Mines Rd</text>
+        <text x="285" y="92" font-family="Schibsted Grotesk, sans-serif" font-size="9.5" font-weight="700" fill="#B9B2A0">US-59</text>
+        <text x="272" y="170" font-family="Schibsted Grotesk, sans-serif" font-size="12" font-weight="800" fill="#8B8574">LAREDO</text>
+        <text x="50" y="238" font-family="Schibsted Grotesk, sans-serif" font-size="12" font-weight="800" fill="#8B8574">NUEVO LAREDO</text>
+        <text x="146" y="150" font-family="Schibsted Grotesk, sans-serif" font-size="9" font-weight="600" fill="#7FA6C9" transform="rotate(33 146 150)">Rio Grande</text>
+        <circle cx="{{ youX }}" cy="{{ youY }}" r="5.5" fill="#17427A" opacity="0.9"></circle>
+        <circle cx="{{ youX }}" cy="{{ youY }}" r="10" fill="none" stroke="#17427A" stroke-width="1.5" opacity="0.35"></circle>
+        <text x="{{ youLX }}" y="{{ youLY }}" font-family="Schibsted Grotesk, sans-serif" font-size="10" font-weight="700" fill="#17427A">You</text>
+      </svg>
+      <div style="position:absolute;top:10px;right:10px;font-size:10px;font-weight:700;color:#17427A;background:rgba(255,255,255,.9);border-radius:7px;padding:4px 8px">{{ modeLabel }} · total min</div>
+      <div style="position:absolute;bottom:8px;right:10px;display:flex;gap:9px;background:rgba(255,255,255,.88);border-radius:7px;padding:4px 8px">
+        <div style="display:flex;align-items:center;gap:4px;font-size:9.5px;font-weight:600;color:#5A6B80"><div style="width:8px;height:8px;border-radius:4px;background:#1E8E5A"></div>&lt;50m</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:9.5px;font-weight:600;color:#5A6B80"><div style="width:8px;height:8px;border-radius:4px;background:#C77E14"></div>50–65m</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:9.5px;font-weight:600;color:#5A6B80"><div style="width:8px;height:8px;border-radius:4px;background:#C0392B"></div>&gt;65m</div>
+      </div>
+      <sc-for list="{{ pins }}" as="pin" hint-placeholder-count="3">
+        <div onClick="{{ pin.open }}" style="position:absolute;left:{{ pin.x }}px;top:{{ pin.y }}px;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;cursor:pointer">
+          <div style="background:{{ pin.bg }};color:#fff;border-radius:10px;padding:4px 8px;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;box-shadow:0 2px 6px rgba(11,31,51,.25);white-space:nowrap">{{ pin.txt }}</div>
+          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid {{ pin.bg }}"></div>
+          <div style="margin-top:2px;font-size:9px;font-weight:700;color:#4A5A6C;background:rgba(255,255,255,.85);border-radius:5px;padding:1px 5px;white-space:nowrap">{{ pin.name }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;padding:0 20px 108px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#5A6B80">Ranked by total time</span><span style="font-size:11px;color:#8595A8">drive + wait at arrival</span></div>
+      <sc-for list="{{ ports }}" as="p" hint-placeholder-count="3">
+        <div onClick="{{ p.open }}" style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer" style-hover="border-color:#17427A;box-shadow:0 2px 8px rgba(11,31,51,.08)">
+          <div style="width:24px;height:24px;border-radius:12px;background:{{ p.rankBg }};color:{{ p.rankCol }};font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">{{ p.rank }}</div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+            <div style="font-size:15px;font-weight:700;color:#0B1F33">{{ p.name }}</div>
+            <sc-if value="{{ p.twoCol }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:12px;color:#5A6B80">{{ p.drive }} min drive · waits on arrival:</div>
+            <div style="display:flex;gap:6px;margin-top:1px">
+              <div style="display:flex;align-items:center;gap:4px;background:#EDF0F4;border-radius:6px;padding:2px 7px"><span style="font-size:9px;font-weight:800;letter-spacing:.4px;color:#5A6B80">STD</span><span style="font-size:11px;font-weight:800;color:{{ p.waitCol }};font-variant-numeric:tabular-nums">{{ p.arr }}m</span></div>
+              <div style="display:flex;align-items:center;gap:4px;background:{{ p.senBg }};border-radius:6px;padding:2px 7px"><span style="font-size:9px;font-weight:800;letter-spacing:.4px;color:{{ p.senLab }}">SENTRI</span><span style="font-size:11px;font-weight:800;color:{{ p.senCol }};font-variant-numeric:tabular-nums">{{ p.senTxt }}</span></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ p.notTwoCol }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12px;color:#5A6B80">{{ p.drive }} min drive · <span style="color:{{ p.waitCol }};font-weight:600">{{ p.arr }} min wait</span> on arrival</div>
+          </sc-if>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px"><span style="font-size:20px;font-weight:800;color:#0B1F33;font-variant-numeric:tabular-nums">{{ p.total }}<span style="font-size:12px;font-weight:600;color:#8595A8">m</span></span><span style="font-size:11px;font-weight:700;color:{{ p.trendCol }}">{{ p.trendTxt }}</span></div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ modeNote }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#EDF0F4;border:1px dashed #C6CFDA;border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:12px">
+          <div style="flex:1;font-size:13px;font-weight:600;color:#8595A8">{{ modeNoteName }}</div>
+          <span style="font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#5A6B80;background:#DDE3EB;border-radius:6px;padding:3px 8px">{{ modeNoteTag }}</span>
+        </div>
+      </sc-if>
+      <div style="text-align:center;font-size:10.5px;color:#8595A8;padding-top:2px">{{ sourceNote }}</div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+    <div style="padding:70px 20px 0;display:flex;align-items:center;gap:12px">
+      <div onClick="{{ closeDetail }}" style="width:34px;height:34px;border-radius:17px;background:#fff;border:1px solid #D8DFE8;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="9" height="15" viewBox="0 0 9 15"><path d="M8 1L1.5 7.5 8 14" stroke="#17427A" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+      <div style="display:flex;flex-direction:column;gap:1px;flex:1;min-width:0">
+        <div style="font-size:19px;font-weight:800;color:#0B1F33;letter-spacing:-0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ dp.name }}</div>
+        <div style="font-size:11.5px;color:#5A6B80">{{ dp.sub }}</div>
+      </div>
+      <div style="font-size:10.5px;font-weight:700;color:#1E8E5A;background:#E4F2EA;border-radius:7px;padding:4px 8px;flex-shrink:0">OPEN 24H</div>
+    </div>
+    <sc-if value="{{ hasLanes }}" hint-placeholder-val="{{ true }}">
+    <div style="margin:14px 20px 0;display:flex;background:#E2E7EE;border-radius:10px;padding:3px;gap:2px">
+      <sc-for list="{{ laneTabs }}" as="lt" hint-placeholder-count="3">
+        <div onClick="{{ lt.set }}" style="flex:1;text-align:center;padding:7px 0;background:{{ lt.bg }};border-radius:8px;font-size:12.5px;font-weight:{{ lt.fw }};color:{{ lt.col }};box-shadow:{{ lt.sh }};cursor:pointer">{{ lt.label }}</div>
+      </sc-for>
+    </div>
+    </sc-if>
+    <div style="margin:14px 20px 0;background:#fff;border:1px solid #D8DFE8;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#5A6B80">When you arrive · {{ dp.arriveClock }}</div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:38px;font-weight:800;color:#0B1F33;line-height:1;font-variant-numeric:tabular-nums">{{ dp.arr }}</span><span style="font-size:15px;font-weight:600;color:#5A6B80">min in line</span><span style="font-size:13px;font-weight:700;color:#8595A8">±{{ dp.pm }}</span></div>
+          <div style="font-size:12px;color:#5A6B80">Right now it's about {{ dp.now }} minutes · <span style="font-weight:700;color:{{ dp.trendCol }}">{{ dp.trendTxt }}</span></div>
+        </div>
+        <sc-if value="{{ dp.estimated }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0"><span style="font-size:10px;font-weight:700;letter-spacing:.5px;color:#7A5C12;background:#F6ECD2;border-radius:6px;padding:3px 7px">ESTIMATED</span><span style="font-size:9.5px;color:#8595A8;text-align:right;max-width:90px">feed lagging — modeled from history</span></div>
+        </sc-if>
+      </div>
+      <div style="border-top:1px solid #EBEFF4;padding-top:12px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#5A6B80">Next 12 hours</span><span style="font-size:10.5px;color:#8595A8">shaded = likely range</span></div>
+        <div style="display:flex;align-items:flex-end;gap:3px;height:96px;position:relative">
+          <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12">
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;opacity:{{ b.op }}">
+              <div style="width:100%;height:{{ b.bandH }}px;background:{{ b.bandBg }};border-radius:3px 3px 0 0"></div>
+              <div style="width:100%;height:{{ b.h }}px;background:{{ b.bg }};border-radius:{{ b.rad }}"></div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ dpLocked }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;top:0;bottom:0;right:0;width:62%;background:linear-gradient(90deg,rgba(244,246,249,0) 0%,rgba(244,246,249,.88) 22%,rgba(244,246,249,.94) 100%);display:flex;align-items:center;justify-content:center">
+              <div onClick="{{ openPremium }}" style="display:flex;align-items:center;gap:6px;background:#0B1F33;border-radius:9px;padding:7px 12px;cursor:pointer"><svg width="11" height="13" viewBox="0 0 11 13"><rect x="1" y="5.5" width="9" height="6.5" rx="1.5" fill="#F2C14E"></rect><path d="M3 5.5V4a2.5 2.5 0 015 0v1.5" fill="none" stroke="#F2C14E" stroke-width="1.5"></path></svg><span style="font-size:11.5px;font-weight:700;color:#fff">See beyond 3 hrs</span></div>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;gap:3px">
+          <sc-for list="{{ bars }}" as="b" hint-placeholder-count="12">
+            <div style="flex:1;text-align:center;font-size:8.5px;font-weight:{{ b.lfw }};color:{{ b.lcol }}">{{ b.label }}</div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:#5A6B80"><div style="width:8px;height:8px;border-radius:4px;background:#17427A"></div>you'd arrive around {{ dp.arriveClock }}</div>
+      </div>
+    </div>
+    <sc-if value="{{ isCargoDetail }}" hint-placeholder-val="{{ false }}">
+    <div style="margin:10px 20px 0;background:#fff;border:1px solid #D8DFE8;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#5A6B80">Commercial lanes</div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;background:#E4F2EA;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:1px"><span style="font-size:10px;font-weight:800;letter-spacing:.5px;color:#1E8E5A">FAST</span><span style="font-size:22px;font-weight:800;color:#0B1F33;font-variant-numeric:tabular-nums">{{ dpFast }}<span style="font-size:12px;font-weight:600;color:#5A6B80">m</span></span></div>
+        <div style="flex:1;background:#EDF0F4;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:1px"><span style="font-size:10px;font-weight:800;letter-spacing:.5px;color:#5A6B80">STANDARD</span><span style="font-size:22px;font-weight:800;color:#0B1F33;font-variant-numeric:tabular-nums">{{ dpStd }}<span style="font-size:12px;font-weight:600;color:#5A6B80">m</span></span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;border-top:1px solid #EBEFF4;padding-top:10px"><svg width="15" height="15" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5" fill="none" stroke="#5A6B80" stroke-width="1.5"></circle><path d="M10.5 10.5L14 14" stroke="#5A6B80" stroke-width="1.5" stroke-linecap="round"></path></svg><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:12.5px;font-weight:700;color:#0B1F33">Inspection</span><span style="font-size:11px;color:#5A6B80">{{ dpInsp }}</span></div></div>
+      <div style="display:flex;align-items:center;gap:9px"><svg width="15" height="15" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#5A6B80" stroke-width="1.5"></circle><path d="M8 4.5V8l2.3 1.6" stroke="#5A6B80" stroke-width="1.5" fill="none" stroke-linecap="round"></path></svg><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:12.5px;font-weight:700;color:#0B1F33">Docks &amp; brokers</span><span style="font-size:11px;color:#5A6B80">{{ dpDocks }}</span></div></div>
+    </div>
+    </sc-if>
+    <div onClick="{{ openPatterns }}" style="margin:10px 20px 0;background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer" style-hover="border-color:#C7A23A">
+      <svg width="15" height="17" viewBox="0 0 11 13"><rect x="1" y="5.5" width="9" height="6.5" rx="1.5" fill="#C7A23A"></rect><path d="M3 5.5V4a2.5 2.5 0 015 0v1.5" fill="none" stroke="#C7A23A" stroke-width="1.5"></path></svg>
+      <div style="flex:1;display:flex;flex-direction:column;gap:1px"><span style="font-size:13.5px;font-weight:700;color:#0B1F33">Day-of-week patterns</span><span style="font-size:11.5px;color:#5A6B80">Typical Tuesdays here, hour by hour</span></div>
+      <span style="font-size:10.5px;font-weight:700;color:#7A5C12;background:#F6ECD2;border-radius:6px;padding:3px 8px">PLUS</span>
+    </div>
+    <div style="margin:10px 20px 0;display:flex;gap:8px;padding-bottom:16px">
+      <div onClick="{{ openRoute }}" style="flex:1;background:#17427A;border-radius:12px;padding:13px;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer" style-hover="background:#0F2E56"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1l6 6-6 6-1.5-1.5L9 8H1V6h8L5.5 2.5z" fill="#fff"></path></svg><span style="font-size:14px;font-weight:700;color:#fff">Route here</span></div>
+      <div style="width:110px;background:#fff;border:1px solid #D8DFE8;border-radius:12px;padding:13px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer"><svg width="13" height="15" viewBox="0 0 13 15"><path d="M6.5 1.5c-2.2 0-3.6 1.6-3.6 3.6v2.5l-1.1 2.2h9.4l-1.1-2.2V5.1c0-2-1.4-3.6-3.6-3.6z" fill="none" stroke="#17427A" stroke-width="1.4" stroke-linejoin="round"></path><path d="M5.2 11.7a1.3 1.3 0 002.6 0" fill="none" stroke="#17427A" stroke-width="1.4"></path></svg><span style="font-size:12.5px;font-weight:700;color:#17427A">Alert me</span></div>
+    </div>
+    <div style="text-align:center;font-size:10.5px;color:#8595A8;padding-bottom:108px">{{ sourceNoteDetail }}</div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isTrips }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+    <div style="padding:72px 20px 0;display:flex;flex-direction:column;gap:2px">
+      <div style="font-size:12px;font-weight:600;color:#5A6B80">Plan a crossing</div>
+      <div style="font-size:28px;font-weight:800;color:#0B1F33;letter-spacing:-0.5px">Trips</div>
+    </div>
+    <sc-if value="{{ tripIsSetup }}" hint-placeholder-val="{{ true }}">
+    <div style="margin:14px 20px 0;background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#5A6B80">Starting from</span>
+      <sc-for list="{{ fromOpts }}" as="f" hint-placeholder-count="2">
+        <div onClick="{{ f.set }}" style="display:flex;align-items:center;gap:10px;border:1.5px solid {{ f.bord }};border-radius:12px;padding:11px 13px;cursor:pointer">
+          <div style="width:18px;height:18px;border-radius:9px;border:1.5px solid {{ f.ring }};display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:9px;height:9px;border-radius:5px;background:{{ f.dot }}"></div></div>
+          <div style="flex:1;display:flex;flex-direction:column"><span style="font-size:13.5px;font-weight:700;color:#0B1F33">{{ f.name }}</span><span style="font-size:11px;color:#5A6B80">{{ f.sub }}</span></div>
+        </div>
+      </sc-for>
+      <div style="display:flex;gap:7px;align-items:flex-start"><svg width="12" height="13" viewBox="0 0 11 13" style="margin-top:1px;flex-shrink:0"><rect x="1" y="5.5" width="9" height="6.5" rx="1.5" fill="none" stroke="#8595A8" stroke-width="1.3"></rect><path d="M3 5.5V4a2.5 2.5 0 015 0v1.5" fill="none" stroke="#8595A8" stroke-width="1.3"></path></svg><span style="font-size:10.5px;color:#8595A8;line-height:1.4">Used once to build this plan — never uploaded or stored off this phone.</span></div>
+    </div>
+    <div style="margin:10px 20px 0;background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#5A6B80">Going to · {{ tripSideTxt }}</span><div onClick="{{ flipDir }}" style="display:flex;align-items:center;gap:4px;background:#EDF0F4;border-radius:7px;padding:4px 8px;cursor:pointer"><svg width="10" height="10" viewBox="0 0 14 14"><path d="M3 5h7L8 3M11 9H4l2 2" stroke="#17427A" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="font-size:10.5px;font-weight:700;color:#17427A">Flip</span></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">
+        <sc-for list="{{ destChips }}" as="c" hint-placeholder-count="3">
+          <div onClick="{{ c.set }}" style="padding:8px 13px;border-radius:17px;border:1.5px solid {{ c.bord }};background:{{ c.bg }};font-size:12px;font-weight:{{ c.fw }};color:{{ c.col }};cursor:pointer">{{ c.label }}</div>
+        </sc-for>
+      </div>
+      <span style="font-size:10.5px;color:#8595A8;line-height:1.4">A neighborhood is enough — we only need it to pick the right bridge.</span>
+    </div>
+    <div style="margin:10px 20px 0;display:flex;background:#E2E7EE;border-radius:10px;padding:3px;gap:2px">
+      <div onClick="{{ setArrive }}" style="flex:1;text-align:center;padding:7px 0;background:{{ planA.bg }};border-radius:8px;font-size:12.5px;font-weight:{{ planA.fw }};color:{{ planA.col }};box-shadow:{{ planA.sh }};cursor:pointer">Arrive by</div>
+      <div onClick="{{ setLeave }}" style="flex:1;text-align:center;padding:7px 0;background:{{ planB.bg }};border-radius:8px;font-size:12.5px;font-weight:{{ planB.fw }};color:{{ planB.col }};box-shadow:{{ planB.sh }};cursor:pointer">Leave at</div>
+    </div>
+    <div style="margin:10px 20px 0;display:flex;gap:6px">
+      <sc-for list="{{ tripDays }}" as="td" hint-placeholder-count="5">
+        <div onClick="{{ td.set }}" style="flex:1;text-align:center;padding:8px 0;border-radius:10px;background:{{ td.bg }};border:1.5px solid {{ td.bord }};font-size:12px;font-weight:{{ td.fw }};color:{{ td.col }};cursor:pointer">{{ td.label }}</div>
+      </sc-for>
+    </div>
+    <sc-if value="{{ tripLockNote }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:7px 20px 0;text-align:center;font-size:10.5px;color:#8595A8">Planning ahead uses day-of-week patterns — part of Plus</div>
+    </sc-if>
+    <div style="margin:14px 20px 0;background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px">
+      <div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#5A6B80">{{ plan.inputLabel }}</span><span style="font-size:22px;font-weight:800;color:#0B1F33;font-variant-numeric:tabular-nums">{{ plan.inputTime }}</span><span style="font-size:11.5px;color:#8595A8">{{ plan.inputSub }}</span></div>
+      <div style="display:flex;flex-direction:column;gap:4px"><div style="width:28px;height:28px;border-radius:8px;background:#EDF0F4;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="10" height="6" viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="#17427A" stroke-width="1.6" fill="none" stroke-linecap="round"></path></svg></div><div style="width:28px;height:28px;border-radius:8px;background:#EDF0F4;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="#17427A" stroke-width="1.6" fill="none" stroke-linecap="round"></path></svg></div></div>
+    </div>
+    <div onClick="{{ buildTrip }}" style="margin:14px 20px 0;background:#1E8E5A;border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer" style-hover="background:#177A4C"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1l6 6-6 6-1.5-1.5L9 8H1V6h8L5.5 2.5z" fill="#fff"></path></svg><span style="font-size:14px;font-weight:700;color:#fff">Build my plan</span></div>
+    <div style="margin:8px 20px 0;text-align:center;font-size:10.5px;color:#8595A8;padding-bottom:108px">Uses typical waits for that day &amp; hour — 12 weeks of history</div>
+    </sc-if>
+    <sc-if value="{{ tripIsPlan }}" hint-placeholder-val="{{ false }}">
+    <div style="margin:14px 20px 0;display:flex;align-items:center;gap:10px">
+      <div style="flex:1;display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:13.5px;font-weight:700;color:#0B1F33">{{ tripSummary }}</span><span style="font-size:11px;color:#5A6B80">{{ tripSummarySub }}</span></div>
+      <div onClick="{{ editTrip }}" style="display:flex;align-items:center;gap:4px;background:#EDF0F4;border-radius:8px;padding:6px 10px;cursor:pointer;flex-shrink:0"><svg width="11" height="11" viewBox="0 0 14 14"><path d="M10 1.5l2.5 2.5L5 11.5 2 12l.5-3z" fill="none" stroke="#17427A" stroke-width="1.4" stroke-linejoin="round"></path></svg><span style="font-size:11px;font-weight:700;color:#17427A">Edit</span></div>
+    </div>
+    <div style="margin:12px 20px 0;background:#17427A;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9DB8DB">Recommended</span><span style="font-size:11px;font-weight:700;color:#CDEDDD">via {{ plan.via }}</span></div>
+      <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:26px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap">{{ plan.headline }}</span><span style="font-size:13px;font-weight:600;color:#B9CCE4">{{ plan.headlineSub }}</span></div>
+      <sc-if value="{{ planHist }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:6px;font-size:10.5px;color:#9DB8DB"><svg width="11" height="11" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#9DB8DB" stroke-width="1.5"></circle><path d="M8 4.5V8l2.3 1.6" stroke="#9DB8DB" stroke-width="1.5" fill="none" stroke-linecap="round"></path></svg>From typical {{ planDayName }} patterns — re-checked live on the day</div>
+      </sc-if>
+      <div style="display:flex;align-items:center;gap:0;background:rgba(255,255,255,.08);border-radius:10px;padding:10px 12px">
+        <sc-for list="{{ plan.steps }}" as="s" hint-placeholder-count="4">
+          <div style="flex:{{ s.flex }};display:flex;flex-direction:column;gap:3px;min-width:0">
+            <div style="display:flex;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:4px;background:{{ s.dot }};flex-shrink:0"></div><sc-if value="{{ s.line }}" hint-placeholder-val="{{ true }}"><div style="flex:1;height:2px;background:rgba(255,255,255,.25);border-radius:1px"></div></sc-if></div>
+            <span style="font-size:10px;font-weight:700;color:#fff;white-space:nowrap">{{ s.t }}</span>
+            <span style="font-size:9px;color:#9DB8DB;white-space:nowrap">{{ s.d }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;background:#1E8E5A;border-radius:10px;padding:11px;justify-content:center;cursor:pointer"><svg width="13" height="15" viewBox="0 0 13 15"><path d="M6.5 1.5c-2.2 0-3.6 1.6-3.6 3.6v2.5l-1.1 2.2h9.4l-1.1-2.2V5.1c0-2-1.4-3.6-3.6-3.6z" fill="none" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"></path><path d="M5.2 11.7a1.3 1.3 0 002.6 0" fill="none" stroke="#fff" stroke-width="1.4"></path></svg><span style="font-size:13.5px;font-weight:700;color:#fff">{{ plan.alertCta }}</span></div>
+    </div>
+    <div style="margin:14px 20px 0;display:flex;flex-direction:column;gap:8px;padding-bottom:108px">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#5A6B80">Other options</span>
+      <sc-for list="{{ plan.alts }}" as="a" hint-placeholder-count="2">
+        <div style="background:#fff;border:1px solid #D8DFE8;border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:10px">
+          <div style="flex:1;display:flex;flex-direction:column;gap:1px"><span style="font-size:13.5px;font-weight:700;color:#0B1F33">{{ a.name }}</span><span style="font-size:11.5px;color:#5A6B80">{{ a.sub }}</span></div>
+          <span style="font-size:13px;font-weight:800;color:#5A6B80;font-variant-numeric:tabular-nums">{{ a.t }}</span>
+        </div>
+      </sc-for>
+      <div onClick="{{ openPremium }}" style="background:#fff;border:1px dashed #C7A23A;border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer">
+        <svg width="13" height="15" viewBox="0 0 11 13"><rect x="1" y="5.5" width="9" height="6.5" rx="1.5" fill="#C7A23A"></rect><path d="M3 5.5V4a2.5 2.5 0 015 0v1.5" fill="none" stroke="#C7A23A" stroke-width="1.5"></path></svg>
+        <div style="flex:1;display:flex;flex-direction:column;gap:1px"><span style="font-size:13px;font-weight:700;color:#0B1F33">Multi-stop trips</span><span style="font-size:11.5px;color:#5A6B80">Errands on both sides, one optimized plan</span></div>
+        <span style="font-size:10.5px;font-weight:700;color:#7A5C12;background:#F6ECD2;border-radius:6px;padding:3px 8px">PLUS</span>
+      </div>
+      <div style="text-align:center;font-size:10.5px;color:#8595A8;padding-top:2px">{{ tripDataNote }}</div>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isAlerts }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+    <div style="padding:72px 20px 0;display:flex;flex-direction:column;gap:2px">
+      <div style="font-size:12px;font-weight:600;color:#5A6B80">Otrolado watches, you drive</div>
+      <div style="font-size:28px;font-weight:800;color:#0B1F33;letter-spacing:-0.5px">Alerts</div>
+    </div>
+    <div style="margin:14px 20px 0;background:#fff;border:1px solid #D8DFE8;border-radius:14px;overflow:hidden;display:flex;flex-direction:column">
+      <sc-for list="{{ alertRules }}" as="r" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:{{ r.bord }}">
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:700;color:#0B1F33">{{ r.name }}</span><span style="font-size:11.5px;color:#5A6B80">{{ r.desc }}</span></div>
+          <div onClick="{{ r.toggle }}" style="width:44px;height:26px;border-radius:13px;background:{{ r.tbg }};position:relative;cursor:pointer;flex-shrink:0;transition:background .15s"><div style="position:absolute;top:2px;left:{{ r.knob }}px;width:22px;height:22px;border-radius:11px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s"></div></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="margin:18px 20px 0;display:flex;flex-direction:column;gap:8px;padding-bottom:108px">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#5A6B80">On your lock screen</span>
+      <div style="border-radius:20px;overflow:hidden;background:linear-gradient(160deg,#20344E 0%,#0E1B2C 55%,#1A2438 100%);padding:22px 14px 26px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:0"><span style="font-size:13px;font-weight:600;color:rgba(255,255,255,.75)">Tuesday, August 25</span><span style="font-size:52px;font-weight:700;color:#fff;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:1px">2:41</span></div>
+        <div style="width:100%;display:flex;flex-direction:column;gap:8px">
+          <div style="background:rgba(255,255,255,.16);backdrop-filter:blur(10px);border-radius:16px;padding:11px 13px;display:flex;gap:10px;align-items:flex-start">
+            <div style="width:30px;height:30px;border-radius:8px;background:#17427A;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:800;color:#fff">O</div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:1px"><div style="display:flex;justify-content:space-between"><span style="font-size:12.5px;font-weight:700;color:#fff">Time to leave</span><span style="font-size:10.5px;color:rgba(255,255,255,.6)">now</span></div><span style="font-size:12px;color:rgba(255,255,255,.85);line-height:1.35">Leave by 5:02 PM to make your 6:00 PM arrival via Colombia Solidarity.</span></div>
+          </div>
+          <div style="background:rgba(255,255,255,.16);backdrop-filter:blur(10px);border-radius:16px;padding:11px 13px;display:flex;gap:10px;align-items:flex-start">
+            <div style="width:30px;height:30px;border-radius:8px;background:#17427A;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:800;color:#fff">O</div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:1px"><div style="display:flex;justify-content:space-between"><span style="font-size:12.5px;font-weight:700;color:#fff">Wait spike at Juárez–Lincoln</span><span style="font-size:10.5px;color:rgba(255,255,255,.6)">12m ago</span></div><span style="font-size:12px;color:rgba(255,255,255,.85);line-height:1.35">Jumped 40 → 65 min. Colombia Solidarity is 17 min faster right now.</span></div>
+          </div>
+          <div style="background:rgba(255,255,255,.16);backdrop-filter:blur(10px);border-radius:16px;padding:11px 13px;display:flex;gap:10px;align-items:flex-start">
+            <div style="width:30px;height:30px;border-radius:8px;background:#17427A;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:800;color:#fff">O</div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:1px"><div style="display:flex;justify-content:space-between"><span style="font-size:12.5px;font-weight:700;color:#fff">Better crossing ahead</span><span style="font-size:10.5px;color:rgba(255,255,255,.6)">on route</span></div><span style="font-size:12px;color:rgba(255,255,255,.85);line-height:1.35">Exit 13 in 2 mi switches you to Colombia — saves about 14 minutes.</span></div>
+          </div>
+        </div>
+      </div>
+      <div onClick="{{ openWidgets }}" style="background:#fff;border:1px solid #D8DFE8;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer" style-hover="border-color:#17427A">
+        <div style="width:34px;height:34px;border-radius:9px;background:#E3EAF4;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 16 16"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.5" fill="#17427A"></rect><rect x="9" y="1.5" width="5.5" height="5.5" rx="1.5" fill="#17427A" opacity=".55"></rect><rect x="1.5" y="9" width="5.5" height="5.5" rx="1.5" fill="#17427A" opacity=".55"></rect><rect x="9" y="9" width="5.5" height="5.5" rx="1.5" fill="#17427A"></rect></svg></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:1px"><span style="font-size:13.5px;font-weight:700;color:#0B1F33">Home-screen widgets</span><span style="font-size:11.5px;color:#5A6B80">Live waits without opening the app — free</span></div>
+        <span style="font-size:10.5px;font-weight:700;color:#1E8E5A;background:#E4F2EA;border-radius:6px;padding:3px 8px">NEW</span>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <div style="position:absolute;left:14px;right:14px;bottom:22px;z-index:30;display:flex;align-items:center;background:rgba(255,255,255,.94);backdrop-filter:blur(18px);border-radius:36px;padding:5px;box-shadow:0 12px 32px rgba(11,31,51,.20),0 2px 8px rgba(11,31,51,.08)">
+    <div style="position:absolute;top:5px;bottom:5px;left:5px;width:calc((100% - 10px) / 3);transform:translateX({{ tabPillX }});background:#E9EEF5;border-radius:30px;transition:transform .32s cubic-bezier(.3,.9,.35,1);z-index:0"></div>
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+      <div onClick="{{ t.set }}" style="flex:1;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-radius:30px;padding:9px 0 8px">
+        <sc-if value="{{ t.isHome }}" hint-placeholder-val="{{ true }}"><svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="3" rx="1.5" fill="{{ t.col }}"></rect><rect x="3" y="9" width="14" height="3" rx="1.5" fill="{{ t.col }}"></rect><rect x="3" y="14" width="9" height="3" rx="1.5" fill="{{ t.col }}"></rect></svg></sc-if>
+        <sc-if value="{{ t.isTrips }}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="{{ t.col }}" stroke-width="1.5"></circle><path d="M10 6v4l3 2" fill="none" stroke="{{ t.col }}" stroke-width="1.5" stroke-linecap="round"></path></svg></sc-if>
+        <sc-if value="{{ t.isAlerts }}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 3c-2.5 0-4 1.8-4 4v3l-1.2 2.5h10.4L14 10V7c0-2.2-1.5-4-4-4z" fill="none" stroke="{{ t.col }}" stroke-width="1.5" stroke-linejoin="round"></path></svg></sc-if>
+        <span style="font-size:10.5px;font-weight:{{ t.fw }};color:{{ t.col }};letter-spacing:.1px">{{ t.label }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;justify-content:flex-end">
+    <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(11,31,51,.45)"></div>
+    <div style="position:relative;background:#fff;border-radius:22px 22px 0 0;padding:10px 20px 40px;display:flex;flex-direction:column;gap:0;box-shadow:0 -8px 30px rgba(11,31,51,.25)">
+      <div style="width:38px;height:5px;border-radius:3px;background:#D8DFE8;align-self:center;margin-bottom:14px"></div>
+
+      <sc-if value="{{ isRouteSheet }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:14px"><span style="font-size:18px;font-weight:800;color:#0B1F33">Route to {{ dp.name }}</span><span style="font-size:12.5px;color:#5A6B80">{{ dp.routeSub }}</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="background:#17427A;border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" style-hover="background:#0F2E56"><span style="font-size:14px;font-weight:700;color:#fff">Continue in Google Maps</span><svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 2h8v8M12 2L2 12" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"></path></svg></div>
+          <div style="background:#fff;border:1px solid #D8DFE8;border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer"><span style="font-size:14px;font-weight:700;color:#17427A">Continue in Apple Maps</span><svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 2h8v8M12 2L2 12" stroke="#17427A" stroke-width="1.8" fill="none" stroke-linecap="round"></path></svg></div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 2px"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 1a5 5 0 015 5c0 3.5-5 9-5 9S3 9.5 3 6a5 5 0 015-5z" fill="none" stroke="#5A6B80" stroke-width="1.4"></path><circle cx="8" cy="6" r="1.8" fill="#5A6B80"></circle></svg><span style="font-size:11.5px;color:#5A6B80;line-height:1.4">Otrolado keeps watching while you drive — if another crossing gets faster, you'll get a heads-up with the exit to take.</span></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPremiumSheet }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:16px">
+          <div style="width:44px;height:44px;border-radius:12px;background:#0B1F33;display:flex;align-items:center;justify-content:center;margin-bottom:4px"><svg width="18" height="21" viewBox="0 0 11 13"><rect x="1" y="5.5" width="9" height="6.5" rx="1.5" fill="#F2C14E"></rect><path d="M3 5.5V4a2.5 2.5 0 015 0v1.5" fill="none" stroke="#F2C14E" stroke-width="1.5"></path></svg></div>
+          <span style="font-size:20px;font-weight:800;color:#0B1F33">Otrolado Plus</span><span style="font-size:12.5px;color:#5A6B80">For people who cross all the time</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="15" height="15" viewBox="0 0 15 15" style="margin-top:1px;flex-shrink:0"><circle cx="7.5" cy="7.5" r="7" fill="#E4F2EA"></circle><path d="M4.5 7.5l2 2 4-4" stroke="#1E8E5A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg><div style="display:flex;flex-direction:column"><span style="font-size:13.5px;font-weight:700;color:#0B1F33">Full 12-hour forecasts</span><span style="font-size:11.5px;color:#5A6B80">Free shows the next 3 hours</span></div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="15" height="15" viewBox="0 0 15 15" style="margin-top:1px;flex-shrink:0"><circle cx="7.5" cy="7.5" r="7" fill="#E4F2EA"></circle><path d="M4.5 7.5l2 2 4-4" stroke="#1E8E5A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg><div style="display:flex;flex-direction:column"><span style="font-size:13.5px;font-weight:700;color:#0B1F33">Day-of-week patterns</span><span style="font-size:11.5px;color:#5A6B80">Know a typical Friday before you plan one</span></div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start"><svg width="15" height="15" viewBox="0 0 15 15" style="margin-top:1px;flex-shrink:0"><circle cx="7.5" cy="7.5" r="7" fill="#E4F2EA"></circle><path d="M4.5 7.5l2 2 4-4" stroke="#1E8E5A" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg><div style="display:flex;flex-direction:column"><span style="font-size:13.5px;font-weight:700;color:#0B1F33">Multi-stop trip plans</span><span style="font-size:11.5px;color:#5A6B80">Errands on both sides, one optimized route</span></div></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1;background:#0B1F33;border-radius:12px;padding:13px;display:flex;flex-direction:column;align-items:center;cursor:pointer"><span style="font-size:14px;font-weight:800;color:#fff">$1.99 / month</span><span style="font-size:10.5px;color:#9DB8DB">7 days free</span></div>
+          <div style="flex:1;background:#fff;border:1px solid #D8DFE8;border-radius:12px;padding:13px;display:flex;flex-direction:column;align-items:center;cursor:pointer"><span style="font-size:14px;font-weight:800;color:#0B1F33">$14.99 / year</span><span style="font-size:10.5px;color:#8595A8">save 37%</span></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isSettingsSheet }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:14px"><span style="font-size:18px;font-weight:800;color:#0B1F33">Settings</span><span style="font-size:12.5px;color:#5A6B80">Stored on this phone — no account needed</span></div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#5A6B80">Drive times from</span>
+            <div onClick="{{ setEtaGoogle }}" style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid {{ etaG.bord }};border-radius:12px;padding:12px 14px;cursor:pointer"><div style="width:18px;height:18px;border-radius:9px;border:1.5px solid {{ etaG.ring }};display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:5px;background:{{ etaG.dot }}"></div></div><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:13.5px;font-weight:700;color:#0B1F33">Google Routes</span><span style="font-size:11px;color:#5A6B80">Traffic-aware, best coverage in Mexico</span></div></div>
+            <div onClick="{{ setEtaApple }}" style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid {{ etaA.bord }};border-radius:12px;padding:12px 14px;cursor:pointer"><div style="width:18px;height:18px;border-radius:9px;border:1.5px solid {{ etaA.ring }};display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:5px;background:{{ etaA.dot }}"></div></div><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:13.5px;font-weight:700;color:#0B1F33">Apple Maps</span><span style="font-size:11px;color:#5A6B80">Kinder to battery, native ETAs</span></div></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;background:#fff;border:1px solid #D8DFE8;border-radius:12px;padding:11px 14px;display:flex;flex-direction:column;gap:1px"><span style="font-size:10.5px;font-weight:700;color:#5A6B80">Distances</span><span style="font-size:13.5px;font-weight:700;color:#0B1F33">Miles</span></div>
+            <div style="flex:1;background:#fff;border:1px solid #D8DFE8;border-radius:12px;padding:11px 14px;display:flex;flex-direction:column;gap:1px"><span style="font-size:10.5px;font-weight:700;color:#5A6B80">Clock</span><span style="font-size:13.5px;font-weight:700;color:#0B1F33">12-hour</span></div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPersonaSheet }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:14px"><span style="font-size:18px;font-weight:800;color:#0B1F33">How do you usually cross?</span><span style="font-size:12.5px;color:#5A6B80">Otrolado tailors waits, lanes and alerts to how you travel.</span></div>
+        <div style="display:flex;gap:8px">
+          <sc-for list="{{ personaTiles }}" as="pt" hint-placeholder-count="3">
+            <div onClick="{{ pt.set }}" style="flex:1;background:{{ pt.bg }};border:2px solid {{ pt.bord }};border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer">
+              <div style="height:26px;display:flex;align-items:center">
+                <sc-if value="{{ pt.isVeh }}" hint-placeholder-val="{{ true }}"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" fill="{{ pt.icol }}"></path></svg></sc-if>
+                <sc-if value="{{ pt.isWalk }}" hint-placeholder-val="{{ false }}"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.56-.89-1.68-1.25-2.65-.84L6 8.3V13h2V9.6l1.8-.7z" fill="{{ pt.icol }}"></path></svg></sc-if>
+                <sc-if value="{{ pt.isCargo }}" hint-placeholder-val="{{ false }}"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" fill="{{ pt.icol }}"></path></svg></sc-if>
+              </div>
+              <span style="font-size:13px;font-weight:800;color:#0B1F33">{{ pt.label }}</span>
+              <span style="font-size:10px;color:#5A6B80;text-align:center;line-height:1.3">{{ pt.sub }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:12px;text-align:center;font-size:11px;color:#8595A8">No account needed — stored on this phone</div>
+      </sc-if>
+
+      <sc-if value="{{ isCitySheet }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:14px"><span style="font-size:18px;font-weight:800;color:#0B1F33">Border region</span><span style="font-size:12.5px;color:#5A6B80">More regions are on the way.</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ cityRows }}" as="c" hint-placeholder-count="4">
+            <div onClick="{{ c.tap }}" style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid {{ c.bord }};border-radius:12px;padding:12px 14px;cursor:pointer;opacity:{{ c.op }}">
+              <div style="flex:1;display:flex;flex-direction:column"><span style="font-size:13.5px;font-weight:700;color:#0B1F33">{{ c.name }}</span><span style="font-size:11px;color:#5A6B80">{{ c.sub }}</span></div>
+              <span style="font-size:10px;font-weight:700;letter-spacing:.5px;color:{{ c.tagCol }};background:{{ c.tagBg }};border-radius:6px;padding:3px 7px">{{ c.tag }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPatternsSheet }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:12px"><span style="font-size:18px;font-weight:800;color:#0B1F33">Typical waits · {{ patName }}</span><span style="font-size:12.5px;color:#5A6B80">{{ patLaneSub }}</span></div>
+        <div style="display:flex;gap:5px;margin-bottom:14px">
+          <sc-for list="{{ patDays }}" as="pd" hint-placeholder-count="7">
+            <div onClick="{{ pd.set }}" style="flex:1;text-align:center;padding:7px 0;border-radius:9px;background:{{ pd.bg }};border:1px solid {{ pd.bord }};font-size:11.5px;font-weight:{{ pd.fw }};color:{{ pd.col }};cursor:pointer">{{ pd.label }}</div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:2px;height:110px">
+          <sc-for list="{{ patBars }}" as="pb" hint-placeholder-count="18">
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%"><div style="width:100%;height:{{ pb.h }}px;background:{{ pb.bg }};border-radius:2px 2px 0 0"></div></div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:2px;margin-top:4px">
+          <sc-for list="{{ patBars }}" as="pb" hint-placeholder-count="18">
+            <div style="flex:1;text-align:center;font-size:8px;font-weight:600;color:#8595A8;white-space:nowrap">{{ pb.label }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px">
+          <div style="flex:1;background:#E4F2EA;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:1px"><span style="font-size:10px;font-weight:800;letter-spacing:.5px;color:#1E8E5A">QUIETEST</span><span style="font-size:13.5px;font-weight:700;color:#0B1F33">{{ patQuiet }}</span></div>
+          <div style="flex:1;background:#FBEAE6;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:1px"><span style="font-size:10px;font-weight:800;letter-spacing:.5px;color:#C0392B">BUSIEST</span><span style="font-size:13.5px;font-weight:700;color:#0B1F33">{{ patBusy }}</span></div>
+        </div>
+        <div style="margin-top:10px;text-align:center;font-size:10.5px;color:#8595A8">{{ patSource }} · {{ patDayName }}s</div>
+      </sc-if>
+
+      <sc-if value="{{ isWidgetsSheet }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:12px"><span style="font-size:18px;font-weight:800;color:#0B1F33">Home-screen widgets</span><span style="font-size:12.5px;color:#5A6B80">Live waits without opening the app — all sizes free.</span></div>
+        <div style="display:flex;background:#E2E7EE;border-radius:10px;padding:3px;gap:2px;margin-bottom:10px">
+          <sc-for list="{{ wSizeTabs }}" as="wt" hint-placeholder-count="4">
+            <div onClick="{{ wt.set }}" style="flex:1;text-align:center;padding:7px 0;background:{{ wt.bg }};border-radius:8px;font-size:12px;font-weight:{{ wt.fw }};color:{{ wt.col }};box-shadow:{{ wt.sh }};cursor:pointer">{{ wt.label }}</div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ gShowPorts }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px">
+            <sc-for list="{{ wPortChips }}" as="c" hint-placeholder-count="3">
+              <div onClick="{{ c.set }}" style="padding:7px 12px;border-radius:16px;border:1.5px solid {{ c.bord }};background:{{ c.bg }};font-size:12px;font-weight:{{ c.fw }};color:{{ c.col }};cursor:pointer">{{ c.label }}</div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ gIsLock }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-bottom:12px;font-size:11px;color:#8595A8">{{ L.autoBest }} — no setup.</div>
+        </sc-if>
+        <div style="background:{{ wg.wall }};border-radius:16px;padding:18px;display:flex;justify-content:center;margin-bottom:10px">
+          <sc-if value="{{ gIsS }}" hint-placeholder-val="{{ true }}">
+            <div style="width:158px;height:158px;background:{{ wg.bg }};border-radius:22px;padding:13px;display:flex;flex-direction:column;box-shadow:0 10px 26px rgba(11,31,51,.22);box-sizing:border-box">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><span style="font-size:11px;font-weight:800;color:{{ wg.name }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ gSel.short }}</span><span style="font-size:12px;font-weight:800;color:{{ gSel.tcol }}">{{ gSel.arrow }}</span></div>
+              <div style="display:flex;align-items:baseline;gap:4px;margin-top:8px"><span style="font-size:46px;font-weight:800;line-height:.95;color:{{ gSel.wcol }};font-variant-numeric:tabular-nums;letter-spacing:-1px">{{ gSel.now }}</span><span style="font-size:11px;font-weight:700;color:{{ wg.sub }}">min</span></div>
+              <span style="font-size:9.5px;font-weight:600;color:{{ wg.sub }};margin-top:2px">{{ L.inLine }}</span>
+              <span style="font-size:10.5px;font-weight:700;color:{{ wg.name }};margin-top:auto">{{ gSel.total }} {{ L.dtdLong }}</span>
+              <span style="font-size:9px;font-weight:700;color:{{ gSel.hintCol }};margin-top:3px;line-height:1.25">{{ gSel.hint }}</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ gIsM }}" hint-placeholder-val="{{ false }}">
+            <div style="width:100%;max-width:310px;background:{{ wg.bg }};border-radius:22px;padding:13px 15px;display:flex;flex-direction:column;box-shadow:0 10px 26px rgba(11,31,51,.22)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:{{ wg.sub }}">{{ L.fastest }}</span><span style="font-size:10px;font-weight:600;color:{{ wg.sub }}">2:41 PM</span></div>
+              <sc-for list="{{ gRows }}" as="r" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:{{ r.bord }}">
+                  <span style="flex:1;font-size:12.5px;font-weight:700;color:{{ wg.name }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                  <span style="font-size:10.5px;font-weight:600;color:{{ wg.sub }};white-space:nowrap">{{ r.total }}m {{ L.dtd }}</span>
+                  <span style="font-size:17px;font-weight:800;color:{{ r.wcol }};font-variant-numeric:tabular-nums;min-width:42px;text-align:right">{{ r.now }}m</span>
+                  <span style="font-size:11px;font-weight:800;color:{{ r.tcol }}">{{ r.arrow }}</span>
+                </div>
+              </sc-for>
+              <div style="margin-top:6px;font-size:9.5px;font-weight:700;color:{{ gBestHintCol }}">{{ gBestHint }}</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ gIsL }}" hint-placeholder-val="{{ false }}">
+            <div style="width:100%;max-width:310px;background:{{ wg.bg }};border-radius:22px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 26px rgba(11,31,51,.22)">
+              <div style="position:relative;height:118px;flex-shrink:0">
+                <svg width="100%" height="100%" viewBox="0 0 310 118" preserveAspectRatio="xMidYMid slice"><rect width="310" height="118" fill="{{ wg.mapBg }}"></rect><path d="M-10 24 C60 34 90 52 120 66 C150 80 170 92 320 108 L320 130 L-10 130 Z" fill="{{ wg.mapLand }}"></path><path d="M-10 22 C60 32 92 50 122 64 C152 78 172 90 320 106" fill="none" stroke="{{ wg.river }}" stroke-width="8" stroke-linecap="round"></path></svg>
+                <sc-for list="{{ gPins }}" as="gp" hint-placeholder-count="3">
+                  <div style="position:absolute;left:{{ gp.x }}px;top:{{ gp.y }}px;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center">
+                    <div style="background:{{ gp.bg }};color:#fff;border-radius:8px;padding:2px 6px;font-size:10.5px;font-weight:800;font-variant-numeric:tabular-nums">{{ gp.txt }}</div>
+                    <div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid {{ gp.bg }}"></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding:9px 15px 12px;display:flex;flex-direction:column">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:{{ wg.sub }}">{{ L.fastest }}</span><span style="font-size:10px;font-weight:600;color:{{ wg.sub }}">2:41 PM</span></div>
+              <sc-for list="{{ gRows }}" as="r" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:{{ r.bord }}">
+                  <span style="flex:1;font-size:12.5px;font-weight:700;color:{{ wg.name }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                  <span style="font-size:10.5px;font-weight:600;color:{{ wg.sub }};white-space:nowrap">{{ r.total }}m {{ L.dtd }}</span>
+                  <span style="font-size:17px;font-weight:800;color:{{ r.wcol }};font-variant-numeric:tabular-nums;min-width:42px;text-align:right">{{ r.now }}m</span>
+                  <span style="font-size:11px;font-weight:800;color:{{ r.tcol }}">{{ r.arrow }}</span>
+                </div>
+              </sc-for>
+              <div style="margin-top:6px;font-size:9.5px;font-weight:700;color:{{ gBestHintCol }}">{{ gBestHint }}</div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ gIsLock }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:6px 0">
+              <span style="font-size:34px;font-weight:700;color:{{ wg.lockTxt }};font-variant-numeric:tabular-nums">2:41</span>
+              <div style="display:flex;align-items:center;gap:8px;background:{{ wg.strip }};border-radius:15px;padding:9px 15px;backdrop-filter:blur(10px)">
+                <svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 1.5l3 3H9v4H7v-4H5l3-3zM8 14.5l-3-3h2v-4h2v4h2l-3 3z" fill="{{ wg.lockTxt }}"></path></svg>
+                <span style="font-size:13.5px;font-weight:700;color:{{ wg.lockTxt }};font-variant-numeric:tabular-nums">{{ lockLine }}</span>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">
+          <div onClick="{{ toggleWDark }}" style="padding:7px 12px;border-radius:16px;border:1.5px solid {{ darkChip.bord }};background:{{ darkChip.bg }};font-size:12px;font-weight:{{ darkChip.fw }};color:{{ darkChip.col }};cursor:pointer">Dark</div>
+          <div onClick="{{ setWLangEn }}" style="padding:7px 12px;border-radius:16px;border:1.5px solid {{ enChip.bord }};background:{{ enChip.bg }};font-size:12px;font-weight:{{ enChip.fw }};color:{{ enChip.col }};cursor:pointer">English</div>
+          <div onClick="{{ setWLangEs }}" style="padding:7px 12px;border-radius:16px;border:1.5px solid {{ esChip.bord }};background:{{ esChip.bg }};font-size:12px;font-weight:{{ esChip.fw }};color:{{ esChip.col }};cursor:pointer">Español</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;background:#EDF0F4;border-radius:10px;padding:9px 12px;margin-bottom:12px">
+          <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0"><span style="font-size:19px;font-weight:800;color:#8595A8;font-variant-numeric:tabular-nums">10m</span><span style="font-size:8px;font-weight:600;color:#8595A8">{{ L.asOf }} 2:12 PM</span></div>
+          <span style="flex:1;font-size:10.5px;color:#5A6B80;line-height:1.35">Data older than 20 min grays out with an “as of” stamp — never a confident-looking stale number.</span>
+        </div>
+        <div style="background:#17427A;border-radius:12px;padding:13px;text-align:center;font-size:14px;font-weight:700;color:#fff;cursor:pointer" style-hover="background:#0F2E56">Add to Home Screen</div>
+        <div style="margin-top:8px;text-align:center;font-size:10.5px;color:#8595A8">Tap opens that port · list rows deep-link · copy follows device language</div>
+      </sc-if>
+
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-import>
+<div style="font-size:12px;color:#5A6B80;font-family:'Schibsted Grotesk',sans-serif">Tap rows, tabs, modes and lanes — everything navigates. · <a href="CrossQ API Spec.dc.html" style="font-weight:700">API integration spec →</a></div>
+</div>
+<div data-screen-label="Widgets" style="display:flex;flex-direction:column;align-items:center;gap:14px">
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center">
+  <div style="display:flex;background:#E2E7EE;border-radius:10px;padding:3px;gap:2px">
+    <sc-for list="{{ hsTabs }}" as="h" hint-placeholder-count="3">
+      <div onClick="{{ h.set }}" style="padding:7px 14px;background:{{ h.bg }};border-radius:8px;font-size:12.5px;font-weight:{{ h.fw }};color:{{ h.col }};box-shadow:{{ h.sh }};cursor:pointer">{{ h.label }}</div>
+    </sc-for>
+  </div>
+  <div onClick="{{ toggleHsDark }}" style="display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #D8DFE8;border-radius:10px;padding:7px 12px;cursor:pointer" style-hover="border-color:#17427A"><div style="width:10px;height:10px;border-radius:5px;background:{{ hsDarkDot }}"></div><span style="font-size:12px;font-weight:700;color:#17427A">{{ hsDarkLabel }}</span></div>
+</div>
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:{{ wf.wall }};font-family:'Schibsted Grotesk',system-ui,sans-serif;position:relative">
+
+  <sc-if value="{{ hsIsHome }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;display:flex;flex-direction:column;padding:64px 18px 12px;gap:16px">
+    <div style="background:{{ wf.bg }};border-radius:22px;padding:13px 15px;display:flex;flex-direction:column;box-shadow:0 10px 26px rgba(11,31,51,.22)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:{{ wf.sub }}">{{ L.fastest }}</span><span style="font-size:10px;font-weight:600;color:{{ wf.sub }}">2:41 PM</span></div>
+      <sc-for list="{{ fRows }}" as="r" hint-placeholder-count="3">
+        <div onClick="{{ r.open }}" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:{{ r.bord }};cursor:pointer">
+          <span style="flex:1;font-size:12.5px;font-weight:700;color:{{ wf.name }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+          <span style="font-size:10.5px;font-weight:600;color:{{ wf.sub }};white-space:nowrap">{{ r.total }}m {{ L.dtd }}</span>
+          <span style="font-size:17px;font-weight:800;color:{{ r.wcol }};font-variant-numeric:tabular-nums;min-width:42px;text-align:right">{{ r.now }}m</span>
+          <span style="font-size:11px;font-weight:800;color:{{ r.tcol }}">{{ r.arrow }}</span>
+        </div>
+      </sc-for>
+      <div style="margin-top:6px;font-size:9.5px;font-weight:700;color:{{ fBestHintCol }}">{{ fBestHint }}</div>
+    </div>
+    <div style="display:flex;gap:16px">
+      <div onClick="{{ wOpenSel }}" style="width:158px;height:158px;background:{{ wf.bg }};border-radius:22px;padding:13px;display:flex;flex-direction:column;box-shadow:0 10px 26px rgba(11,31,51,.22);cursor:pointer;flex-shrink:0;box-sizing:border-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><span style="font-size:11px;font-weight:800;color:{{ wf.name }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ wSel.short }}</span><span style="font-size:12px;font-weight:800;color:{{ wSel.tcol }}">{{ wSel.arrow }}</span></div>
+        <div style="display:flex;align-items:baseline;gap:4px;margin-top:8px"><span style="font-size:46px;font-weight:800;line-height:.95;color:{{ wSel.wcol }};font-variant-numeric:tabular-nums;letter-spacing:-1px">{{ wSel.now }}</span><span style="font-size:11px;font-weight:700;color:{{ wf.sub }}">min</span></div>
+        <span style="font-size:9.5px;font-weight:600;color:{{ wf.sub }};margin-top:2px">{{ L.inLine }}</span>
+        <span style="font-size:10.5px;font-weight:700;color:{{ wf.name }};margin-top:auto">{{ wSel.total }} {{ L.dtdLong }}</span>
+        <span style="font-size:9px;font-weight:700;color:{{ wSel.hintCol }};margin-top:3px;line-height:1.25">{{ wSel.hint }}</span>
+      </div>
+      <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:space-between">
+        <sc-for list="{{ icons4 }}" as="ic" hint-placeholder-count="4">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:54px;height:54px;border-radius:13px;background:{{ ic.bg }};display:flex;align-items:center;justify-content:center"><div style="width:20px;height:20px;border-radius:{{ ic.r }};background:rgba(255,255,255,.85)"></div></div><span style="font-size:9.5px;font-weight:600;color:{{ wf.lbl }}">{{ ic.name }}</span></div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:0 4px">
+      <sc-for list="{{ iconsRow }}" as="ic" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:54px;height:54px;border-radius:13px;background:{{ ic.bg }};display:flex;align-items:center;justify-content:center"><div style="width:20px;height:20px;border-radius:{{ ic.r }};background:rgba(255,255,255,.85)"></div></div><span style="font-size:9.5px;font-weight:600;color:{{ wf.lbl }}">{{ ic.name }}</span></div>
+      </sc-for>
+    </div>
+    <div style="margin-top:auto;background:{{ wf.dock }};border-radius:26px;padding:11px 14px;display:flex;justify-content:space-between;backdrop-filter:blur(12px)">
+      <sc-for list="{{ dockIcons }}" as="ic" hint-placeholder-count="4">
+        <div style="width:54px;height:54px;border-radius:13px;background:{{ ic.bg }}"></div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ hsIsLock }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:74px 22px 26px">
+    <svg width="13" height="16" viewBox="0 0 11 13"><rect x="1" y="5.5" width="9" height="6.5" rx="1.5" fill="{{ wf.lockTxt }}"></rect><path d="M3 5.5V4a2.5 2.5 0 015 0v1.5" fill="none" stroke="{{ wf.lockTxt }}" stroke-width="1.5"></path></svg>
+    <span style="font-size:15px;font-weight:600;color:{{ wf.lockSub }};margin-top:10px">Tuesday, August 25</span>
+    <span style="font-size:78px;font-weight:700;color:{{ wf.lockTxt }};line-height:1.02;font-variant-numeric:tabular-nums;letter-spacing:1px">2:41</span>
+    <div onClick="{{ wOpenBest }}" style="margin-top:12px;display:flex;align-items:center;gap:8px;background:{{ wf.strip }};border-radius:15px;padding:9px 15px;cursor:pointer;backdrop-filter:blur(10px)">
+      <svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 1.5l3 3H9v4H7v-4H5l3-3zM8 14.5l-3-3h2v-4h2v4h2l-3 3z" fill="{{ wf.lockTxt }}"></path></svg>
+      <span style="font-size:13.5px;font-weight:700;color:{{ wf.lockTxt }};font-variant-numeric:tabular-nums">{{ lockLine }}</span>
+    </div>
+    <span style="font-size:10.5px;font-weight:600;color:{{ wf.lockSub }};margin-top:7px">{{ L.autoBest }}</span>
+    <div style="margin-top:auto;width:100%;display:flex;justify-content:space-between;padding:0 12px">
+      <div style="width:46px;height:46px;border-radius:23px;background:{{ wf.strip }};backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M6 1h4l1 4v10H5V5l1-4z" fill="{{ wf.lockTxt }}" opacity=".9"></path></svg></div>
+      <div style="width:46px;height:46px;border-radius:23px;background:{{ wf.strip }};backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 16 16"><rect x="1.5" y="4" width="13" height="9" rx="2" fill="none" stroke="{{ wf.lockTxt }}" stroke-width="1.5"></rect><circle cx="8" cy="8.5" r="2.4" fill="none" stroke="{{ wf.lockTxt }}" stroke-width="1.5"></circle><path d="M5 4l1-1.5h4L11 4" fill="none" stroke="{{ wf.lockTxt }}" stroke-width="1.5"></path></svg></div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ hsIsEdit }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;position:relative;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="position:absolute;inset:0;background:rgba(8,16,27,.5);backdrop-filter:blur(7px)"></div>
+    <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:18px;width:100%">
+      <div style="width:158px;height:158px;background:{{ wf.bg }};border-radius:22px;padding:13px;display:flex;flex-direction:column;box-shadow:0 16px 40px rgba(0,0,0,.4);box-sizing:border-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><span style="font-size:11px;font-weight:800;color:{{ wf.name }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ wSel.short }}</span><span style="font-size:12px;font-weight:800;color:{{ wSel.tcol }}">{{ wSel.arrow }}</span></div>
+        <div style="display:flex;align-items:baseline;gap:4px;margin-top:8px"><span style="font-size:46px;font-weight:800;line-height:.95;color:{{ wSel.wcol }};font-variant-numeric:tabular-nums;letter-spacing:-1px">{{ wSel.now }}</span><span style="font-size:11px;font-weight:700;color:{{ wf.sub }}">min</span></div>
+        <span style="font-size:9.5px;font-weight:600;color:{{ wf.sub }};margin-top:2px">{{ L.inLine }}</span>
+        <span style="font-size:10.5px;font-weight:700;color:{{ wf.name }};margin-top:auto">{{ wSel.total }} {{ L.dtdLong }}</span>
+        <span style="font-size:9px;font-weight:700;color:{{ wSel.hintCol }};margin-top:3px;line-height:1.25">{{ wSel.hint }}</span>
+      </div>
+      <div style="width:100%;max-width:290px;background:{{ wf.popBg }};border-radius:16px;padding:4px 0;display:flex;flex-direction:column;box-shadow:0 16px 40px rgba(0,0,0,.35)">
+        <div style="padding:11px 14px 7px;font-size:10.5px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:{{ wf.sub }}">{{ L.editCrossing }}</div>
+        <sc-for list="{{ editRows }}" as="er" hint-placeholder-count="3">
+          <div onClick="{{ er.set }}" style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-top:1px solid {{ wf.hair }};cursor:pointer">
+            <span style="font-size:13.5px;font-weight:600;color:{{ wf.name }}">{{ er.name }}</span>
+            <sc-if value="{{ er.on }}" hint-placeholder-val="{{ true }}"><svg width="14" height="14" viewBox="0 0 15 15"><path d="M3 8l3 3 6-7" stroke="#1E8E5A" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+          </div>
+        </sc-for>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-top:1px solid {{ wf.hair }}"><span style="font-size:13.5px;font-weight:600;color:{{ wf.name }}">{{ L.heroLbl }}</span><span style="font-size:12.5px;font-weight:600;color:{{ wf.sub }}">{{ L.heroVal }}</span></div>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.85)">{{ L.editNote }}</span>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-import>
+<div style="font-size:12px;color:#5A6B80;font-family:'Schibsted Grotesk',sans-serif;max-width:380px;text-align:center">Widgets — tap any widget or row and the app opens that port. “Edit widget” ≈ long-press.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;premiumUnlocked&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Scenarios&quot;}, &quot;surgeMode&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Scenarios&quot;}, &quot;showEstimated&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Scenarios&quot;}}">
+class Component extends DCLogic {
+  state = { tab: 'home', mode: 'vehicle', dir: 'us', detailId: null, lane: 'std', sheet: null, planMode: 'arrive', eta: 'google', alerts: [true, true, true, false], patDay: 1, tripDay: 0, tripStage: 'setup', tripFrom: 'current', tripDest: null, wSize: 's', wPort: 'col', wDark: false, wLang: 'en', hsView: 'home', hsDark: false };
+
+  data() {
+    return {
+      vehicle: [
+        { id: 'col', name: 'Colombia Solidarity', drive: 38, dist: '32 mi', now: 15, arr: 10, pm: 5, trend: 'falling', fc: [15,12,10,10,12,15,20,24,28,25,20,16], fpm: [4,4,5,5,5,6,7,8,9,9,8,7], ai: 1, sub: 'Bridge III · 32 mi via FM 1472', routeSub: '32 mi via FM 1472 · about 38 min in current traffic', pin: { x: 62, y: 108 } },
+        { id: 'jl', name: 'Juárez–Lincoln Intl', drive: 12, dist: '4.1 mi', now: 40, arr: 45, pm: 10, trend: 'rising', fc: [40,42,45,48,52,55,50,45,38,30,24,20], fpm: [8,8,10,10,11,12,12,11,10,9,8,8], ai: 0, sub: 'Bridge II · 4.1 mi via I-35 S', routeSub: '4.1 mi via I-35 S · about 12 min in current traffic', pin: { x: 205, y: 330 } },
+        { id: 'gw', name: 'Gateway to the Americas', drive: 14, dist: '4.6 mi', now: 50, arr: 55, pm: 15, trend: 'rising', fc: [50,52,55,58,60,58,52,45,38,32,26,22], fpm: [10,11,12,13,14,14,13,12,11,10,9,9], ai: 0, sub: 'Bridge I · 4.6 mi via Convent Ave', routeSub: '4.6 mi via Convent Ave · about 14 min in current traffic', pin: { x: 173, y: 372 } }
+      ],
+      sentri: [
+        { id: 'col', name: 'Colombia Solidarity', drive: 38, dist: '32 mi', now: 5, arr: 5, pm: 3, trend: 'steady', fc: [5,5,5,6,7,8,10,11,12,10,8,6], fpm: [2,2,2,3,3,3,4,4,4,4,3,3], ai: 1, sub: 'Bridge III · SENTRI lane', routeSub: '32 mi via FM 1472 · about 38 min in current traffic', pin: { x: 62, y: 108 } },
+        { id: 'jl', name: 'Juárez–Lincoln Intl', drive: 12, dist: '4.1 mi', now: 10, arr: 12, pm: 4, trend: 'steady', fc: [10,10,12,13,15,16,14,12,10,8,7,6], fpm: [3,3,4,4,5,5,5,4,4,3,3,3], ai: 0, sub: 'Bridge II · SENTRI lane', routeSub: '4.1 mi via I-35 S · about 12 min in current traffic', pin: { x: 205, y: 330 } }
+      ],
+      walk: [
+        { id: 'gw', name: 'Gateway to the Americas', drive: 14, dist: '4.6 mi', now: 20, arr: 20, pm: 6, trend: 'steady', fc: [20,20,22,24,26,28,25,22,18,14,10,8], fpm: [5,5,6,6,7,7,7,6,5,4,4,3], ai: 0, sub: 'Bridge I · pedestrian crossing', routeSub: 'Park at Convent Ave lot, then walk across', pin: { x: 173, y: 372 } },
+        { id: 'jl', name: 'Juárez–Lincoln Intl', drive: 12, dist: '4.1 mi', now: 25, arr: 28, pm: 8, trend: 'rising', fc: [25,26,28,30,32,30,26,22,18,14,11,9], fpm: [6,6,7,7,8,8,7,6,5,5,4,4], ai: 0, sub: 'Bridge II · pedestrian crossing', routeSub: 'Park near San Dario Ave, then walk across', pin: { x: 205, y: 330 } }
+      ],
+      cargo: [
+        { id: 'colf', name: 'Colombia Solidarity · FAST', drive: 38, dist: '32 mi', now: 20, arr: 25, pm: 8, trend: 'rising', fc: [20,22,25,28,30,28,24,18,14,10,8,6], fpm: [6,6,7,8,8,8,7,6,5,4,3,3], ai: 1, cx: { fast: 25, std: 40, insp: 'Light — X-ray only, rarely pulled', docks: 'Brokers 8 AM–6 PM · docks receive to 8 PM' }, sub: 'Bridge III · FAST commercial', routeSub: '32 mi via FM 1472 · about 38 min in current traffic', pin: { x: 62, y: 108 } },
+        { id: 'wtb', name: 'World Trade Bridge', drive: 22, dist: '11 mi', now: 55, arr: 65, pm: 15, trend: 'rising', fc: [55,60,65,68,64,55,45,35,28,22,18,15], fpm: [12,13,14,14,14,12,11,9,8,7,6,5], ai: 0, cx: { fast: 35, std: 65, insp: 'Moderate — ~20 min if pulled to secondary', docks: 'Brokers 8 AM–6 PM · docks receive to 10 PM' }, sub: 'Bridge IV · commercial only', routeSub: '11 mi via Mines Rd · about 22 min in current traffic', pin: { x: 148, y: 208 } }
+      ]
+    };
+  }
+
+  renderVals() {
+    const s = this.state, set = (o) => () => this.setState(o);
+    const surge = this.props.surgeMode ?? false;
+    const premium = this.props.premiumUnlocked ?? false;
+    const estimated = this.props.showEstimated ?? false;
+    const wc = (m) => m <= 20 ? '#1E8E5A' : m <= 45 ? '#C77E14' : '#C0392B';
+    const tc = (m) => m < 50 ? '#1E8E5A' : m <= 65 ? '#C77E14' : '#C0392B';
+    const trendTxt = { rising: '▲ rising', falling: '▼ falling', steady: '▬ steady' };
+    const trendCol = { rising: '#C77E14', falling: '#1E8E5A', steady: '#5A6B80' };
+    const hrs = ['3P','4P','5P','6P','7P','8P','9P','10P','11P','12A','1A','2A'];
+
+    const dirUS = s.dir === 'us';
+    const dFac = dirUS ? 1 : 0.35; // southbound: Mexican aduana, usually far quicker
+    const sc2 = (v) => Math.max(2, Math.round(v * dFac));
+    const sd = this.data().sentri;
+    const list = this.data()[s.mode]
+      .map(p => ({ ...p, arr: sc2(p.arr), now: sc2(p.now), pm: Math.max(1, Math.round(p.pm * dFac)), fc: p.fc.map(sc2), fpm: p.fpm.map(v => Math.max(1, Math.round(v * dFac))) }))
+      .map(p => ({ ...p, total: p.drive + p.arr })).sort((a, b) => a.total - b.total)
+      .map((p, i) => { const se = sd.find(x => x.id === p.id);
+        return { ...p, rank: i + 1, open: () => this.setState({ detailId: p.id, lane: 'std' }),
+        rankBg: i === 0 ? '#1E8E5A' : '#E2E7EE', rankCol: i === 0 ? '#fff' : '#5A6B80',
+        twoCol: s.mode === 'vehicle' && dirUS, notTwoCol: !(s.mode === 'vehicle' && dirUS),
+        senTxt: se ? `${se.arr}m` : 'no lane', senBg: se ? '#E4F2EA' : '#EDF0F4', senLab: se ? '#1E8E5A' : '#8595A8', senCol: se ? '#1E8E5A' : '#8595A8',
+        waitCol: wc(p.arr), trendTxt: trendTxt[p.trend], trendCol: trendCol[p.trend] }; });
+
+    const best = list[0];
+    const saveTxt = list[1] ? `Saves ${list[1].total - best.total} min vs ${list[1].name.split(' ·')[0]}` : 'Only option in this mode';
+    const nearest = list.length > 1 ? [...list].sort((a, b) => a.drive - b.drive)[0] : null;
+
+    const modeTabs = [['vehicle','Vehicle'],['walk','Walk'],['cargo','Cargo']].map(([k, label]) => ({
+      label, isVeh: k === 'vehicle', isWalk: k === 'walk', isCargo: k === 'cargo',
+      set: set({ mode: k, detailId: null }),
+      col: s.mode === k ? '#0B1F33' : '#5A6B80', fw: s.mode === k ? 700 : 600 }));
+    const modePillX = (['vehicle','walk','cargo'].indexOf(s.mode) * 100) + '%';
+
+    const modeNotes = { vehicle: ['World Trade Bridge', 'CARGO ONLY'], walk: ['Colombia Solidarity', 'NO PEDESTRIANS'], cargo: ['Gateway & Juárez–Lincoln', 'NO COMMERCIAL'] };
+
+    const dRaw = s.detailId && list.find(p => p.id === s.detailId);
+    const laneNames = { std: 'Standard', sentri: 'SENTRI', ready: 'Ready Lane' };
+    const laneAdj = { std: 1, sentri: 0.25, ready: 0.7 };
+    let dp = null, bars = [], laneTabs = [];
+    if (dRaw) {
+      const cv = s.mode === 'sentri' ? (this.data().vehicle.find(p => p.id === dRaw.id) || dRaw) : dRaw;
+      const adj = laneAdj[s.lane];
+      const clockMin = 41 + dRaw.drive; const hh = 2 + Math.floor((clockMin) / 60) + 12; const mm = clockMin % 60;
+      dp = { ...dRaw, sub: cv.sub, trendTxt: trendTxt[cv.trend], trendCol: trendCol[cv.trend],
+        arr: Math.max(2, Math.round(cv.arr * adj)), now: Math.max(2, Math.round(cv.now * adj)), pm: Math.max(1, Math.round(cv.pm * adj)),
+        arriveClock: `${((hh - 1) % 12) + 1}:${String(mm).padStart(2, '0')} PM`, estimated: estimated && dRaw.id === 'jl' };
+      bars = cv.fc.map((v, i) => {
+        const w = Math.max(2, Math.round(v * adj)), band = Math.max(1, Math.round(cv.fpm[i] * adj));
+        const locked = !premium && i > 3;
+        return { h: Math.round(w * 1.05), bandH: Math.round(band * 1.05), label: hrs[i],
+          bg: i === cv.ai ? '#17427A' : wc(w), bandBg: i === cv.ai ? 'rgba(23,66,122,.3)' : 'rgba(90,107,128,.22)',
+          rad: '0 0 2px 2px', op: locked ? 0.55 : 1, lfw: i === cv.ai ? 800 : 500, lcol: i === cv.ai ? '#17427A' : '#8595A8' };
+      });
+      laneTabs = [['std','Standard'],['sentri','SENTRI'],['ready','Ready Lane']].map(([k, label]) => ({
+        label, set: set({ lane: k }), bg: s.lane === k ? '#fff' : 'transparent',
+        col: s.lane === k ? '#0B1F33' : '#5A6B80', fw: s.lane === k ? 700 : 600,
+        sh: s.lane === k ? '0 1px 2px rgba(11,31,51,.1)' : 'none' }));
+    }
+
+    const compactPins = { col: { x: 62, y: 60 }, colf: { x: 62, y: 60 }, wtb: { x: 148, y: 115 }, jl: { x: 222, y: 168 }, gw: { x: 142, y: 222 } };
+    const pins = list.map(p => { const cp = compactPins[p.id] || { x: p.pin.x, y: Math.round(p.pin.y * 0.553) };
+      return { name: p.name.split(' ·')[0], txt: `${p.total}m`, bg: tc(p.total),
+        x: cp.x, y: cp.y, open: () => this.setState({ detailId: p.id, tab: 'home', lane: s.mode === 'sentri' ? 'sentri' : 'std' }) }; });
+
+    const isArr = s.planMode === 'arrive';
+    const segSt = (on) => ({ bg: on ? '#fff' : 'transparent', col: on ? '#0B1F33' : '#5A6B80', fw: on ? 700 : 600, sh: on ? '0 1px 2px rgba(11,31,51,.1)' : 'none' });
+    const plan = isArr ? {
+      inputLabel: 'Arrive in Nuevo Laredo by', inputTime: '6:00 PM', inputSub: 'today, Tuesday Aug 25', via: 'Colombia Solidarity',
+      headline: 'Leave by 5:02 PM', headlineSub: 'with a 10-min buffer',
+      steps: [ { t: '5:02 PM', d: 'leave home', dot: '#fff', line: true, flex: 3 }, { t: '5:40 PM', d: 'at the bridge', dot: '#F2C14E', line: true, flex: 3 }, { t: '~10 min', d: 'in line', dot: '#F2C14E', line: true, flex: 2 }, { t: '5:50 PM', d: 'across ✓', dot: '#4CC98A', line: false, flex: 1.4 } ],
+      alertCta: 'Alert me when it’s time to leave',
+      alts: [ { name: 'Juárez–Lincoln Intl', sub: 'Leave by 5:03 PM · 45 min in line', t: 'same leave time' }, { name: 'Gateway to the Americas', sub: 'Leave by 4:51 PM · 55 min in line', t: '11 min earlier' } ]
+    } : {
+      inputLabel: 'Leaving home at', inputTime: '3:00 PM', inputSub: 'today, Tuesday Aug 25', via: 'Colombia Solidarity',
+      headline: 'Across by 3:50 PM', headlineSub: 'about 50 min door-to-door',
+      steps: [ { t: '3:00 PM', d: 'leave home', dot: '#fff', line: true, flex: 3 }, { t: '3:38 PM', d: 'at the bridge', dot: '#F2C14E', line: true, flex: 3 }, { t: '~10 min', d: 'in line', dot: '#F2C14E', line: true, flex: 2 }, { t: '3:50 PM', d: 'across ✓', dot: '#4CC98A', line: false, flex: 1.4 } ],
+      alertCta: 'Remind me 15 min before',
+      alts: [ { name: 'Juárez–Lincoln Intl', sub: 'Across by 3:57 PM · 45 min in line', t: '+7 min' }, { name: 'Gateway to the Americas', sub: 'Across by 4:09 PM · 55 min in line', t: '+19 min' } ]
+    };
+
+    // Day-of-week patterns (typical hourly waits, 6 AM–11 PM)
+    const patBaseMap = {
+      col: [6,5,5,7,9,12,16,20,19,16,14,15,18,22,26,28,24,17],
+      jl: [16,13,13,16,24,36,48,55,50,42,38,40,45,52,58,60,52,40],
+      gw: [20,17,17,20,28,40,52,58,54,46,42,44,50,56,62,64,55,44],
+      colf: [10,8,8,10,14,20,26,30,28,24,22,24,28,32,34,30,24,16],
+      wtb: [22,18,18,24,34,48,60,66,62,54,50,52,58,64,60,50,38,28]
+    };
+    const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const dayFull = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    const dayFac = [0.9, 0.85, 0.9, 1.0, 1.3, 1.4, 1.15];
+    let patDays = [], patBars = [], patQuiet = '', patBusy = '', patDayName = '', patName = '', patLaneSub = '';
+    if (s.sheet === 'patterns' && dRaw) {
+      const base = patBaseMap[dRaw.id] || patBaseMap.col;
+      const vals = base.map(v => Math.max(2, Math.round(v * dayFac[s.patDay] * laneAdj[s.lane] * dFac)));
+      const mx = Math.max(...vals);
+      const hourLbl = (i) => { const h = 6 + i; return h === 12 ? '12 PM' : h > 12 ? `${h - 12} PM` : `${h} AM`; };
+      const shortLbl = (i) => { const h = 6 + i; return h === 12 ? '12P' : h > 12 ? `${h - 12}P` : `${h}A`; };
+      let minI = 0, maxI = 0;
+      vals.forEach((v, i) => { if (v < vals[minI]) minI = i; if (v > vals[maxI]) maxI = i; });
+      patBars = vals.map((v, i) => ({ h: Math.max(4, Math.round(v / mx * 100)), bg: wc(v), label: i % 3 === 0 ? shortLbl(i) : '' }));
+      patQuiet = `${hourLbl(minI)} · ~${vals[minI]} min`;
+      patBusy = `${hourLbl(maxI)} · ~${vals[maxI]} min`;
+      patDays = dayNames.map((label, i) => ({ label, set: set({ patDay: i }),
+        bg: s.patDay === i ? '#17427A' : '#fff', bord: s.patDay === i ? '#17427A' : '#D8DFE8',
+        col: s.patDay === i ? '#fff' : '#5A6B80', fw: s.patDay === i ? 800 : 600 }));
+      patDayName = dayFull[s.patDay];
+      patName = dRaw.name.split(' ·')[0];
+      patLaneSub = dirUS ? `${laneNames[s.lane]} lane · median hourly wait` : 'Southbound · median hourly wait';
+    }
+
+    // Trip planning — direction- and day-aware
+    const tdLabels = ['Today','Wed','Thu','Fri','Sat'];
+    const tdFull = ['today','Wednesday','Thursday','Friday','Saturday'];
+    const tdDates = ['Tuesday Aug 25','Wednesday Aug 26','Thursday Aug 27','Friday Aug 28','Saturday Aug 29'];
+    const tdFac = [1, 0.9, 1.0, 1.3, 1.4];
+    const td = s.tripDay;
+    const fmt = (m) => { const h = Math.floor(m / 60) % 24, mm = m % 60; return `${((h + 11) % 12) + 1}:${String(mm).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; };
+    plan.inputLabel = isArr ? `Arrive in ${dirUS ? 'Laredo' : 'Nuevo Laredo'} by` : 'Leaving home at';
+    plan.inputSub = td > 0 ? tdDates[td] : 'today, Tuesday Aug 25';
+    const buildPlan = (wCol, wJL, wGW) => {
+      const opts = [
+        { name: 'Colombia Solidarity', drive: 38, w: wCol },
+        { name: 'Juárez–Lincoln Intl', drive: 12, w: wJL },
+        { name: 'Gateway to the Americas', drive: 14, w: wGW }
+      ];
+      const lineD = td > 0 ? 'typical line' : 'in line';
+      if (isArr) {
+        const across = 1070; // 5:50 PM = 6:00 target − 10-min buffer
+        opts.forEach(o => { o.leave = across - o.w - o.drive; });
+        opts.sort((a, b) => b.leave - a.leave);
+        const r = opts[0];
+        plan.via = r.name; plan.headline = `Leave by ${fmt(r.leave)}`;
+        plan.headlineSub = td > 0 ? `typical ${tdFull[td]} · 10-min buffer` : 'with a 10-min buffer';
+        plan.steps = [ { t: fmt(r.leave), d: 'leave home', dot: '#fff', line: true, flex: 3 }, { t: fmt(r.leave + r.drive), d: 'at the bridge', dot: '#F2C14E', line: true, flex: 3 }, { t: `~${r.w} min`, d: lineD, dot: '#F2C14E', line: true, flex: 2 }, { t: fmt(across), d: 'across ✓', dot: '#4CC98A', line: false, flex: 1.4 } ];
+        plan.alts = opts.slice(1).map(o => { const d = o.leave - r.leave; return { name: o.name, sub: `Leave by ${fmt(o.leave)} · ${o.w} min in line`, t: d === 0 ? 'same leave time' : `${-d} min earlier` }; });
+      } else {
+        const leave = 900; // 3:00 PM
+        opts.forEach(o => { o.across = leave + o.drive + o.w + 2; });
+        opts.sort((a, b) => a.across - b.across);
+        const r = opts[0];
+        plan.via = r.name; plan.headline = `Across by ${fmt(r.across)}`;
+        plan.headlineSub = `${td > 0 ? `typical ${tdFull[td]} · ` : ''}about ${r.across - leave} min door-to-door`;
+        plan.steps = [ { t: fmt(leave), d: 'leave home', dot: '#fff', line: true, flex: 3 }, { t: fmt(leave + r.drive), d: 'at the bridge', dot: '#F2C14E', line: true, flex: 3 }, { t: `~${r.w} min`, d: lineD, dot: '#F2C14E', line: true, flex: 2 }, { t: fmt(r.across), d: 'across ✓', dot: '#4CC98A', line: false, flex: 1.4 } ];
+        plan.alts = opts.slice(1).map(o => ({ name: o.name, sub: `Across by ${fmt(o.across)} · ${o.w} min in line`, t: `+${o.across - r.across} min` }));
+      }
+    };
+    const pw = (base) => Math.max(2, Math.round(base * (td > 0 ? tdFac[td] * 1.6 : 1) * dFac));
+    if (td > 0 || !dirUS) buildPlan(pw(10), pw(45), pw(55));
+    plan.steps[0].d = s.tripFrom === 'current' ? 'set off' : 'leave home';
+    plan.alertCta = isArr ? 'Save trip · alert me when to leave' : 'Save trip · remind me 15 min before';
+    const destAll = dirUS ? ['Outlet Shoppes, Laredo', 'TAMIU campus', 'Work · Mines Rd'] : ['Centro, Nuevo Laredo', 'Family · Col. Madero', 'Av. Guerrero shops'];
+    const curDest = destAll.includes(s.tripDest) ? s.tripDest : destAll[0];
+    const destChips = destAll.map(label => { const on = label === curDest;
+      return { label, set: set({ tripDest: label }), bg: on ? '#E3EAF4' : '#fff', bord: on ? '#17427A' : '#D8DFE8', col: on ? '#17427A' : '#5A6B80', fw: on ? 700 : 600 }; });
+    const fromOpts = [['current', 'Current location', 'GPS at plan time — nothing saved'], ['home', 'Home · saved place', 'Kept on this phone only, optional']].map(([k, name, sub]) => {
+      const on = s.tripFrom === k;
+      return { name, sub, set: set({ tripFrom: k }), bord: on ? '#17427A' : '#D8DFE8', ring: on ? '#17427A' : '#C9D2DC', dot: on ? '#17427A' : 'transparent' }; });
+    const tripDays = tdLabels.map((label, i) => {
+      const on = td === i, locked = !premium && i > 0;
+      return { label, set: locked ? set({ sheet: 'premium' }) : set({ tripDay: i }),
+        bg: on ? '#E3EAF4' : '#fff', bord: on ? '#17427A' : '#D8DFE8',
+        col: on ? '#17427A' : locked ? '#A8B4C2' : '#5A6B80', fw: on ? 800 : 600 };
+    });
+
+    // Home-screen widgets & iOS surfaces
+    const shortName = { col: 'Colombia', jl: 'Juárez–Lincoln', gw: 'Gateway' };
+    const wArrow = { rising: '▲', falling: '▼', steady: '▬' };
+    const wList = this.data().vehicle.map(p => ({ ...p, now: sc2(p.now), arr: sc2(p.arr), fc: p.fc.map(sc2) }))
+      .map(p => ({ ...p, total: p.drive + p.arr })).sort((a, b) => a.total - b.total);
+    const wBest = wList[0];
+    const hrsFull = ['3 PM','4 PM','5 PM','6 PM','7 PM','8 PM','9 PM','10 PM','11 PM','12 AM','1 AM','2 AM'];
+    const es = s.wLang === 'es';
+    const LD = es
+      ? { fastest: 'Más rápido primero', dtd: 'total', dtdLong: 'min puerta a puerta', inLine: 'min en fila ahora', asOf: 'act.', autoBest: 'Sigue el cruce más rápido automáticamente', editCrossing: 'Cruce', heroLbl: 'Número principal', heroVal: 'Fila ahora', editNote: 'Cada widget sigue el cruce que tú elijas' }
+      : { fastest: 'Fastest first', dtd: 'total', dtdLong: 'min door-to-door', inLine: 'min in line now', asOf: 'as of', autoBest: 'Tracks the fastest crossing automatically', editCrossing: 'Crossing', heroLbl: 'Hero number', heroVal: 'Wait in line', editNote: 'Each widget tracks the crossing you pick' };
+    const hintFor = (p) => { for (let i = 1; i < 8; i++) {
+        if (p.fc[i] <= Math.round(p.now * 0.75)) return { txt: es ? '▼ baja a ~' + p.fc[i] + ' min · ' + hrsFull[i] : '▼ drops to ~' + p.fc[i] + ' min by ' + hrsFull[i], k: 'good' };
+        if (p.fc[i] >= Math.round(p.now * 1.2)) return { txt: es ? '▲ sube a ~' + p.fc[i] + ' min · ' + hrsFull[i] : '▲ climbs to ~' + p.fc[i] + ' min by ' + hrsFull[i], k: 'warn' }; }
+      return { txt: es ? '▬ estable las próximas horas' : '▬ steady for the next few hours', k: 'flat' }; };
+    const mkEnv = (dark) => dark
+      ? { bg: '#1D2735', name: '#FFFFFF', sub: '#93A7C0', hair: 'rgba(255,255,255,.12)', lbl: 'rgba(255,255,255,.85)',
+          wall: 'linear-gradient(165deg,#22364F 0%,#0E1B2C 60%,#1A2438 100%)', dock: 'rgba(255,255,255,.14)', strip: 'rgba(255,255,255,.16)',
+          lockTxt: '#FFFFFF', lockSub: 'rgba(255,255,255,.65)', popBg: '#243447', mapBg: '#212C3C', mapLand: '#2A3648', river: '#3E5A78',
+          wcol: (m) => m <= 20 ? '#4CC98A' : m <= 45 ? '#E8A63D' : '#E36A52', tcol: { rising: '#E8A63D', falling: '#4CC98A', steady: '#93A7C0' },
+          hcol: { good: '#4CC98A', warn: '#E8A63D', flat: '#93A7C0' } }
+      : { bg: '#FFFFFF', name: '#0B1F33', sub: '#5A6B80', hair: '#EBEFF4', lbl: '#3A4A5E',
+          wall: 'linear-gradient(165deg,#D9E3F0 0%,#C4D3E6 55%,#DCE2EA 100%)', dock: 'rgba(255,255,255,.5)', strip: 'rgba(255,255,255,.6)',
+          lockTxt: '#12263D', lockSub: 'rgba(18,38,61,.65)', popBg: '#FFFFFF', mapBg: '#EFEDE6', mapLand: '#E7E2D4', river: '#A9C7E4',
+          wcol: wc, tcol: trendCol, hcol: { good: '#1E8E5A', warn: '#C77E14', flat: '#8595A8' } };
+    const openPort = (id) => () => this.setState({ detailId: id, tab: 'home', mode: 'vehicle', lane: 'std', sheet: null });
+    const mkRows = (E) => wList.map((p, i) => ({ name: shortName[p.id], now: p.now, total: p.total, arrow: wArrow[p.trend],
+      wcol: E.wcol(p.now), tcol: E.tcol[p.trend], bord: i === 0 ? 'none' : '1px solid ' + E.hair, open: openPort(p.id) }));
+    const mkSel = (E) => { const p = wList.find(x => x.id === s.wPort) || wBest; const h = hintFor(p);
+      return { short: shortName[p.id], now: p.now, total: p.total, arrow: wArrow[p.trend], tcol: E.tcol[p.trend], wcol: E.wcol(p.now), hint: h.txt, hintCol: E.hcol[h.k] }; };
+    const wf = mkEnv(s.hsDark), wg = mkEnv(s.wDark);
+    const bestHint = hintFor(wBest);
+    const lockLine = shortName[wBest.id] + ' · ' + wBest.now + ' min ' + wArrow[wBest.trend] + ' · ' + wBest.total + ' total';
+    const mkIcon = ([name, bg, r]) => ({ name, bg, r });
+    const icons4 = [['Maps','#6B8FB8','7px'],['Photos','#C79A6B','50%'],['Mail','#7FA6C9','6px'],['Notes','#C9B27F','6px']].map(mkIcon);
+    const iconsRow = [['Weather','#7893AE','50%'],['Wallet','#8A9BB0','6px'],['Music','#B78A8A','50%'],['Camera','#8D9BB5','6px']].map(mkIcon);
+    const dockIcons = [['#5E82AA'],['#7BA98B'],['#B78A7E'],['#8D9BB5']].map(([bg]) => ({ bg }));
+    const hsTabs = [['home','Home screen'],['lock','Lock screen'],['edit','Edit widget']].map(([k, label]) => ({ label, set: set({ hsView: k }), ...segSt(s.hsView === k) }));
+    const wSizeTabs = [['s','Small'],['m','Medium'],['l','Large'],['lock','Lock']].map(([k, label]) => ({ label, set: set({ wSize: k }), ...segSt(s.wSize === k) }));
+    const chip = (on) => ({ bg: on ? '#E3EAF4' : '#fff', bord: on ? '#17427A' : '#D8DFE8', col: on ? '#17427A' : '#5A6B80', fw: on ? 700 : 600 });
+    const wPortChips = wList.map(p => ({ label: shortName[p.id], set: set({ wPort: p.id }), ...chip(s.wPort === p.id) }));
+    const editRows = wList.map(p => ({ name: shortName[p.id], on: s.wPort === p.id, set: set({ wPort: p.id }) }));
+    const wPinPos = { col: { x: 58, y: 33 }, jl: { x: 210, y: 88 }, gw: { x: 150, y: 99 } };
+    const gPins = wList.map(p => ({ x: wPinPos[p.id].x, y: wPinPos[p.id].y, txt: p.now + 'm', bg: wc(p.now) }));
+
+    const rules = [ ['Wait spikes at favorites', 'When a pinned crossing jumps 15+ min'], ['Time-to-leave for trips', 'A nudge when your planned window opens'], ['Closures & port status', 'Lane closures, holidays, incidents'], ['Better crossing on route', 'Mid-drive switch suggestions'] ];
+    const alertRules = rules.map(([name, desc], i) => ({ name, desc, bord: i < 3 ? '1px solid #EBEFF4' : 'none',
+      tbg: s.alerts[i] ? '#1E8E5A' : '#C9D2DC', knob: s.alerts[i] ? 20 : 2,
+      toggle: () => { const a = [...s.alerts]; a[i] = !a[i]; this.setState({ alerts: a }); } }));
+
+    const cx = (dRaw && dRaw.cx) || {};
+    const personaTiles = [['vehicle','I drive','Car or pickup'],['walk','I walk','Pedestrian lanes'],['cargo','I haul cargo','Commercial semi']].map(([k, label, sub]) => ({
+      label, sub, isVeh: k === 'vehicle', isWalk: k === 'walk', isCargo: k === 'cargo',
+      bg: s.mode === k ? '#E3EAF4' : '#fff', bord: s.mode === k ? '#17427A' : '#D8DFE8', icol: s.mode === k ? '#17427A' : '#5A6B80',
+      set: () => this.setState({ mode: k, detailId: null, sheet: null }) }));
+    const cityRows = [['Laredo · Nuevo Laredo','4 crossings',true],['El Paso · Cd. Juárez','coming soon',false],['San Diego · Tijuana','coming soon',false],['McAllen · Reynosa','coming soon',false]].map(([name, sub, act]) => ({
+      name, sub, tag: act ? 'CURRENT' : 'SOON', tagBg: act ? '#E4F2EA' : '#EDF0F4', tagCol: act ? '#1E8E5A' : '#8595A8',
+      bord: act ? '#17427A' : '#D8DFE8', op: act ? 1 : 0.7, tap: act ? set({ sheet: null }) : (() => {}) }));
+    const tabsDef = [['home','Crossings'],['trips','Trips'],['alerts','Alerts']];
+    const tabs = tabsDef.map(([k, label]) => ({ label, set: set({ tab: k, detailId: null }),
+      isHome: k === 'home', isTrips: k === 'trips', isAlerts: k === 'alerts',
+      col: s.tab === k ? '#17427A' : '#7E8B99', fw: s.tab === k ? 800 : 600 }));
+    const tabPillX = (tabsDef.findIndex(([k]) => k === s.tab) * 100) + '%';
+
+    const radio = (on) => ({ bord: on ? '#17427A' : '#D8DFE8', ring: on ? '#17427A' : '#C9D2DC', dot: on ? '#17427A' : 'transparent' });
+
+    return {
+      isHome: s.tab === 'home' && !s.detailId,
+      isTrips: s.tab === 'trips' && !s.detailId, isAlerts: s.tab === 'alerts' && !s.detailId,
+      isDetail: !!dp, dp: dp || {}, bars, laneTabs, dpLocked: !premium, hasLanes: s.mode === 'vehicle' && dirUS,
+      dirHeadTxt: dirUS ? 'Heading to USA' : 'Heading to Mexico',
+      dirNote: dirUS ? 'Auto from your location · CBP inspection northbound' : 'Auto from your location · aduana southbound, quicker',
+      flipDir: () => this.setState({ dir: dirUS ? 'mx' : 'us', detailId: null, lane: 'std' }),
+      bestWhy: !!nearest && nearest.id !== best.id,
+      bestWhyTxt: nearest ? `${nearest.name.split(' ·')[0]} is closer (${nearest.drive} min away), but its ${nearest.arr}-min line makes it ${nearest.total - best.total} min slower overall.` : '',
+      nearTxt: dirUS ? 'Near Nuevo Laredo, MX' : 'Near Laredo, TX',
+      youX: dirUS ? 78 : 300, youY: dirUS ? 214 : 141, youLX: dirUS ? 91 : 313, youLY: dirUS ? 218 : 145,
+      sourceNote: dirUS ? 'Live from CBP · updated 2:41 PM' : 'Bridge cams + community reports · updated 2:41 PM',
+      sourceNoteDetail: dirUS ? 'CBP Border Wait Times + Google Routes · updated 2:41 PM' : 'Community reports + Google Routes · updated 2:41 PM',
+      patSource: dirUS ? 'Median of the last 12 weeks of CBP data' : 'Median of 12 weeks of community reports',
+      ports: list, best, modeTabs, surge,
+      modeNote: true, modeNoteName: modeNotes[s.mode][0], modeNoteTag: modeNotes[s.mode][1],
+      modeLabel: { vehicle: 'Vehicle', walk: 'Pedestrian', cargo: 'Commercial' }[s.mode],
+      pins, tabs, alertRules, plan, personaTiles, cityRows,
+      openCity: set({ sheet: 'city' }), openPersona: set({ sheet: 'persona' }),
+      isPersonaSheet: s.sheet === 'persona', isCitySheet: s.sheet === 'city',
+      personaIsVeh: s.mode === 'vehicle', personaIsWalk: s.mode === 'walk', personaIsCargo: s.mode === 'cargo',
+      isCargoDetail: !!dp && s.mode === 'cargo', dpFast: cx.fast, dpStd: cx.std, dpInsp: cx.insp, dpDocks: cx.docks,
+      planA: segSt(isArr), planB: segSt(!isArr), setArrive: set({ planMode: 'arrive' }), setLeave: set({ planMode: 'leave' }),
+      best: { ...best, saveTxt }, openBest: () => this.setState({ detailId: best.id }),
+      closeDetail: set({ detailId: null }), openRoute: set({ sheet: 'route' }), openPremium: set({ sheet: 'premium' }), openSettings: set({ sheet: 'settings' }),
+      openPatterns: () => this.setState({ sheet: premium ? 'patterns' : 'premium' }),
+      isPatternsSheet: s.sheet === 'patterns', patDays, patBars, patQuiet, patBusy, patDayName, patName, patLaneSub,
+      tripDays, tripLockNote: !premium, planHist: td > 0, planDayName: tdFull[td],
+      tripIsSetup: s.tripStage === 'setup', tripIsPlan: s.tripStage === 'plan',
+      buildTrip: set({ tripStage: 'plan' }), editTrip: set({ tripStage: 'setup' }),
+      fromOpts, destChips, tripSideTxt: dirUS ? 'Laredo, USA' : 'Nuevo Laredo, MX',
+      tripSummary: `${td === 0 ? 'Today' : tdDates[td]} · ${isArr ? 'arrive by 6:00 PM' : 'leave at 3:00 PM'}`,
+      tripSummarySub: `${curDest} · from ${s.tripFrom === 'current' ? 'current location' : 'Home'}`,
+      tripDataNote: `Typical ${td === 0 ? 'Tuesday' : tdFull[td]} waits · 12-week history via Otrolado API · re-checked live on the day`,
+      hsTabs, toggleHsDark: () => this.setState({ hsDark: !s.hsDark }), hsDarkDot: s.hsDark ? '#F2C14E' : '#17427A', hsDarkLabel: s.hsDark ? 'Dark' : 'Light',
+      hsIsHome: s.hsView === 'home', hsIsLock: s.hsView === 'lock', hsIsEdit: s.hsView === 'edit',
+      wf, wg, L: LD, fRows: mkRows(wf), gRows: mkRows(wg), wSel: mkSel(wf), gSel: mkSel(wg), icons4, iconsRow, dockIcons, lockLine, editRows,
+      fBestHint: bestHint.txt, fBestHintCol: wf.hcol[bestHint.k], gBestHint: bestHint.txt, gBestHintCol: wg.hcol[bestHint.k],
+      wOpenSel: openPort(s.wPort), wOpenBest: openPort(wBest.id),
+      isWidgetsSheet: s.sheet === 'widgets', openWidgets: set({ sheet: 'widgets' }),
+      wSizeTabs, wPortChips, gShowPorts: s.wSize !== 'lock', gIsS: s.wSize === 's', gIsM: s.wSize === 'm', gIsL: s.wSize === 'l', gIsLock: s.wSize === 'lock',
+      gPins, darkChip: chip(s.wDark), enChip: chip(!es), esChip: chip(es),
+      toggleWDark: () => this.setState({ wDark: !s.wDark }), setWLangEn: set({ wLang: 'en' }), setWLangEs: set({ wLang: 'es' }),
+      tabPillX, modePillX,
+      sheetOpen: !!s.sheet, closeSheet: set({ sheet: null }),
+      isRouteSheet: s.sheet === 'route', isPremiumSheet: s.sheet === 'premium', isSettingsSheet: s.sheet === 'settings',
+      etaG: radio(s.eta === 'google'), etaA: radio(s.eta === 'apple'),
+      setEtaGoogle: set({ eta: 'google' }), setEtaApple: set({ eta: 'apple' })
+    };
+  }
+}
+</script>
+</body>
+</html>
