@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Otrolado",
+    "slug": "otrolado",
+    "scheme": "otrolado",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": ["expo-router", "expo-font"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.otrolado.app"
+    },
+    "android": {
+      "package": "com.otrolado.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#17427A",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": { "favicon": "./assets/favicon.png", "bundler": "metro" }
+  }
+}
