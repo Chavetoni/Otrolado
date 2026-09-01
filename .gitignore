@@ -6,3 +6,15 @@ dist/
 .DS_Store
 .expo/
 *.log
+
+# Claude Code — local/private files
+# (shared config stays tracked: CLAUDE.md, .claude/agents/, .claude/settings.json)
+.claude/settings.local.json
+**/.claude/settings.local.json
+CLAUDE.local.md
+**/CLAUDE.local.md
+.claude/memory/
+.claude/plans/
+
+# test artifacts
+coverage/
