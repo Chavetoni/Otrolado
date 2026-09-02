@@ -7,6 +7,10 @@ dist/
 .expo/
 *.log
 
+# Expo prebuild output (continuous native generation — regenerate with `npx expo prebuild`)
+packages/app/ios/
+packages/app/android/
+
 # Claude Code — local/private files
 # (shared config stays tracked: CLAUDE.md, .claude/agents/, .claude/settings.json)
 .claude/settings.local.json

@@ -24,9 +24,9 @@ pnpm db:reset                      # drop schema + replay all migrations
 pnpm --filter @otrolado/api seed    # seed all ~85 crossings from the live feed
 pnpm ingest                        # one CBP poll, prints a JSON result
 pnpm dev:api                       # Fastify on :3000, polls CBP every 15 min
-pnpm dev:app                       # Expo dev server; scan the QR with Expo Go
+pnpm dev:app                       # Expo dev server; open with the dev build on the phone (Expo Go no longer works — see App constraints)
 pnpm dev:app:web                   # react-native-web build on :8081 (Chrome debuggable)
-pnpm --filter @otrolado/app ios    # Expo Go in the iOS simulator (Xcode 26.6 installed)
+pnpm --filter @otrolado/app ios    # build + install the dev build (add `--device` for a plugged-in iPhone; simulator too RAM-heavy on this machine)
 pnpm typecheck                     # all packages
 ```
 
@@ -94,10 +94,11 @@ CBP feed ──poll──▶ parse ──▶ wait_observations (partitioned) ─
 
 ### App constraints
 
-**Targets Expo Go, not a dev build.** No dev build has ever been made, so anything requiring a custom native module cannot run. (Full Xcode 26.6 and iOS 26.5 simulators ARE now installed — see `HANDOFF-emulator-setup.md` — so this is a decision that hasn't been revisited, no longer a hardware limit. The historical reason was Command Line Tools only.) Consequences while it stands:
+**Targets a local dev build; Expo Go is dead for this project.** Decided 2026-09-01. The app is on SDK 57, but Expo stopped updating Expo Go on the App Store after SDK 54 (latest is 54.0.2, released 2025-09-23) — so no installable Expo Go can run this project on a physical iPhone, and updating the phone app cannot fix the "requires a newer version of Expo Go" error. The simulator (which pulls Expo Go 57 straight from Expo's servers) would work but is too RAM-heavy for this machine. The dev build is the standard `npx expo run:ios --device` flow: `expo-dev-client` is installed, `expo prebuild` generates `ios/` (gitignored — regenerable), CocoaPods 1.17 is via Homebrew. Signing uses a free personal Apple ID team, which expires every 7 days — re-run `expo run:ios --device` weekly; the JS itself still hot-reloads from Metro (`pnpm dev:app`) between builds, so rebuilds are only needed for the cert or for native changes. Consequences:
 
-- **AsyncStorage, not MMKV.** The plan specifies MMKV; it is a native module Expo Go cannot load. Swapping it later means changing the persister in `app/_layout.tsx` and nothing else.
-- Run with `pnpm dev:app` and scan the QR code with Expo Go on a phone, or `pnpm --filter @otrolado/app ios` for Expo Go in the simulator. Per the handoff doc, the simulator path has never been verified end-to-end (the first launch attempt timed out on post-install runtime unpacking), and `.vscode/launch.json`'s Chrome debug config is reasoned but untested — breakpoint binding was never confirmed.
+- Custom native modules are now *possible*, but each one added is a rebuild-on-every-phone cost — keep the dependency bar where it was.
+- **AsyncStorage stays for now.** The plan specifies MMKV and the dev build could load it; swapping means changing the persister in `app/_layout.tsx` and nothing else. Do it deliberately, not as a drive-by.
+- The `.vscode/launch.json` Chrome debug config remains reasoned-but-untested (see `HANDOFF-emulator-setup.md`); the handoff doc's simulator narrative predates this decision.
 
 **The API base URL is derived, not hardcoded.** On a physical device `localhost` is the phone, so `src/api.ts` reads Expo's `hostUri` to find the dev machine on the LAN. `EXPO_PUBLIC_API_URL` overrides it.
 
