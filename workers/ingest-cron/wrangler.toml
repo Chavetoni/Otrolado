@@ -1,0 +1,31 @@
+# A clock for the ingest workflow.
+#
+# WHY THIS EXISTS
+# GitHub Actions' `schedule` event is best-effort, and on this repo it measured
+# far worse than "best effort" suggests: on 2026-09-02 a schedule asking for
+# four runs an hour produced three runs in twelve hours, capturing 5 of 22
+# elapsed UTC hours. Every run that fired succeeded — the workflow, the secret
+# and the ingest are all sound — so the only unreliable part is GitHub's
+# willingness to start the job.
+#
+# `workflow_dispatch`, by contrast, has started immediately and succeeded on
+# every attempt. So this Worker keeps the time and pokes that proven path.
+# The workflow's own cron stays in place as free redundancy: ingest is
+# idempotent, so a doubled run writes nothing.
+
+name = "otrolado-ingest-cron"
+main = "src/index.ts"
+compatibility_date = "2026-09-02"
+
+# Same cadence the workflow asks for. CBP stamps readings to the hour, so this
+# is four chances to catch each one, not four hours of data.
+[triggers]
+crons = ["7,22,37,52 * * * *"]
+
+[vars]
+REPO = "Chavetoni/Otrolado"
+WORKFLOW = "ingest.yml"
+REF = "main"
+
+# GITHUB_TOKEN is NOT here on purpose — it is set with:
+#   npx wrangler secret put GITHUB_TOKEN
