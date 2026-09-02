@@ -1,0 +1,97 @@
+# Collects the CBP feed around the clock.
+#
+# A laptop cannot do this: launchd does not run through sleep, and the first
+# five days of collection proved the cost — most hours had one day of coverage
+# out of five and 11pm local was never sampled at all. A gappy archive is worse
+# than a small one, because the hours we never sample become hours the forecast
+# model never learns, and wait history cannot be backfilled.
+#
+# Why four runs an hour is enough despite GitHub's best-effort scheduler:
+# CBP stamps its readings to the hour, and ingest is idempotent (the PK is
+# (observed_at, port_id, mode, lane, direction) with ON CONFLICT DO NOTHING).
+# So each hour needs to be caught once, four attempts are made, and the three
+# that arrive after the row exists write nothing. `rows_written: 0` is success.
+#
+# ONE-TIME SETUP (see also: repo secret DATABASE_URL)
+#   1. Create the managed Postgres, then apply the schema to it:
+#        DATABASE_URL='<url>' pnpm migrate
+#        DATABASE_URL='<url>' pnpm --filter @otrolado/api seed
+#   2. Move the local archive across, so nothing collected so far is lost:
+#        pg_dump -Fc "$LOCAL_URL" -t 'wait_observations*' -f archive.dump
+#        pg_restore -d "$REMOTE_URL" --data-only archive.dump
+#   3. Add DATABASE_URL as a repository secret (Settings > Secrets > Actions).
+# This workflow deliberately does not run migrations. An auto-migration firing
+# every 15 minutes against the archive of record is the kind of convenience
+# that eventually costs a schema.
+
+name: ingest
+
+on:
+  schedule:
+    # Off the hour on purpose: jobs scheduled at :00 are the most likely to be
+    # delayed or dropped when GitHub is busy, and that is where everyone puts
+    # them.
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    # A real Redis, so the snapshot rebuild runs its normal path rather than a
+    # special one. run.ts already treats a failed snapshot write as non-fatal,
+    # but the ioredis client in src/lib/redis.ts has no 'error' listener, so an
+    # unreachable Redis would take the process down as an unhandled error event
+    # before that catch could help. A throwaway container sidesteps the whole
+    # question and costs nothing. The snapshot it builds is discarded with the
+    # runner, which is fine: this job archives, it does not serve.
+    services:
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The api scripts read ../../.env via node --env-file, which throws if the
+      # file is absent, so write one. The runner is ephemeral and .env is
+      # gitignored. Passing the secret through env rather than interpolating it
+      # into the command keeps it out of the rendered log line.
+      - name: Write .env
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          printf 'DATABASE_URL=%s\n' "$DATABASE_URL"        > .env
+          printf 'REDIS_URL=redis://localhost:6379/1\n'    >> .env
+
+      # Prints the ingest result as JSON and exits non-zero if the poll failed,
+      # so a broken feed or an unreachable database surfaces as a failed run
+      # and GitHub emails you. Worth watching observedSpreadMinutes in the
+      # output: anything above ~5 means a port's inferred feed_tz is wrong and
+      # history is being written into the wrong hour.
+      - name: Poll CBP
+        run: pnpm ingest
