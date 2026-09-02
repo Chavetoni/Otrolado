@@ -10,5 +10,11 @@ minimumReleaseAgeExclude:
   - expo-font@57.0.2
   - expo@57.0.18
 
-onlyBuiltDependencies:
-  - esbuild
+# esbuild (via tsx) needs its install script to run. pnpm 11 renamed this
+# setting: `onlyBuiltDependencies` (a list) was the pnpm 10 spelling and is now
+# silently ignored, so a clean install fails with ERR_PNPM_IGNORED_BUILDS even
+# though the old key looked right. It never showed up on this laptop because
+# the build had already run; CI, installing from scratch, failed immediately.
+# `pnpm approve-builds` writes this form.
+allowBuilds:
+  esbuild: true
