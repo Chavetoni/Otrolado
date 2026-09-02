@@ -53,6 +53,25 @@ export interface WaitObservationsTable {
   ingested_at: Generated<Timestamp>;
 }
 
+/**
+ * CBP's previous-year hour-by-weekday averages (see migration 011). Cold-start
+ * stand-in for our own medians; rows must render attributed to CBP.
+ */
+export interface TypicalWaitsTable {
+  port_id: string;
+  mode: TravelMode;
+  lane: LaneType;
+  /** Calendar month, 1-12. */
+  month: number;
+  /** ISO day of week, 1 = Monday .. 7 = Sunday. */
+  dow: number;
+  /** Port-local hour, 0-23. */
+  hour: number;
+  avg_wait_minutes: number;
+  source: Generated<'cbp' | 'cbsa'>;
+  imported_at: ManagedTimestamp;
+}
+
 export interface IngestRunsTable {
   id: Generated<number>;
   source: 'cbp' | 'cbsa';
@@ -72,6 +91,7 @@ export interface IngestRunsTable {
 export interface Database {
   ports: PortsTable;
   wait_observations: WaitObservationsTable;
+  typical_waits: TypicalWaitsTable;
   ingest_runs: IngestRunsTable;
 }
 

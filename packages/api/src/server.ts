@@ -6,6 +6,7 @@ import { ingestCbp } from './ingest/run.js';
 import { redis } from './lib/redis.js';
 import { healthRoutes } from './routes/health.js';
 import { portsRoutes } from './routes/ports.js';
+import { typicalRoutes } from './routes/typical.js';
 import { waitsRoutes } from './routes/waits.js';
 
 const app = Fastify({ logger: { level: config.logLevel } });
@@ -37,6 +38,7 @@ await app.register(cors, {
 
 await app.register(healthRoutes);
 await app.register(portsRoutes);
+await app.register(typicalRoutes);
 await app.register(waitsRoutes);
 
 /**

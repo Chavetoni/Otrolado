@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { PILOT_PORTS, type PortsResponse } from '@otrolado/shared';
-import { fetchPorts, fetchWaits } from './api';
+import { fetchPorts, fetchTypical, fetchWaits } from './api';
 
 /**
  * The bundled pilot directory, shaped like the wire response, so first launch
@@ -26,6 +26,22 @@ export function usePorts() {
     // never masquerade as a server response.
     placeholderData: BUNDLED_PORTS,
     staleTime: 24 * 60 * 60 * 1000,
+    gcTime: Infinity,
+  });
+}
+
+/**
+ * CBP's previous-year hourly averages for one crossing and month. Changes only
+ * when the importer re-runs server-side, so a long staleTime is honest — the
+ * age that matters (last year) is in the data's own attribution, not in how
+ * recently we fetched it.
+ */
+export function useTypical(portId: string | undefined, month: number) {
+  return useQuery({
+    queryKey: ['typical', portId, month],
+    queryFn: () => fetchTypical(portId!, month),
+    enabled: !!portId,
+    staleTime: 60 * 60 * 1000,
     gcTime: Infinity,
   });
 }

@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import type { LaneType } from '@otrolado/shared';
 import { Badge, SegmentedControl } from '../../src/components/ui';
 import { GroundTruthCard } from '../../src/components/GroundTruthCard';
+import { TypicalCard } from '../../src/components/TypicalCard';
 import { PushpinGlyph } from '../../src/components/glyphs';
 import { openDirections } from '../../src/directions';
 import { prefs, usePrefs } from '../../src/prefs';
@@ -242,13 +243,13 @@ export default function PortDetail() {
         )}
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>FORECAST</Text>
-        <Text style={styles.forecastNote}>
-          Not available yet. Hourly predictions need about six weeks of collected history
-          before they mean anything — showing a curve now would be an invention, not a forecast.
-        </Text>
-      </View>
+      {/*
+        Not the forecast — that still needs ~6 weeks of our own history. This
+        is CBP's previous-year average for today's weekday, attributed as such
+        inside the card (see TypicalCard for why it never borrows the live
+        numbers' severity colors).
+      */}
+      {port && <TypicalCard port={port} lane={lane} />}
 
       {port && <GroundTruthCard port={port} />}
 
@@ -354,7 +355,6 @@ const styles = StyleSheet.create({
     fontSize: 11, fontFamily: font.semibold, letterSpacing: 1.1,
     color: color.muted,
   },
-  forecastNote: { fontSize: 12.5, fontFamily: font.regular, color: color.muted, lineHeight: 18 },
   numberRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
   // Detail number: 52/700, -0.045em, tight leading.
   number: { fontSize: 52, fontFamily: font.bold, letterSpacing: -2.34, lineHeight: 50 },

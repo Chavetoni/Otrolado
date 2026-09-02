@@ -23,6 +23,7 @@ pnpm migrate                       # apply packages/api/migrations/*.sql in orde
 pnpm db:reset                      # drop schema + replay all migrations
 pnpm --filter @otrolado/api seed    # seed all ~85 crossings from the live feed
 pnpm ingest                        # one CBP poll, prints a JSON result
+pnpm import:typical                # CBP previous-year hourly averages -> typical_waits (pilot ports)
 pnpm dev:api                       # Fastify on :3000, polls CBP every 15 min
 pnpm dev:app                       # Expo dev server; open with the dev build on the phone (Expo Go no longer works — see App constraints)
 pnpm dev:app:web                   # react-native-web build on :8081 (Chrome debuggable)
@@ -154,7 +155,7 @@ bridge can never appear in a passenger ranking.
 - **Cloud hosting.** Local Postgres until the schema settles. Keep everything vendor-portable.
 - **Southbound.** No federal feed exists. The prototype's `dFac = 0.35` southbound multiplier is invented mock data and must not ship as if it were fed. The app renders an explicit "no official data" state instead. See `LIMITS.southbound`.
 - **Push delivery.** Alerts fire in the foreground only. Background notifications need an account to attach rules to and a queue (BullMQ + APNs/FCM) to send from; until then the Alerts screen says so in the same weight as the feature.
-- **Forecasts.** The 12-hour chart, trend arrows and future-day trip planning need roughly six weeks of archived history that does not exist yet, and collection is not yet running continuously. The detail screen says so rather than drawing a curve.
+- **Forecasts.** The 12-hour chart, trend arrows and future-day trip planning need roughly six weeks of archived history that does not exist yet, and collection is not yet running continuously. The detail screen says so rather than drawing a curve. Interim: `typical_waits` holds CBP's own previous-year hour-by-weekday averages (`pnpm import:typical`, from the undocumented API behind bwt.cbp.gov/historical — see migration 011 and `scripts/import-typical-waits.ts` for the feed's quirks). It is a climatology attributed to CBP, not our forecast — anything rendered from it must say so, and it gets superseded by our own status-aware medians once the archive matures. Served by `/v1/typical/:portId` and rendered by the detail screen's TypicalCard (single cobalt, never the live severity colors; attribution carries the import vintage).
 - **Port coordinates.** All eleven pilot coordinates are OSM named-bridge-way
   centroids — one source, one rule — and flagged `coordsApproximate`. Routes
   measures to the point we give it, so these must be surveyed before ETAs ship.

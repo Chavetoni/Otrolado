@@ -1,4 +1,4 @@
-import type { Freshness, Port, WaitReading } from './types.js';
+import type { Freshness, LaneType, Port, TravelMode, WaitReading } from './types.js';
 import type { FreshnessThresholds } from './freshness.js';
 
 /**
@@ -37,4 +37,37 @@ export interface WaitsResponse {
   /** The thresholds the verdicts were judged against, for client re-derivation. */
   readonly thresholds: FreshnessThresholds;
   readonly ports: readonly WaitsPort[];
+}
+
+/** One (weekday, hour) cell of CBP's previous-year hourly averages. */
+export interface TypicalCell {
+  /** ISO day of week, 1 = Monday .. 7 = Sunday. */
+  readonly dow: number;
+  /** Port-local hour, 0-23. Ports not open 24h simply have no cell for closed hours. */
+  readonly hour: number;
+  readonly avgWaitMinutes: number;
+}
+
+export interface TypicalLane {
+  readonly mode: TravelMode;
+  readonly lane: LaneType;
+  readonly cells: readonly TypicalCell[];
+}
+
+/**
+ * GET /v1/typical/:portId?month=1-12 — CBP's own historical averages, imported
+ * from bwt.cbp.gov. A climatology ("what last year looked like at this hour"),
+ * NOT our forecast: anything rendered from it must be attributed to CBP and
+ * must never wear the visual language of a live or predicted number.
+ */
+export interface TypicalResponse {
+  readonly portId: string;
+  /** Calendar month these averages describe, 1-12. */
+  readonly month: number;
+  /** Provenance, spelled out so no client can render the numbers unattributed. */
+  readonly source: 'cbp-previous-year-average';
+  /** When our importer last pulled this from CBP. Null whenever `lanes` is empty. */
+  readonly importedAt: string | null;
+  /** Empty when the importer has not run for this port (or CBP has no history). */
+  readonly lanes: readonly TypicalLane[];
 }

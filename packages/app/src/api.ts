@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
-import type { PortsResponse, WaitsResponse } from '@otrolado/shared';
+import type { PortsResponse, TypicalResponse, WaitsResponse } from '@otrolado/shared';
 
 /**
  * Where the API lives.
@@ -45,3 +45,5 @@ async function getJson<T>(path: string): Promise<T> {
 
 export const fetchPorts = () => getJson<PortsResponse>('/v1/ports');
 export const fetchWaits = () => getJson<WaitsResponse>('/v1/waits');
+export const fetchTypical = (portId: string, month: number) =>
+  getJson<TypicalResponse>(`/v1/typical/${encodeURIComponent(portId)}?month=${month}`);
