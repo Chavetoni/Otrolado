@@ -9,9 +9,11 @@ import { ClockGlyph } from './glyphs';
  * Renders nothing unless a forecast series says something worth a sentence —
  * no filler copy, no card chrome around an absence. Today `forecast` is always
  * null (predictions need ~6 weeks of archive that is still being collected;
- * see the detail screen's FORECAST card), so this card is dormant until the
- * /v1/forecast P50 series is wired through Home. The wiring point is the one
- * prop; the logic and copy are final in `peak.ts`.
+ * the detail screen shows CBP's previous-year averages in the meantime — see
+ * TypicalCard, which is attributed history, not a forecast, and deliberately
+ * NOT fed into this card), so this card is dormant until the /v1/forecast P50
+ * series is wired through Home. The wiring point is the one prop; the logic
+ * and copy are final in `peak.ts`.
  *
  * Deliberately plain: a clock and a sentence, no "AI" branding, no sparkles.
  * The claim is a historical pattern and the copy says "typically".
@@ -33,7 +35,7 @@ export function PeakAdvisoryCard({
     <View style={styles.card}>
       <ClockGlyph size={16} color={color.navy} />
       <Text style={styles.text}>
-        <Text style={{ fontFamily: font.bold }}>{advisory.head}</Text> {advisory.body}
+        <Text style={{ fontFamily: font.semibold }}>{advisory.head}</Text> {advisory.body}
       </Text>
     </View>
   );
@@ -46,12 +48,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: color.card,
+    backgroundColor: color.surface,
     borderWidth: 1,
-    borderColor: color.border,
+    borderColor: color.line,
     borderRadius: radius.button,
-    paddingHorizontal: 14,
+    paddingHorizontal: 15,
     paddingVertical: 10,
   },
-  text: { flex: 1, fontSize: 12, fontFamily: font.regular, color: color.bodyMuted, lineHeight: 17 },
+  text: { flex: 1, fontSize: 12, fontFamily: font.regular, color: color.muted, lineHeight: 17 },
 });

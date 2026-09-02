@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Platform, Pressable, StyleSheet, Text } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
-import { usePathname } from 'expo-router';
 import { TabList, TabSlot, TabTrigger, Tabs, type TabTriggerSlotProps } from 'expo-router/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAlertWatch } from '../../src/useAlertWatch';
-import { color, dropShadow, font, radius } from '../../src/theme';
+import { color, font } from '../../src/theme';
 
 /**
- * The floating tab bar from the prototype, built on `expo-router/ui`.
+ * The design-system tab bar, built on `expo-router/ui`: white surface,
+ * 1px `line` border-top, active items in cobalt, inactive icons in the
+ * dedicated tabInactive tint with muted labels. Flat — no shadow, no pill.
  *
  * SDK 57's router dropped @react-navigation/bottom-tabs, so the older
  * `<Tabs tabBar={...}>` pattern does not exist here — the headless
@@ -35,11 +35,12 @@ const TABS: readonly { name: string; href: string; label: string; icon: IconKey 
   { name: 'alerts', href: '/alerts', label: 'Alerts', icon: 'alerts' },
 ];
 
-/** Icon paths lifted verbatim from the prototype's 20x20 SVGs. */
+/** Icon paths lifted verbatim from the prototype's 20x20 SVGs, drawn at the
+ * spec's 21px item size. */
 function TabIcon({ name, tint }: { name: IconKey; tint: string }) {
   if (name === 'crossings') {
     return (
-      <Svg width={20} height={20} viewBox="0 0 20 20">
+      <Svg width={21} height={21} viewBox="0 0 20 20">
         <Rect x={3} y={4} width={14} height={3} rx={1.5} fill={tint} />
         <Rect x={3} y={9} width={14} height={3} rx={1.5} fill={tint} />
         <Rect x={3} y={14} width={9} height={3} rx={1.5} fill={tint} />
@@ -48,14 +49,14 @@ function TabIcon({ name, tint }: { name: IconKey; tint: string }) {
   }
   if (name === 'trips') {
     return (
-      <Svg width={20} height={20} viewBox="0 0 20 20">
+      <Svg width={21} height={21} viewBox="0 0 20 20">
         <Circle cx={10} cy={10} r={7} fill="none" stroke={tint} strokeWidth={1.5} />
         <Path d="M10 6v4l3 2" fill="none" stroke={tint} strokeWidth={1.5} strokeLinecap="round" />
       </Svg>
     );
   }
   return (
-    <Svg width={20} height={20} viewBox="0 0 20 20">
+    <Svg width={21} height={21} viewBox="0 0 20 20">
       <Path
         d="M10 3c-2.5 0-4 1.8-4 4v3l-1.2 2.5h10.4L14 10V7c0-2.2-1.5-4-4-4z"
         fill="none"
@@ -73,7 +74,8 @@ function TabButton({
   icon,
   ...props
 }: TabTriggerSlotProps & { label: string; icon: IconKey }) {
-  const tint = isFocused ? color.navy : color.tabInactive;
+  // Active is cobalt on both icon and label; inactive splits — the icon takes
+  // the pale tabInactive tint, the label takes muted, exactly as specified.
   return (
     <Pressable
       {...props}
@@ -81,13 +83,8 @@ function TabButton({
       accessibilityRole="tab"
       accessibilityState={{ selected: Boolean(isFocused) }}
     >
-      <TabIcon name={icon} tint={tint} />
-      <Text
-        style={[
-          styles.label,
-          { color: tint, fontFamily: isFocused ? font.extrabold : font.semibold },
-        ]}
-      >
+      <TabIcon name={icon} tint={isFocused ? color.cobalt : color.tabInactive} />
+      <Text style={[styles.label, { color: isFocused ? color.cobalt : color.muted }]}>
         {label}
       </Text>
     </Pressable>
@@ -104,30 +101,6 @@ export default function TabLayout() {
    * waits query and issues no requests of its own.
    */
   useAlertWatch();
-
-  const pathname = usePathname();
-  const [barWidth, setBarWidth] = useState(0);
-
-  const activeIndex = pathname.startsWith('/trips')
-    ? 1
-    : pathname.startsWith('/alerts')
-      ? 2
-      : 0;
-
-  // The pill slides between slots. Width is measured rather than a percentage
-  // because Animated cannot interpolate percentage translateX.
-  const pillWidth = barWidth > 0 ? (barWidth - 10) / TABS.length : 0;
-  const translateX = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(translateX, {
-      toValue: activeIndex * pillWidth,
-      duration: 320,
-      // The prototype's curve, verbatim. Fidelity includes the easing.
-      easing: Easing.bezier(0.3, 0.9, 0.35, 1),
-      useNativeDriver: Platform.OS !== 'web',
-    }).start();
-  }, [activeIndex, pillWidth, translateX]);
 
   return (
     <Tabs>
@@ -149,15 +122,7 @@ export default function TabLayout() {
         skipped by that parser but still rendered, which is what lets the bar
         carry the sliding indicator.
       */}
-      <TabList
-        style={[styles.bar, { bottom: Math.max(22, insets.bottom) }]}
-        onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
-      >
-        {pillWidth > 0 && (
-          <Animated.View
-            style={[styles.pill, { width: pillWidth, transform: [{ translateX }] }]}
-          />
-        )}
+      <TabList style={[styles.bar, { paddingBottom: Math.max(20, insets.bottom) }]}>
         {TABS.map((t) => (
           <TabTrigger key={t.name} name={t.name} href={t.href} asChild>
             <TabButton label={t.label} icon={t.icon} />
@@ -169,34 +134,22 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  // Spec: white, border-top 1px line, padding 11px 34px 20px. The bottom
+  // padding is applied inline so the safe-area inset can widen it.
   bar: {
-    position: 'absolute',
-    left: 14,
-    right: 14,
-    zIndex: 30,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.94)',
-    borderRadius: radius.tabBar,
-    padding: 5,
-    ...dropShadow({ y: 12, blur: 32, color: color.ink, opacity: 0.2, elevation: 12 }),
-  },
-  pill: {
-    position: 'absolute',
-    top: 5,
-    bottom: 5,
-    left: 5,
-    backgroundColor: color.tabPill,
-    borderRadius: radius.tabPill,
+    backgroundColor: color.surface,
+    borderTopWidth: 1,
+    borderTopColor: color.line,
+    paddingTop: 11,
+    paddingHorizontal: 34,
   },
   trigger: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
-    borderRadius: radius.tabPill,
-    paddingTop: 9,
-    paddingBottom: 8,
+    gap: 4,
   },
-  label: { fontSize: 10.5, letterSpacing: 0.1 },
+  label: { fontSize: 10, fontFamily: font.semibold },
 });

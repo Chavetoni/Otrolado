@@ -106,7 +106,7 @@ function pinIcon(L: Leaflet, row: RankedPort): Leaflet {
   const fg = pinTextColor(row);
   const showName = pinShowsName(row);
   const nameHtml = showName
-    ? `<div style="margin-top:${PIN.nameGap}px;height:${PIN.nameH}px;line-height:${PIN.nameH}px;font-family:${font.bold},system-ui,sans-serif;font-size:9px;color:${color.bodyMuted};background:rgba(255,255,255,.85);border-radius:5px;padding:0 5px;white-space:nowrap">${escapeHtml(pinName(row))}</div>`
+    ? `<div style="margin-top:${PIN.nameGap}px;height:${PIN.nameH}px;line-height:${PIN.nameH}px;font-family:${font.semibold},system-ui,sans-serif;font-size:9px;color:${color.navy};background:rgba(255,255,255,.85);border-radius:5px;padding:0 5px;white-space:nowrap">${escapeHtml(pinName(row))}</div>`
     : '';
   return L.divIcon({
     className: '',
@@ -116,7 +116,7 @@ function pinIcon(L: Leaflet, row: RankedPort): Leaflet {
     iconAnchor: [0, PIN_TIP],
     html: `
       <div style="position:absolute;left:0;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;cursor:pointer">
-        <div style="height:${PIN.bubbleH}px;display:flex;align-items:center;background:${fill};color:${fg};border-radius:10px;padding:0 8px;font-family:${font.extrabold},system-ui,sans-serif;font-size:13px;font-variant-numeric:tabular-nums;box-shadow:0 2px 6px rgba(11,31,51,.25);white-space:nowrap">${escapeHtml(pinLabel(row))}</div>
+        <div style="height:${PIN.bubbleH}px;display:flex;align-items:center;background:${fill};color:${fg};border-radius:10px;padding:0 8px;font-family:${font.bold},system-ui,sans-serif;font-size:13px;font-variant-numeric:tabular-nums;border:1px solid ${color.surface};white-space:nowrap">${escapeHtml(pinLabel(row))}</div>
         <div style="width:0;height:0;border-left:${PIN.caretW / 2}px solid transparent;border-right:${PIN.caretW / 2}px solid transparent;border-top:${PIN.caretH}px solid ${fill}"></div>
         ${nameHtml}
       </div>`,
@@ -227,8 +227,8 @@ export default function CrossingsMap({
       L.circleMarker(
         [origin.lat, origin.lng],
         origin.isFallback
-          ? { radius: 7, color: color.tabInactive, weight: 2, fillOpacity: 0 }
-          : { radius: 7, color: color.card, weight: 2.5, fillColor: color.navy, fillOpacity: 1 },
+          ? { radius: 7, color: color.muted, weight: 2, fillOpacity: 0 }
+          : { radius: 7, color: color.surface, weight: 2.5, fillColor: color.cobalt, fillOpacity: 1 },
       ).bindTooltip(
         origin.isFallback
           ? 'Approximate starting point — location off, not GPS'
@@ -284,8 +284,8 @@ const surface = {
   borderRadius: radius.cardLg,
   overflow: 'hidden' as const,
   borderWidth: 1,
-  borderColor: color.border,
-  backgroundColor: color.trackBg,
+  borderColor: color.line,
+  backgroundColor: color.line,
 };
 
 const styles = StyleSheet.create({
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     height: MAP_HEIGHT,
   },
   full: { ...surface, flex: 1, borderRadius: 0, borderWidth: 0 },
-  fallback: { justifyContent: 'center', padding: 16, gap: 6, backgroundColor: color.card },
-  fallbackTitle: { fontSize: 14, fontFamily: font.bold, color: color.ink },
-  fallbackBody: { fontSize: 12.5, fontFamily: font.regular, color: color.bodyMuted, lineHeight: 18 },
+  fallback: { justifyContent: 'center', padding: 16, gap: 6, backgroundColor: color.surface },
+  fallbackTitle: { fontSize: 14, fontFamily: font.semibold, color: color.navy },
+  fallbackBody: { fontSize: 13, fontFamily: font.regular, color: color.muted, lineHeight: 19 },
 });

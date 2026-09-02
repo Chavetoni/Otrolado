@@ -24,7 +24,7 @@ import {
   type TripOption,
 } from '../../src/trip';
 import { useOrigin } from '../../src/useOrigin';
-import { color, font, radius, space, tabular } from '../../src/theme';
+import { color, font, radius, space, status, tabular } from '../../src/theme';
 
 /**
  * Trips: "what time do I leave to be across by X."
@@ -94,10 +94,10 @@ export default function Trips() {
 
   return (
     <ScrollView
-      style={{ backgroundColor: color.appBg }}
+      style={{ backgroundColor: color.mist }}
       contentContainerStyle={{
         paddingTop: insets.top + 12,
-        paddingBottom: insets.bottom + space.tabBarClearance,
+        paddingBottom: space.tabBarClearance,
       }}
     >
       <View style={{ paddingHorizontal: space.gutter }}>
@@ -116,7 +116,7 @@ export default function Trips() {
           <View style={styles.card}>
             <SectionLabel>Starting from</SectionLabel>
             <View style={styles.radioRow}>
-              <View style={[styles.radioOuter, { borderColor: color.navy }]}>
+              <View style={[styles.radioOuter, { borderColor: color.cobalt }]}>
                 <View style={styles.radioDot} />
               </View>
               <View style={{ flex: 1 }}>
@@ -327,16 +327,16 @@ function DayChips() {
             style={[
               styles.dayChip,
               i === 0
-                ? { backgroundColor: color.navyTint, borderColor: color.navy }
-                : { backgroundColor: color.card, borderColor: color.border },
+                ? { backgroundColor: color.navy, borderColor: color.navy }
+                : { backgroundColor: color.surface, borderColor: color.line },
             ]}
           >
             <Text
               style={[
                 styles.dayText,
                 {
-                  color: i === 0 ? color.navy : color.tertiary,
-                  fontFamily: i === 0 ? font.extrabold : font.semibold,
+                  color: i === 0 ? color.surface : color.muted,
+                  fontFamily: font.semibold,
                 },
               ]}
             >
@@ -424,10 +424,10 @@ function PlanCard({
 }) {
   const badge = freshnessBadge(option.freshness);
   const steps = [
-    { t: formatMinutes(option.leaveMinutes), d: 'set off', dot: color.card, line: true, flex: 3 },
-    { t: formatMinutes(option.atBridgeMinutes), d: 'at the bridge', dot: color.goldOnDark, line: true, flex: 3 },
-    { t: `~${option.waitMinutes} min`, d: 'in line', dot: color.goldOnDark, line: true, flex: 2 },
-    { t: formatMinutes(option.acrossMinutes), d: 'across', dot: '#4CC98A', line: false, flex: 1.4 },
+    { t: formatMinutes(option.leaveMinutes), d: 'set off', dot: color.surface, line: true, flex: 3 },
+    { t: formatMinutes(option.atBridgeMinutes), d: 'at the bridge', dot: color.cobaltLight, line: true, flex: 3 },
+    { t: `~${option.waitMinutes} min`, d: 'in line', dot: color.cobaltLight, line: true, flex: 2 },
+    { t: formatMinutes(option.acrossMinutes), d: 'across', dot: color.surface, line: false, flex: 1.4 },
   ];
 
   return (
@@ -481,12 +481,16 @@ function PlanCard({
         now
       </Text>
 
+      {/*
+        Primary-on-cobalt inverts to white so it stays the focal point; once
+        saved it steps back to the secondary-on-cobalt outline treatment.
+      */}
       <Pressable
-        style={[styles.saveCta, isSaved && { backgroundColor: color.greenPressed }]}
+        style={[styles.saveCta, isSaved && styles.saveCtaSaved]}
         onPress={onSave}
         accessibilityRole="button"
       >
-        <Text style={styles.saveCtaText}>
+        <Text style={[styles.saveCtaText, isSaved && styles.saveCtaTextSaved]}>
           {isSaved ? 'Saved · alerts on while the app is open' : 'Save trip · alert me when to leave'}
         </Text>
       </Pressable>
@@ -502,134 +506,146 @@ function PlanCard({
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 28, fontFamily: font.extrabold, color: color.ink, letterSpacing: -0.5 },
-  subtitle: { fontSize: 12, fontFamily: font.regular, color: color.secondary, marginTop: 2 },
+  title: { fontSize: 24, fontFamily: font.bold, color: color.navy, letterSpacing: -0.48 },
+  subtitle: { fontSize: 12, fontFamily: font.regular, color: color.muted, marginTop: 2 },
 
   card: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    backgroundColor: color.card, borderWidth: 1, borderColor: color.border,
+    backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
     borderRadius: radius.card, paddingHorizontal: 16, paddingVertical: 14, gap: 10,
   },
   radioRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     borderWidth: 1.5, borderRadius: radius.button, paddingHorizontal: 13, paddingVertical: 11,
-    borderColor: color.navy,
+    borderColor: color.cobalt,
   },
   radioOuter: {
     width: 18, height: 18, borderRadius: 9, borderWidth: 1.5,
     alignItems: 'center', justifyContent: 'center',
   },
-  radioDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: color.navy },
-  radioName: { fontSize: 13.5, fontFamily: font.bold, color: color.ink },
-  radioSub: { fontSize: 11, fontFamily: font.regular, color: color.secondary },
-  privacyNote: { fontSize: 10.5, fontFamily: font.regular, color: color.tertiary, lineHeight: 15 },
+  radioDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: color.cobalt },
+  radioName: { fontSize: 13.5, fontFamily: font.semibold, color: color.navy },
+  radioSub: { fontSize: 11, fontFamily: font.regular, color: color.muted },
+  privacyNote: { fontSize: 10.5, fontFamily: font.regular, color: color.muted, lineHeight: 15 },
 
   dayRow: { flexDirection: 'row', gap: 6, paddingHorizontal: space.gutter, marginTop: 10 },
   dayChip: {
     flex: 1, alignItems: 'center', paddingVertical: 8,
-    borderRadius: 10, borderWidth: 1.5,
+    borderRadius: radius.pill, borderWidth: 1,
   },
   dayText: { fontSize: 12 },
   dayNote: {
-    fontSize: 10.5, fontFamily: font.regular, color: color.tertiary,
+    fontSize: 10.5, fontFamily: font.regular, color: color.muted,
     paddingHorizontal: space.gutter, marginTop: 7, textAlign: 'center', lineHeight: 15,
   },
 
   stepperCard: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    backgroundColor: color.card, borderWidth: 1, borderColor: color.border,
+    backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
     borderRadius: radius.card, paddingHorizontal: 16, paddingVertical: 14,
     flexDirection: 'row', alignItems: 'center', gap: 12,
   },
-  stepperTime: { fontSize: 22, fontFamily: font.extrabold, color: color.ink },
-  stepperSub: { fontSize: 11.5, fontFamily: font.regular, color: color.tertiary },
+  stepperTime: { fontSize: 22, fontFamily: font.bold, color: color.navy },
+  stepperSub: { fontSize: 11.5, fontFamily: font.regular, color: color.muted },
   stepButton: {
-    width: 28, height: 28, borderRadius: 8, backgroundColor: color.chipBg,
+    width: 28, height: 28, borderRadius: 8, backgroundColor: color.mist,
     alignItems: 'center', justifyContent: 'center',
   },
-  stepGlyph: { fontSize: 9, color: color.navy, fontFamily: font.bold },
+  stepGlyph: { fontSize: 9, color: color.navy, fontFamily: font.semibold },
 
+  // Primary button: the setup viewport's one cobalt.
   cta: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    backgroundColor: color.green, borderRadius: radius.button,
+    backgroundColor: color.cobalt, borderRadius: radius.button,
     paddingVertical: 14, alignItems: 'center',
   },
-  ctaText: { fontSize: 14, fontFamily: font.bold, color: color.card },
+  ctaText: { fontSize: 14, fontFamily: font.semibold, color: color.surface },
   ctaBlocked: {
-    fontSize: 11.5, fontFamily: font.semibold, color: color.redOnTint,
+    fontSize: 11.5, fontFamily: font.semibold, color: status.heavy.ink,
     paddingHorizontal: space.gutter, marginTop: 8, textAlign: 'center',
   },
   footnote: {
-    fontSize: 10.5, fontFamily: font.regular, color: color.tertiary,
+    fontSize: 10.5, fontFamily: font.regular, color: color.muted,
     paddingHorizontal: space.gutter, marginTop: 12, lineHeight: 15,
   },
 
   savedCard: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    backgroundColor: color.greenTint, borderRadius: radius.card,
-    paddingHorizontal: 14, paddingVertical: 12,
+    backgroundColor: status.clear.tint, borderRadius: radius.banner,
+    paddingHorizontal: 15, paddingVertical: 13,
     flexDirection: 'row', alignItems: 'center', gap: 10,
   },
-  savedLabel: { fontSize: 9.5, fontFamily: font.bold, letterSpacing: 0.8, color: color.green },
-  savedTitle: { fontSize: 13.5, fontFamily: font.bold, color: color.ink },
-  savedSub: { fontSize: 11, fontFamily: font.regular, color: color.secondary },
+  savedLabel: { fontSize: 10, fontFamily: font.semibold, letterSpacing: 1.1, color: status.clear.ink },
+  savedTitle: { fontSize: 13.5, fontFamily: font.semibold, color: status.clear.ink },
+  savedSub: { fontSize: 11, fontFamily: font.regular, color: status.clear.ink },
 
   summaryRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingHorizontal: space.gutter, marginTop: space.sectionGap,
   },
-  summaryTitle: { fontSize: 13.5, fontFamily: font.bold, color: color.ink },
-  summarySub: { fontSize: 11, fontFamily: font.regular, color: color.secondary },
+  summaryTitle: { fontSize: 13.5, fontFamily: font.semibold, color: color.navy },
+  summarySub: { fontSize: 11, fontFamily: font.regular, color: color.muted },
   editButton: {
-    backgroundColor: color.chipBg, borderRadius: radius.segmentInner,
-    paddingHorizontal: 10, paddingVertical: 6,
+    backgroundColor: color.surface, borderWidth: 1.5, borderColor: color.lineStrong,
+    borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6,
   },
-  editText: { fontSize: 11, fontFamily: font.bold, color: color.navy },
+  editText: { fontSize: 11, fontFamily: font.semibold, color: color.navy },
 
+  // Status banner, moderate: a stale plan is a warning, not brand.
   frozen: {
     marginHorizontal: space.gutter, marginTop: 12,
-    backgroundColor: color.goldBadgeBg, borderRadius: radius.card, padding: 14, gap: 4,
+    backgroundColor: status.moderate.tint, borderRadius: radius.banner,
+    paddingVertical: 13, paddingHorizontal: 15, gap: 4,
   },
-  frozenTitle: { fontSize: 13, fontFamily: font.bold, color: color.goldBadgeText },
-  frozenBody: { fontSize: 11.5, fontFamily: font.regular, color: color.goldBadgeText, lineHeight: 16 },
+  frozenTitle: { fontSize: 13, fontFamily: font.semibold, color: status.moderate.ink },
+  frozenBody: { fontSize: 11.5, fontFamily: font.regular, color: status.moderate.ink, lineHeight: 16 },
 
+  // Hero surface: the plan viewport's one cobalt.
   planCard: {
     marginHorizontal: space.gutter, marginTop: 12,
-    backgroundColor: color.navy, borderRadius: radius.cardLg, padding: 16, gap: 12,
+    backgroundColor: color.cobalt, borderRadius: radius.hero, padding: 20, gap: 12,
   },
   planHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  planLabel: { fontSize: 10.5, fontFamily: font.bold, letterSpacing: 1, color: color.navySubtle },
-  planVia: { fontSize: 11, fontFamily: font.bold, color: '#CDEDDD', flexShrink: 1 },
-  planHeadline: { fontSize: 26, fontFamily: font.extrabold, color: color.card },
-  planSub: { fontSize: 13, fontFamily: font.semibold, color: '#B9CCE4' },
-  planStale: { fontSize: 10.5, fontFamily: font.semibold, color: color.goldOnDark },
-  passedRow: { backgroundColor: 'rgba(192,57,43,.28)', borderRadius: 10, padding: 10 },
+  planLabel: { fontSize: 10, fontFamily: font.semibold, letterSpacing: 1.1, color: color.cobaltLight },
+  planVia: { fontSize: 11, fontFamily: font.semibold, color: color.cobaltLight, flexShrink: 1 },
+  planHeadline: { fontSize: 26, fontFamily: font.bold, color: color.surface, letterSpacing: -0.5 },
+  planSub: { fontSize: 13, fontFamily: font.medium, color: color.cobaltLight },
+  planStale: { fontSize: 10.5, fontFamily: font.semibold, color: status.moderate.tint },
+  passedRow: { backgroundColor: 'rgba(22,35,74,.35)', borderRadius: 10, padding: 10 },
   passedText: { fontSize: 11.5, fontFamily: font.semibold, color: '#FFD9D2', lineHeight: 16 },
 
   timeline: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,.08)', borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,.1)', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 10,
   },
   dot: { width: 7, height: 7, borderRadius: 4 },
-  connector: { flex: 1, height: 2, borderRadius: 1, backgroundColor: 'rgba(255,255,255,.25)' },
-  stepTime: { fontSize: 10, fontFamily: font.bold, color: color.card },
-  stepDesc: { fontSize: 9, fontFamily: font.regular, color: color.navySubtle },
-  planApprox: { fontSize: 10.5, fontFamily: font.regular, color: color.navySubtle },
+  connector: { flex: 1, height: 2, borderRadius: 1, backgroundColor: 'rgba(255,255,255,.3)' },
+  stepTime: { fontSize: 10, fontFamily: font.semibold, color: color.surface },
+  stepDesc: { fontSize: 9, fontFamily: font.regular, color: color.cobaltLight },
+  planApprox: { fontSize: 10.5, fontFamily: font.regular, color: color.cobaltLight },
 
+  // Primary on cobalt: inverts to white.
   saveCta: {
-    backgroundColor: color.green, borderRadius: 10,
-    paddingVertical: 11, alignItems: 'center',
+    backgroundColor: color.surface, borderRadius: radius.button,
+    paddingVertical: 12, alignItems: 'center',
   },
-  saveCtaText: { fontSize: 13.5, fontFamily: font.bold, color: color.card },
-  planLink: { fontSize: 11.5, fontFamily: font.semibold, color: color.navySubtle, textAlign: 'center' },
+  saveCtaText: { fontSize: 13.5, fontFamily: font.semibold, color: color.navy },
+  // Secondary on cobalt: outline in cobaltOutline, white text.
+  saveCtaSaved: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5, borderColor: color.cobaltOutline,
+    paddingVertical: 10.5,
+  },
+  saveCtaTextSaved: { color: color.surface },
+  planLink: { fontSize: 11.5, fontFamily: font.semibold, color: color.cobaltLight, textAlign: 'center' },
 
   altRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: color.card, borderWidth: 1, borderColor: color.border,
-    borderRadius: radius.card, padding: space.cardPad,
+    flexDirection: 'row', alignItems: 'center', gap: 13,
+    backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
+    borderRadius: radius.card, paddingVertical: 13, paddingHorizontal: 15,
   },
-  altName: { fontSize: 13.5, fontFamily: font.bold, color: color.ink },
-  altSub: { fontSize: 11.5, fontFamily: font.regular, color: color.secondary },
-  altDelta: { fontSize: 11, fontFamily: font.bold, color: color.navy },
+  altName: { fontSize: 13.5, fontFamily: font.semibold, color: color.navy },
+  altSub: { fontSize: 11.5, fontFamily: font.regular, color: color.muted },
+  altDelta: { fontSize: 11, fontFamily: font.semibold, color: color.navy },
 });

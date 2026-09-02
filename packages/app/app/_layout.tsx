@@ -5,12 +5,11 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import {
   useFonts,
-  SchibstedGrotesk_400Regular,
-  SchibstedGrotesk_500Medium,
-  SchibstedGrotesk_600SemiBold,
-  SchibstedGrotesk_700Bold,
-  SchibstedGrotesk_800ExtraBold,
-} from '@expo-google-fonts/schibsted-grotesk';
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+} from '@expo-google-fonts/poppins';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { color } from '../src/theme';
@@ -36,17 +35,16 @@ const persister = createAsyncStoragePersister({
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    SchibstedGrotesk_400Regular,
-    SchibstedGrotesk_500Medium,
-    SchibstedGrotesk_600SemiBold,
-    SchibstedGrotesk_700Bold,
-    SchibstedGrotesk_800ExtraBold,
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
   });
 
   if (!fontsLoaded) {
     return (
-      <View style={{ flex: 1, backgroundColor: color.appBg, justifyContent: 'center' }}>
-        <ActivityIndicator color={color.navy} />
+      <View style={{ flex: 1, backgroundColor: color.mist, justifyContent: 'center' }}>
+        <ActivityIndicator color={color.cobalt} />
       </View>
     );
   }
@@ -58,7 +56,7 @@ export default function RootLayout() {
     >
       <SafeAreaProvider>
         <StatusBar style="dark" />
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.appBg } }}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.mist } }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="port/[id]" options={{ presentation: 'card' }} />
           {/* Pushed from the Crossings map card, not a tab — see app/map.tsx. */}

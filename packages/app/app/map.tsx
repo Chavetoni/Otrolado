@@ -14,7 +14,7 @@ import { rankPorts } from '../src/ranking';
 import { usePorts, useWaits } from '../src/queries';
 import { useAgedWaits } from '../src/useFreshness';
 import { useOrigin } from '../src/useOrigin';
-import { color, dropShadow, font, radius, space, tabular } from '../src/theme';
+import { color, font, radius, space, status, tabular } from '../src/theme';
 
 /**
  * The full-screen map, reached by tapping the inline card on Crossings.
@@ -114,33 +114,35 @@ export default function FullScreenMap() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.appBg },
+  screen: { flex: 1, backgroundColor: color.mist },
 
   // The map fills the screen, so the back control floats over it rather than
-  // sitting in a header bar that would eat 56px of map.
+  // sitting in a header bar that would eat 56px of map. No shadow — the
+  // hairline border does the separating.
   backWrap: { position: 'absolute', left: space.gutter, zIndex: 1000 },
   back: {
-    backgroundColor: 'rgba(255,255,255,0.94)',
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.line,
     borderRadius: radius.button,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    ...dropShadow({ y: 3, blur: 10, color: color.ink, opacity: 0.15, elevation: 4 }),
   },
-  backText: { fontSize: 13, fontFamily: font.bold, color: color.navy },
+  backText: { fontSize: 13, fontFamily: font.semibold, color: color.cobalt },
 
   footer: {
     position: 'absolute',
     left: space.gutter,
     right: space.gutter,
     zIndex: 1000,
-    backgroundColor: color.card,
+    backgroundColor: color.surface,
     borderWidth: 1,
-    borderColor: color.border,
+    borderColor: color.line,
     borderRadius: radius.card,
-    paddingHorizontal: space.cardPad,
+    paddingHorizontal: 15,
     paddingVertical: 10,
     gap: 3,
   },
-  footerText: { fontSize: 10.5, fontFamily: font.regular, color: color.tertiary },
-  footerError: { fontSize: 11.5, fontFamily: font.semibold, color: color.redOnTint },
+  footerText: { fontSize: 10.5, fontFamily: font.regular, color: color.muted },
+  footerError: { fontSize: 11.5, fontFamily: font.semibold, color: status.heavy.ink },
 });

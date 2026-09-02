@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
-  expandText: { fontSize: 10, fontFamily: font.bold, color: color.navy },
+  expandText: { fontSize: 10, fontFamily: font.semibold, color: color.cobalt },
 
   chip: {
     position: 'absolute',
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
-  chipText: { fontSize: 10, fontFamily: font.bold, color: color.navy },
+  chipText: { fontSize: 10, fontFamily: font.semibold, color: color.navy },
 
   legend: {
     position: 'absolute',
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   // legend's near-white background; invisible on the saturated scale dots.
   legendDot: {
     width: 8, height: 8, borderRadius: 4,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: color.border,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: color.line,
   },
-  legendText: { fontSize: 9.5, fontFamily: font.semibold, color: color.secondary },
+  legendText: { fontSize: 9.5, fontFamily: font.semibold, color: color.muted },
 });

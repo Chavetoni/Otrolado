@@ -5,11 +5,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import type { LaneType } from '@otrolado/shared';
 import { Badge, SegmentedControl } from '../../src/components/ui';
 import { GroundTruthCard } from '../../src/components/GroundTruthCard';
+import { PushpinGlyph } from '../../src/components/glyphs';
 import { openDirections } from '../../src/directions';
+import { prefs, usePrefs } from '../../src/prefs';
 import { formatAge, formatClock, freshnessBadge } from '../../src/freshness-ui';
 import { usePorts, useWaits } from '../../src/queries';
 import { reportedAgeSeconds, useAgedWaits } from '../../src/useFreshness';
-import { color, font, radius, space, tabular, waitColor } from '../../src/theme';
+import { color, font, radius, space, status, tabular, waitColor } from '../../src/theme';
 
 const LANES: readonly { value: LaneType; label: string }[] = [
   { value: 'standard', label: 'Standard' },
@@ -46,12 +48,42 @@ export default function PortDetail() {
   const aged = useAgedWaits(waits);
 
   const port = ports.data?.ports.find((p) => p.id === id);
+  const isPinned = usePrefs().pinned.includes(id ?? '');
   const lanes = useMemo(
     () => aged.data?.ports.find((p) => p.portId === id)?.lanes ?? [],
     [aged.data, id],
   );
   const reading = lanes.find(
     (l) => l.mode === 'passenger' && l.lane === lane && l.direction === 'northbound',
+  );
+
+  /**
+   * Availability dots on the lane picker, so "which lanes can I even use" is
+   * answered before a tap, not after. The dot is usability, not severity —
+   * open is clear green however long the wait; the number below says how bad.
+   * A lane the crossing does not have gets no dot and a dimmed label, but
+   * stays tappable so UnavailableState can say why. No reading at all (first
+   * load, server down) is unknown-grey, never dimmed — absence of data must
+   * not render as absence of the lane.
+   */
+  const laneOptions = useMemo(
+    () =>
+      LANES.map((l) => {
+        const r = lanes.find(
+          (x) => x.mode === 'passenger' && x.lane === l.value && x.direction === 'northbound',
+        );
+        if (r?.status === 'not_available') return { ...l, dimmed: true };
+        return {
+          ...l,
+          dot:
+            r?.status === 'open'
+              ? status.clear.dot
+              : r?.status === 'closed'
+                ? status.heavy.dot
+                : color.lineStrong,
+        };
+      }),
+    [lanes],
   );
   const badge = reading ? freshnessBadge(reading.freshness) : null;
   // Non-pilot ports carry no coordinates; no coordinates, no button.
@@ -69,7 +101,7 @@ export default function PortDetail() {
   if (!port && !ports.isLoading) {
     return (
       <ScrollView
-        style={{ backgroundColor: color.appBg }}
+        style={{ backgroundColor: color.mist }}
         contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 32 }}
       >
         <View style={{ paddingHorizontal: space.gutter, gap: 10 }}>
@@ -102,7 +134,7 @@ export default function PortDetail() {
 
   return (
     <ScrollView
-      style={{ backgroundColor: color.appBg }}
+      style={{ backgroundColor: color.mist }}
       contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 32 }}
     >
       <View style={{ paddingHorizontal: space.gutter, gap: 10 }}>
@@ -126,16 +158,38 @@ export default function PortDetail() {
           </View>
         </View>
 
-        {dest && (
+        {port && (
           <View style={styles.directionsRow}>
+            {/*
+              The pin's other home: the same toggle as the list card, so a
+              crossing can be pinned from wherever you're looking at it.
+            */}
             <Pressable
-              onPress={() => openDirections(dest)}
-              style={styles.directionsButton}
+              onPress={() => prefs.togglePin(port.id)}
+              style={[styles.pinButton, isPinned && styles.pinButtonOn]}
               accessibilityRole="button"
+              accessibilityState={{ selected: isPinned }}
+              accessibilityLabel={isPinned ? `Unpin ${port.displayName}` : `Pin ${port.displayName}`}
             >
-              <Text style={styles.directionsText}>Directions ↗</Text>
+              <PushpinGlyph
+                size={13}
+                color={isPinned ? color.surface : color.navy}
+                filled={isPinned}
+              />
+              <Text style={[styles.pinText, isPinned && { color: color.surface }]}>
+                {isPinned ? 'Pinned' : 'Pin'}
+              </Text>
             </Pressable>
-            {port?.coordsApproximate && (
+            {dest && (
+              <Pressable
+                onPress={() => openDirections(dest)}
+                style={styles.directionsButton}
+                accessibilityRole="button"
+              >
+                <Text style={styles.directionsText}>Directions ↗</Text>
+              </Pressable>
+            )}
+            {dest && port.coordsApproximate && (
               <Text style={[styles.approxNote, { flexShrink: 1 }]}>
                 coordinates approximate — destination pin is hand-placed
               </Text>
@@ -145,7 +199,7 @@ export default function PortDetail() {
       </View>
 
       <View style={{ paddingHorizontal: space.gutter, marginTop: space.sectionGap }}>
-        <SegmentedControl options={LANES} value={lane} onChange={setLane} />
+        <SegmentedControl options={laneOptions} value={lane} onChange={setLane} />
       </View>
 
       <View style={styles.card}>
@@ -220,7 +274,7 @@ export default function PortDetail() {
  */
 function BoothsLine({ open, max }: { open: number; max: number }) {
   const slow = open / max < 0.45;
-  const tint = slow ? color.amber : color.green;
+  const tint = slow ? status.moderate.dot : status.clear.dot;
   return (
     <View style={styles.boothRow}>
       <View style={styles.boothBars}>
@@ -265,56 +319,67 @@ function UnavailableState({ status }: { status: string | undefined }) {
 
 const styles = StyleSheet.create({
   back: { alignSelf: 'flex-start', paddingVertical: 4, paddingRight: 8 },
-  backText: { fontSize: 14, fontFamily: font.semibold, color: color.navy },
-  title: { fontSize: 19, fontFamily: font.extrabold, color: color.ink },
+  backText: { fontSize: 14, fontFamily: font.semibold, color: color.cobalt },
+  title: { fontSize: 24, fontFamily: font.bold, color: color.navy, letterSpacing: -0.48 },
   subRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   hoursBadge: {
-    backgroundColor: color.greenTint, borderRadius: 6,
-    paddingHorizontal: 7, paddingVertical: 3,
+    backgroundColor: status.clear.tint, borderRadius: radius.pill,
+    paddingHorizontal: 8, paddingVertical: 3,
   },
-  hoursText: { fontSize: 9.5, fontFamily: font.bold, color: color.green, letterSpacing: 0.5 },
-  approxNote: { fontSize: 10.5, fontFamily: font.regular, color: color.tertiary },
+  hoursText: { fontSize: 10, fontFamily: font.semibold, color: status.clear.ink, letterSpacing: 1.1 },
+  approxNote: { fontSize: 10.5, fontFamily: font.regular, color: color.muted },
   directionsRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 2 },
-  directionsButton: {
-    backgroundColor: color.navy, borderRadius: radius.button,
-    paddingVertical: 8, paddingHorizontal: 14,
+  // Tertiary treatment unpinned; flips to a navy fill once pinned — navy, not
+  // cobalt, so the screen's one cobalt stays the Directions primary.
+  pinButton: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    borderWidth: 1.5, borderColor: color.lineStrong, borderRadius: radius.pill,
+    paddingHorizontal: 14, paddingVertical: 7.5, backgroundColor: color.surface,
   },
-  directionsText: { fontSize: 12.5, fontFamily: font.bold, color: color.card },
+  pinButtonOn: { backgroundColor: color.navy, borderColor: color.navy },
+  pinText: { fontSize: 12.5, fontFamily: font.semibold, color: color.navy },
+  // Primary button: the one cobalt on this screen.
+  directionsButton: {
+    backgroundColor: color.cobalt, borderRadius: radius.button,
+    paddingVertical: 9, paddingHorizontal: 16,
+  },
+  directionsText: { fontSize: 12.5, fontFamily: font.semibold, color: color.surface },
 
   card: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    backgroundColor: color.card, borderWidth: 1, borderColor: color.border,
+    backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
     borderRadius: radius.cardLg, padding: 16, gap: 8,
   },
   cardLabel: {
-    fontSize: 11, fontFamily: font.bold, letterSpacing: 0.8,
-    color: color.tertiary,
+    fontSize: 11, fontFamily: font.semibold, letterSpacing: 1.1,
+    color: color.muted,
   },
+  forecastNote: { fontSize: 12.5, fontFamily: font.regular, color: color.muted, lineHeight: 18 },
   numberRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  number: { fontSize: 38, fontFamily: font.extrabold, lineHeight: 42 },
-  numberUnit: { fontSize: 14, fontFamily: font.bold, color: color.secondary, paddingBottom: 5 },
-  meta: { fontSize: 12, fontFamily: font.regular, color: color.secondary },
+  // Detail number: 52/700, -0.045em, tight leading.
+  number: { fontSize: 52, fontFamily: font.bold, letterSpacing: -2.34, lineHeight: 50 },
+  numberUnit: { fontSize: 14, fontFamily: font.medium, color: color.muted, paddingBottom: 7 },
+  meta: { fontSize: 12, fontFamily: font.regular, color: color.muted },
   boothRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   boothBars: { flexDirection: 'row', alignItems: 'flex-end', gap: 2, height: 12 },
   boothBar: { width: 3, height: 12, borderRadius: 1.5 },
   boothText: { fontSize: 12, fontFamily: font.semibold },
 
-  unavailableTitle: { fontSize: 17, fontFamily: font.bold, color: color.ink },
-  unavailableBody: { fontSize: 12.5, fontFamily: font.regular, color: color.bodyMuted, lineHeight: 18 },
-  forecastNote: { fontSize: 12.5, fontFamily: font.regular, color: color.bodyMuted, lineHeight: 18 },
-  source: { fontSize: 10.5, fontFamily: font.regular, color: color.tertiary },
+  unavailableTitle: { fontSize: 16, fontFamily: font.semibold, color: color.navy },
+  unavailableBody: { fontSize: 13, fontFamily: font.regular, color: color.muted, lineHeight: 19 },
+  source: { fontSize: 11, fontFamily: font.regular, color: color.muted },
 
   errorCard: {
-    backgroundColor: color.redTint, borderWidth: 1, borderColor: color.redBorder,
-    borderRadius: radius.card, padding: 16, gap: 6,
+    backgroundColor: status.heavy.tint,
+    borderRadius: radius.banner, paddingVertical: 13, paddingHorizontal: 15, gap: 6,
   },
-  errorCardTitle: { fontSize: 14, fontFamily: font.bold, color: color.redOnTint },
+  errorCardTitle: { fontSize: 14, fontFamily: font.semibold, color: status.heavy.ink },
   errorCardBody: {
-    fontSize: 12.5, fontFamily: font.regular, color: color.redOnTint, lineHeight: 18,
+    fontSize: 13, fontFamily: font.regular, color: status.heavy.ink, lineHeight: 19,
   },
   retryButton: {
-    alignSelf: 'flex-start', marginTop: 4, backgroundColor: color.navy,
-    borderRadius: radius.button, paddingVertical: 8, paddingHorizontal: 14,
+    alignSelf: 'flex-start', marginTop: 4, backgroundColor: color.cobalt,
+    borderRadius: radius.button, paddingVertical: 9, paddingHorizontal: 16,
   },
-  retryText: { fontSize: 12.5, fontFamily: font.bold, color: color.card },
+  retryText: { fontSize: 12.5, fontFamily: font.semibold, color: color.surface },
 });

@@ -22,3 +22,9 @@ CLAUDE.local.md
 
 # test artifacts
 coverage/
+
+# Working design notes, not yet part of the tracked handoff bundle in design/.
+# NOTE: packages/app/src/theme.ts cites "Otrolado Design System.md" as the
+# source of its tokens, so this is a temporary parking spot — the doc belongs
+# in design/ (tracked) once the Cobalt token set is settled.
+Otrolado Design System.md

@@ -7,7 +7,7 @@ import { PIN, pinAnchorY, pinColor, pinLabel, pinName, pinShowsName, pinTextColo
 import { boundsOf, boundsToRegion } from '../map-bounds';
 import type { RankedPort } from '../ranking';
 import type { Origin } from '../useOrigin';
-import { color, dropShadow, font, radius, space, tabular } from '../theme';
+import { color, font, radius, space, tabular } from '../theme';
 
 /**
  * The crossings map, in two variants.
@@ -148,8 +148,8 @@ const surface = {
   borderRadius: radius.cardLg,
   overflow: 'hidden' as const,
   borderWidth: 1,
-  borderColor: color.border,
-  backgroundColor: color.trackBg,
+  borderColor: color.line,
+  backgroundColor: color.line,
 };
 
 const styles = StyleSheet.create({
@@ -162,14 +162,16 @@ const styles = StyleSheet.create({
   full: { ...surface, flex: 1, borderRadius: 0, borderWidth: 0 },
 
   pin: { alignItems: 'center' },
+  // No shadow — a white hairline separates the bubble from the basemap.
   pinBubble: {
     height: PIN.bubbleH,
     justifyContent: 'center',
     borderRadius: 10,
     paddingHorizontal: 8,
-    ...dropShadow({ y: 2, blur: 6, color: color.ink, opacity: 0.25, elevation: 3 }),
+    borderWidth: 1,
+    borderColor: color.surface,
   },
-  pinText: { fontSize: 13, fontFamily: font.extrabold, color: color.card },
+  pinText: { fontSize: 13, fontFamily: font.bold, color: color.surface },
   pinCaret: {
     width: 0,
     height: 0,
@@ -184,8 +186,8 @@ const styles = StyleSheet.create({
     height: PIN.nameH,
     fontSize: 9,
     lineHeight: PIN.nameH,
-    fontFamily: font.bold,
-    color: color.bodyMuted,
+    fontFamily: font.semibold,
+    color: color.navy,
     backgroundColor: 'rgba(255,255,255,0.85)',
     borderRadius: 5,
     paddingHorizontal: 5,
@@ -194,10 +196,10 @@ const styles = StyleSheet.create({
 
   originDot: {
     width: 14, height: 14, borderRadius: 7,
-    backgroundColor: color.navy, borderWidth: 2.5, borderColor: color.card,
+    backgroundColor: color.cobalt, borderWidth: 2.5, borderColor: color.surface,
   },
   originFallbackDot: {
     width: 14, height: 14, borderRadius: 7,
-    backgroundColor: 'transparent', borderWidth: 2, borderColor: color.tabInactive,
+    backgroundColor: 'transparent', borderWidth: 2, borderColor: color.muted,
   },
 });

@@ -1,6 +1,6 @@
 import type { RankedPort } from '../ranking';
 import { freshnessBadge } from '../freshness-ui';
-import { color, totalColor } from '../theme';
+import { color, status, totalColor } from '../theme';
 
 /**
  * What a map pin says, in one place.
@@ -29,7 +29,7 @@ export function pinLabel(row: RankedPort): string {
  * unreported crossing rendered green would read as a fast crossing.
  *
  * An estimated or stale total leaves the live scale entirely and takes the
- * freshness badge's own colours (gold for ESTIMATED, red tint for STALE) —
+ * freshness badge's own colours (amber tint for ESTIMATED, red tint for STALE) —
  * the same vocabulary the list-row badges use — so a reading nobody stands
  * behind can't wear the live green.
  */
@@ -41,9 +41,9 @@ export function pinColor(row: RankedPort): string {
 
 /** Bubble text: white on the saturated live scale, badge fg on the pale tints. */
 export function pinTextColor(row: RankedPort): string {
-  if (row.totalMinutes === null) return color.card;
+  if (row.totalMinutes === null) return color.surface;
   const badge = freshnessBadge(row.freshness);
-  return badge ? badge.fg : color.card;
+  return badge ? badge.fg : color.surface;
 }
 
 /** Short label under the pin — the prototype drops the ` · …` qualifier. */
@@ -101,9 +101,9 @@ export function pinAnchorY(showName: boolean): number {
 /** Mirrors what the pins can actually render: the live total scale plus the
  * two non-live badge tints. Keep in lockstep with `pinColor`. */
 export const LEGEND: readonly { label: string; color: string }[] = [
-  { label: '<50m', color: color.green },
-  { label: '50–65m', color: color.amber },
-  { label: '>65m', color: color.red },
-  { label: 'est.', color: color.goldBadgeBg },
-  { label: 'stale', color: color.redTint },
+  { label: '<50m', color: status.clear.dot },
+  { label: '50–65m', color: status.moderate.dot },
+  { label: '>65m', color: status.heavy.dot },
+  { label: 'est.', color: status.moderate.tint },
+  { label: 'stale', color: status.heavy.tint },
 ];

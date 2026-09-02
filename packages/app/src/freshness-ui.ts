@@ -1,5 +1,5 @@
 import type { Freshness } from '@otrolado/shared';
-import { color } from './theme';
+import { status } from './theme';
 
 /**
  * How stale data is presented.
@@ -13,9 +13,9 @@ export function freshnessBadge(f: Freshness): { label: string; bg: string; fg: s
     case 'live':
       return null;
     case 'estimated':
-      return { label: 'ESTIMATED', bg: color.goldBadgeBg, fg: color.goldBadgeText };
+      return { label: 'ESTIMATED', bg: status.moderate.tint, fg: status.moderate.ink };
     case 'stale':
-      return { label: 'STALE', bg: color.redTint, fg: color.redOnTint };
+      return { label: 'STALE', bg: status.heavy.tint, fg: status.heavy.ink };
   }
 }
 

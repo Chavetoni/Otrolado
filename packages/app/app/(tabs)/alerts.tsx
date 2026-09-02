@@ -7,7 +7,7 @@ import { ALERT_RULES } from '../../src/alerts';
 import { prefs, usePrefs } from '../../src/prefs';
 import { usePorts, useWaits } from '../../src/queries';
 import { useAgedWaits } from '../../src/useFreshness';
-import { color, font, radius, space } from '../../src/theme';
+import { color, font, radius, space, status } from '../../src/theme';
 
 /**
  * Alerts: rules, what they watch, and what has fired.
@@ -42,10 +42,10 @@ export default function Alerts() {
 
   return (
     <ScrollView
-      style={{ backgroundColor: color.appBg }}
+      style={{ backgroundColor: color.mist }}
       contentContainerStyle={{
         paddingTop: insets.top + 12,
-        paddingBottom: insets.bottom + space.tabBarClearance,
+        paddingBottom: space.tabBarClearance,
       }}
     >
       <View style={{ paddingHorizontal: space.gutter }}>
@@ -71,7 +71,7 @@ export default function Alerts() {
             style={[styles.ruleRow, i < ALERT_RULES.length - 1 && styles.ruleDivider]}
           >
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={[styles.ruleName, !rule.available && { color: color.tertiary }]}>
+              <Text style={[styles.ruleName, !rule.available && { color: color.muted }]}>
                 {rule.name}
               </Text>
               <Text style={styles.ruleDesc}>{rule.desc}</Text>
@@ -83,7 +83,9 @@ export default function Alerts() {
                   Nothing to nudge you about — save a trip on the Trips tab first.
                 </Text>
               )}
-              {rule.id === 'spike' && rule.available && watchlist.length === 0 && (
+              {(rule.id === 'spike' || rule.id === 'closure') &&
+                rule.available &&
+                watchlist.length === 0 && (
                 <Text style={styles.ruleBlocked}>
                   Watching no crossings yet — pick some below.
                 </Text>
@@ -116,16 +118,16 @@ export default function Alerts() {
                 style={[
                   styles.watchChip,
                   on
-                    ? { backgroundColor: color.navyTint, borderColor: color.navy }
-                    : { backgroundColor: color.card, borderColor: color.border },
+                    ? { backgroundColor: color.navy, borderColor: color.navy }
+                    : { backgroundColor: color.surface, borderColor: color.line },
                 ]}
               >
                 <Text
                   style={[
                     styles.watchChipText,
                     {
-                      color: on ? color.navy : color.secondary,
-                      fontFamily: on ? font.bold : font.semibold,
+                      color: on ? color.surface : color.muted,
+                      fontFamily: font.semibold,
                     },
                   ]}
                 >
@@ -169,7 +171,11 @@ export default function Alerts() {
                 styles.eventRow,
                 {
                   borderLeftColor:
-                    e.tone === 'bad' ? color.red : e.tone === 'good' ? color.green : color.amber,
+                    e.tone === 'bad'
+                      ? status.heavy.dot
+                      : e.tone === 'good'
+                        ? status.clear.dot
+                        : status.moderate.dot,
                 },
               ]}
             >
@@ -193,60 +199,63 @@ export default function Alerts() {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 28, fontFamily: font.extrabold, color: color.ink, letterSpacing: -0.5 },
-  subtitle: { fontSize: 12, fontFamily: font.regular, color: color.secondary, marginTop: 2 },
+  title: { fontSize: 24, fontFamily: font.bold, color: color.navy, letterSpacing: -0.48 },
+  subtitle: { fontSize: 12, fontFamily: font.regular, color: color.muted, marginTop: 2 },
 
+  // Notice banner: a capability limit is information, not a warning.
   limitCard: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    backgroundColor: color.goldBadgeBg, borderRadius: radius.card, padding: 14, gap: 5,
+    backgroundColor: color.infoTint, borderRadius: radius.banner,
+    paddingVertical: 13, paddingHorizontal: 15, gap: 5,
   },
-  limitTitle: { fontSize: 13, fontFamily: font.bold, color: color.goldBadgeText },
-  limitBody: { fontSize: 11.5, fontFamily: font.regular, color: color.goldBadgeText, lineHeight: 16 },
+  limitTitle: { fontSize: 13, fontFamily: font.semibold, color: color.infoInk },
+  limitBody: { fontSize: 13, fontFamily: font.regular, color: color.infoInk, lineHeight: 19 },
 
   rulesCard: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    backgroundColor: color.card, borderWidth: 1, borderColor: color.border,
+    backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
     borderRadius: radius.card, overflow: 'hidden',
   },
   ruleRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 14, paddingVertical: 13,
+    paddingHorizontal: 15, paddingVertical: 13,
   },
-  ruleDivider: { borderBottomWidth: 1, borderBottomColor: color.hairline },
-  ruleName: { fontSize: 14, fontFamily: font.bold, color: color.ink },
-  ruleDesc: { fontSize: 11.5, fontFamily: font.regular, color: color.secondary },
-  ruleBlocked: { fontSize: 10.5, fontFamily: font.regular, color: color.tertiary, lineHeight: 15 },
+  ruleDivider: { borderBottomWidth: 1, borderBottomColor: color.line },
+  ruleName: { fontSize: 14, fontFamily: font.semibold, color: color.navy },
+  ruleDesc: { fontSize: 11.5, fontFamily: font.regular, color: color.muted },
+  ruleBlocked: { fontSize: 10.5, fontFamily: font.regular, color: color.muted, lineHeight: 15 },
 
-  helpText: { fontSize: 11, fontFamily: font.regular, color: color.tertiary, lineHeight: 15 },
+  helpText: { fontSize: 11, fontFamily: font.regular, color: color.muted, lineHeight: 15 },
   watchWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
+  // Filter chips: active navy fill, inactive white with a line border.
   watchChip: {
-    paddingHorizontal: 12, paddingVertical: 8,
-    borderRadius: radius.pill, borderWidth: 1.5,
+    paddingHorizontal: 14, paddingVertical: 8,
+    borderRadius: radius.pill, borderWidth: 1,
   },
   watchChipText: { fontSize: 12 },
 
   activityHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  clearText: { fontSize: 11, fontFamily: font.bold, color: color.navy },
+  clearText: { fontSize: 11, fontFamily: font.semibold, color: color.cobalt },
 
   emptyCard: {
-    backgroundColor: color.card, borderWidth: 1, borderColor: color.border,
+    backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
     borderRadius: radius.card, padding: 16, gap: 5,
   },
-  emptyTitle: { fontSize: 13.5, fontFamily: font.bold, color: color.ink },
-  emptyBody: { fontSize: 11.5, fontFamily: font.regular, color: color.bodyMuted, lineHeight: 16 },
+  emptyTitle: { fontSize: 13.5, fontFamily: font.semibold, color: color.navy },
+  emptyBody: { fontSize: 11.5, fontFamily: font.regular, color: color.muted, lineHeight: 16 },
 
   eventRow: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10,
-    backgroundColor: color.card, borderWidth: 1, borderColor: color.border,
+    backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
     borderLeftWidth: 3,
-    borderRadius: radius.card, padding: space.cardPad,
+    borderRadius: radius.card, paddingVertical: 13, paddingHorizontal: 15,
   },
-  eventTitle: { fontSize: 13.5, fontFamily: font.bold, color: color.ink },
-  eventBody: { fontSize: 11.5, fontFamily: font.regular, color: color.secondary, lineHeight: 16 },
-  eventTime: { fontSize: 10.5, fontFamily: font.regular, color: color.tertiary },
+  eventTitle: { fontSize: 13.5, fontFamily: font.semibold, color: color.navy },
+  eventBody: { fontSize: 11.5, fontFamily: font.regular, color: color.muted, lineHeight: 16 },
+  eventTime: { fontSize: 10.5, fontFamily: font.regular, color: color.muted },
 
   footnote: {
-    fontSize: 10.5, fontFamily: font.regular, color: color.tertiary,
+    fontSize: 10.5, fontFamily: font.regular, color: color.muted,
     paddingHorizontal: space.gutter, marginTop: 16, lineHeight: 15,
   },
 });

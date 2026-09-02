@@ -28,6 +28,33 @@ export function CameraGlyph({ size = 16, color }: { size?: number; color: string
   );
 }
 
+/**
+ * Pushpin for the favorites feature — deliberately not `PinGlyph`, which is a
+ * MAP pin (a place). This one is a tack (a choice). `filled` is the pinned
+ * state; the outline form is the affordance to pin.
+ */
+export function PushpinGlyph({
+  size = 16,
+  color,
+  filled = false,
+}: {
+  size?: number;
+  color: string;
+  filled?: boolean;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"
+        fill={filled ? color : 'none'}
+        stroke={color}
+        strokeWidth={filled ? 0 : 1.8}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export function PinGlyph({ size = 16, color }: { size?: number; color: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { color, dropShadow, font, radius, tabular } from '../theme';
+import { color, font, radius, status, tabular } from '../theme';
 
 export function Chip({
   label,
@@ -10,10 +10,10 @@ export function Chip({
   tone?: 'neutral' | 'good' | 'bad' | 'warn';
 }) {
   const tones = {
-    neutral: { bg: color.chipBg, fg: color.tertiary },
-    good: { bg: color.greenTint, fg: color.green },
-    bad: { bg: color.redTint, fg: color.red },
-    warn: { bg: color.goldBadgeBg, fg: color.goldBadgeText },
+    neutral: { bg: color.mist, fg: color.muted },
+    good: { bg: status.clear.tint, fg: status.clear.ink },
+    bad: { bg: status.heavy.tint, fg: status.heavy.ink },
+    warn: { bg: status.moderate.tint, fg: status.moderate.ink },
   } as const;
   const t = tones[tone];
   return (
@@ -43,7 +43,14 @@ export function SegmentedControl<T extends string>({
   value,
   onChange,
 }: {
-  options: readonly { value: T; label: string }[];
+  /**
+   * `dot` renders a 6px status dot before the label — availability, not
+   * severity (open = clear green regardless of the wait; the number below
+   * carries how bad it is). `dimmed` pales the inactive label for an option
+   * that exists as a choice but has nothing behind it (e.g. a lane this
+   * crossing does not have); it stays tappable so the screen can say why.
+   */
+  options: readonly { value: T; label: string; dot?: string | null; dimmed?: boolean }[];
   value: T;
   onChange: (v: T) => void;
 }) {
@@ -100,17 +107,26 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
           >
-            <Text
-              style={[
-                styles.segmentLabel,
-                {
-                  color: active ? color.ink : color.secondary,
-                  fontFamily: active ? font.bold : font.semibold,
-                },
-              ]}
-            >
-              {o.label}
-            </Text>
+            <View style={styles.segmentLabelRow}>
+              {o.dot != null && (
+                <View style={[styles.segmentDot, { backgroundColor: o.dot }]} />
+              )}
+              <Text
+                style={[
+                  styles.segmentLabel,
+                  {
+                    color: active
+                      ? color.navy
+                      : o.dimmed
+                        ? color.lineStrong
+                        : color.muted,
+                    fontFamily: active ? font.bold : font.semibold,
+                  },
+                ]}
+              >
+                {o.label}
+              </Text>
+            </View>
           </Pressable>
         );
       })}
@@ -119,11 +135,12 @@ export function SegmentedControl<T extends string>({
 }
 
 /**
- * iOS-style switch. 44x26 with a 22px knob, exactly as the prototype specifies.
+ * Toggle per the design system: 48x28 track, 22px white knob, 3px padding,
+ * on = cobalt, off = line. Track colour transitions over 180ms.
  *
  * The knob's x-position animates rather than the row re-rendering in two
  * states, so a flip reads as one object sliding — the same treatment as the
- * segmented control's pill. Track colour crossfades over the same 150ms.
+ * segmented control's pill.
  *
  * `disabled` renders at reduced opacity and refuses the press. It exists
  * because some rules cannot be evaluated yet, and a switch that moves but
@@ -145,10 +162,10 @@ export function Toggle({
   useEffect(() => {
     Animated.timing(anim, {
       toValue: value ? 1 : 0,
-      duration: 150,
+      duration: 180,
       easing: Easing.out(Easing.quad),
       // Track colour interpolation is a layout-thread property, so this one
-      // cannot go native. It is a 44px slide; the JS driver is fine.
+      // cannot go native. It is a 48px slide; the JS driver is fine.
       useNativeDriver: false,
     }).start();
   }, [value, anim]);
@@ -168,7 +185,7 @@ export function Toggle({
           {
             backgroundColor: anim.interpolate({
               inputRange: [0, 1],
-              outputRange: [color.switchOff, color.green],
+              outputRange: [color.line, color.cobalt],
             }),
           },
         ]}
@@ -176,7 +193,7 @@ export function Toggle({
         <Animated.View
           style={[
             styles.knob,
-            { transform: [{ translateX: anim.interpolate({ inputRange: [0, 1], outputRange: [2, 20] }) }] },
+            { transform: [{ translateX: anim.interpolate({ inputRange: [0, 1], outputRange: [3, 23] }) }] },
           ]}
         />
       </Animated.View>
@@ -189,40 +206,41 @@ export function SectionLabel({ children }: { children: string }) {
 }
 
 const styles = StyleSheet.create({
-  chip: { borderRadius: radius.segmentInner, paddingHorizontal: 8, paddingVertical: 3 },
-  chipText: { fontSize: 11, fontFamily: font.bold },
-  badge: { borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  badgeText: { fontSize: 9.5, fontFamily: font.bold, letterSpacing: 0.6 },
+  chip: { borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 3 },
+  chipText: { fontSize: 11, fontFamily: font.semibold },
+  badge: { borderRadius: radius.pill, paddingHorizontal: 7, paddingVertical: 2 },
+  badgeText: { fontSize: 10, fontFamily: font.semibold, letterSpacing: 1.1 },
   segment: {
     position: 'relative',
     flexDirection: 'row',
-    backgroundColor: color.trackBg,
-    borderRadius: radius.segment,
+    backgroundColor: color.line,
+    borderRadius: radius.pill,
     padding: 3,
   },
+  // No shadows anywhere — the pill separates by surface contrast alone.
   segmentPill: {
     position: 'absolute',
     top: 3,
     bottom: 3,
     left: 3,
-    backgroundColor: color.card,
-    borderRadius: radius.segmentInner,
-    ...dropShadow({ y: 1, blur: 2, color: color.ink, opacity: 0.1 }),
+    backgroundColor: color.surface,
+    borderRadius: radius.pill,
   },
-  track: { width: 44, height: 26, borderRadius: 13, justifyContent: 'center' },
+  track: { width: 48, height: 28, borderRadius: radius.pill, justifyContent: 'center' },
   knob: {
     position: 'absolute',
     width: 22, height: 22, borderRadius: 11,
-    backgroundColor: color.card,
-    ...dropShadow({ y: 1, blur: 3, color: '#000000', opacity: 0.25 }),
+    backgroundColor: color.surface,
   },
   segmentItem: { flex: 1, alignItems: 'center', paddingVertical: 7 },
+  segmentLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  segmentDot: { width: 6, height: 6, borderRadius: 3 },
   segmentLabel: { fontSize: 12.5 },
   sectionLabel: {
     fontSize: 11,
-    fontFamily: font.bold,
-    letterSpacing: 0.8,
+    fontFamily: font.semibold,
+    letterSpacing: 1.1,
     textTransform: 'uppercase',
-    color: color.tertiary,
+    color: color.muted,
   },
 });

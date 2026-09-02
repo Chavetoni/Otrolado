@@ -12,7 +12,9 @@ import { router } from 'expo-router';
 import { PILOT_REGION, type Direction } from '@otrolado/shared';
 import CrossingsMap from '../../src/components/CrossingsMap';
 import { Badge, Chip, SegmentedControl } from '../../src/components/ui';
+import { PushpinGlyph } from '../../src/components/glyphs';
 import { openDirections } from '../../src/directions';
+import { prefs, usePrefs } from '../../src/prefs';
 import { PeakAdvisoryCard } from '../../src/components/PeakAdvisoryCard';
 import { formatAge, freshnessBadge } from '../../src/freshness-ui';
 import {
@@ -32,7 +34,7 @@ import {
 import { usePorts, useWaits } from '../../src/queries';
 import { useAgedWaits } from '../../src/useFreshness';
 import { useOrigin } from '../../src/useOrigin';
-import { color, font, radius, space, tabular, totalColor } from '../../src/theme';
+import { color, font, radius, space, status, tabular, waitStatus } from '../../src/theme';
 
 export default function Home() {
   const insets = useSafeAreaInsets();
@@ -49,6 +51,22 @@ export default function Home() {
   const ranked = useMemo(
     () => rankPorts(ports.data?.ports ?? [], aged.data, origin, mode, direction),
     [ports.data, aged.data, origin, mode, direction],
+  );
+
+  /**
+   * Pinned crossings surface in their own group above the ranking; both groups
+   * keep `rankPorts`' order (fastest total first). A display-level partition,
+   * not a re-rank — the hero and the map still read the full `ranked` array,
+   * so "fastest door-to-door" stays the true fastest even when it isn't pinned.
+   */
+  const { pinned } = usePrefs();
+  const pinnedRows = useMemo(
+    () => ranked.filter((r) => pinned.includes(r.port.id)),
+    [ranked, pinned],
+  );
+  const unpinnedRows = useMemo(
+    () => ranked.filter((r) => !pinned.includes(r.port.id)),
+    [ranked, pinned],
   );
 
   const best = ranked.find((r) => r.totalMinutes !== null);
@@ -86,10 +104,10 @@ export default function Home() {
 
   return (
     <ScrollView
-      style={{ backgroundColor: color.appBg }}
-      contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + space.tabBarClearance }}
+      style={{ backgroundColor: color.mist }}
+      contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: space.tabBarClearance }}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={() => void waits.refetch()} tintColor={color.navy} />
+        <RefreshControl refreshing={refreshing} onRefresh={() => void waits.refetch()} tintColor={color.cobalt} />
       }
     >
       <View style={styles.header}>
@@ -149,13 +167,28 @@ export default function Home() {
             // Carries the mode across so the full map opens on what's shown here.
             onExpand={() => router.push({ pathname: '/map', params: { mode } })}
           />
-          <View style={styles.listHeader}>
-            <Text style={styles.listHeaderTitle}>RANKED BY TOTAL TIME</Text>
-            <Text style={styles.listHeaderNote}>drive + wait at arrival</Text>
-          </View>
+          {pinnedRows.length > 0 && (
+            <>
+              <View style={styles.listHeader}>
+                <Text style={styles.listHeaderTitle}>PINNED</Text>
+                <Text style={styles.listHeaderNote}>fastest first</Text>
+              </View>
+              <View style={styles.list}>
+                {pinnedRows.map((row) => (
+                  <PortRow key={row.port.id} row={row} mode={mode} isPinned />
+                ))}
+              </View>
+            </>
+          )}
+          {unpinnedRows.length > 0 && (
+            <View style={styles.listHeader}>
+              <Text style={styles.listHeaderTitle}>RANKED BY TOTAL TIME</Text>
+              <Text style={styles.listHeaderNote}>drive + wait at arrival</Text>
+            </View>
+          )}
           <View style={styles.list}>
-            {ranked.map((row) => (
-              <PortRow key={row.port.id} row={row} mode={mode} />
+            {unpinnedRows.map((row) => (
+              <PortRow key={row.port.id} row={row} mode={mode} isPinned={false} />
             ))}
             {ranked.length === 0 &&
               (ports.isLoading || waits.isLoading ? (
@@ -210,11 +243,14 @@ function DirectionCard({ direction, onFlip }: { direction: Direction; onFlip: ()
 function SouthboundNotice() {
   return (
     <View style={styles.notice}>
-      <Text style={styles.noticeTitle}>No official data heading south</Text>
-      <Text style={styles.noticeBody}>
-        Mexico publishes no federal wait-time feed. We would rather show nothing than show a
-        number we can’t stand behind.
-      </Text>
+      <View style={styles.noticeDot} />
+      <View style={{ flex: 1, gap: 3 }}>
+        <Text style={styles.noticeTitle}>No official data heading south</Text>
+        <Text style={styles.noticeBody}>
+          Mexico publishes no federal wait-time feed. We would rather show nothing than show a
+          number we can’t stand behind.
+        </Text>
+      </View>
     </View>
   );
 }
@@ -270,7 +306,15 @@ function HeroCard({ best, savings }: { best: RankedPort; savings: string | null 
   );
 }
 
-function PortRow({ row, mode }: { row: RankedPort; mode: UiTravelMode }) {
+function PortRow({
+  row,
+  mode,
+  isPinned,
+}: {
+  row: RankedPort;
+  mode: UiTravelMode;
+  isPinned: boolean;
+}) {
   const badge = freshnessBadge(row.freshness);
   const closed = row.primary?.status === 'closed';
   // Pedestrian lanes have no trusted-traveller equivalent in the feed.
@@ -296,27 +340,34 @@ function PortRow({ row, mode }: { row: RankedPort; mode: UiTravelMode }) {
   const savings = readySavings(row);
   const readyBeneficial = savings !== null && savings >= READY_HIGHLIGHT_MIN;
 
+  // The pin sits BESIDE the tap-to-detail Pressable, not inside it: on web
+  // both render as real <button> elements and nested buttons are invalid
+  // HTML (React logs a hydration error). Siblings under one card View keep
+  // the visuals identical and the roles legal on every platform.
   return (
-    <Pressable
-      style={styles.row}
-      onPress={() => router.push(`/port/${row.port.id}`)}
-      accessibilityRole="button"
-    >
+    <View style={styles.row}>
+      <Pressable
+        style={styles.rowBody}
+        onPress={() => router.push(`/port/${row.port.id}`)}
+        accessibilityRole="button"
+      >
+      {/*
+        The crossing card's 4px status bar carries wait severity, so the number
+        itself stays navy — status colour lives in exactly one place per row.
+        Grey when the lane is closed-adjacent or reporting nothing numeric.
+      */}
       <View
         style={[
-          styles.rank,
-          { backgroundColor: row.rank === 1 && row.totalMinutes !== null ? color.green : color.trackBg },
+          styles.statusBar,
+          {
+            backgroundColor: closed
+              ? status.heavy.dot
+              : row.primary?.status === 'open' && row.primary.waitMinutes !== null
+                ? status[waitStatus(row.primary.waitMinutes)].dot
+                : color.lineStrong,
+          },
         ]}
-      >
-        <Text
-          style={[
-            styles.rankText,
-            { color: row.rank === 1 && row.totalMinutes !== null ? color.card : color.secondary },
-          ]}
-        >
-          {row.rank}
-        </Text>
-      </View>
+      />
 
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={styles.rowName} numberOfLines={1}>
@@ -347,15 +398,34 @@ function PortRow({ row, mode }: { row: RankedPort; mode: UiTravelMode }) {
 
       <View style={{ alignItems: 'flex-end', gap: 4 }}>
         {row.totalMinutes !== null ? (
-          <Text style={[styles.rowTotal, { color: totalColor(row.totalMinutes) }, tabular]}>
-            {row.totalMinutes}
-          </Text>
+          <View style={styles.rowTotalWrap}>
+            <Text style={[styles.rowTotal, tabular]}>{row.totalMinutes}</Text>
+            <Text style={styles.rowTotalUnit}>m</Text>
+          </View>
         ) : (
-          <Text style={[styles.rowTotal, { color: color.tertiary }]}>—</Text>
+          <Text style={[styles.rowTotal, { color: color.muted }]}>—</Text>
         )}
         {badge && <Badge label={badge.label} bg={badge.bg} fg={badge.fg} />}
       </View>
-    </Pressable>
+      </Pressable>
+
+      {/* hitSlop lifts the 15px glyph to a usable target. */}
+      <Pressable
+        hitSlop={12}
+        onPress={() => prefs.togglePin(row.port.id)}
+        accessibilityRole="button"
+        accessibilityLabel={
+          isPinned ? `Unpin ${row.port.displayName}` : `Pin ${row.port.displayName}`
+        }
+        accessibilityState={{ selected: isPinned }}
+      >
+        <PushpinGlyph
+          size={15}
+          color={isPinned ? color.navy : color.lineStrong}
+          filled={isPinned}
+        />
+      </Pressable>
+    </View>
   );
 }
 
@@ -422,50 +492,55 @@ const styles = StyleSheet.create({
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   gpsDot: {
     width: 8, height: 8, borderRadius: 4,
-    borderWidth: 1.5, borderColor: color.green,
+    borderWidth: 1.5, borderColor: status.clear.dot,
   },
-  locationText: { fontSize: 12, fontFamily: font.semibold, color: color.secondary },
-  title: { fontSize: 28, fontFamily: font.extrabold, color: color.ink, letterSpacing: -0.5 },
+  locationText: { fontSize: 12, fontFamily: font.semibold, color: color.muted },
+  // Screen title: 24/700, -0.02em.
+  title: { fontSize: 24, fontFamily: font.bold, color: color.navy, letterSpacing: -0.48 },
 
   dirCard: {
     marginHorizontal: space.gutter, marginTop: 12,
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: color.card, borderWidth: 1, borderColor: color.border,
-    borderRadius: radius.button, paddingHorizontal: 12, paddingVertical: 10,
+    backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
+    borderRadius: radius.card, paddingHorizontal: 15, paddingVertical: 11,
   },
   dirIcon: {
     width: 30, height: 30, borderRadius: 15,
-    backgroundColor: color.navyTint, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: color.infoTint, alignItems: 'center', justifyContent: 'center',
   },
-  dirTitle: { fontSize: 13, fontFamily: font.bold, color: color.ink },
-  dirNote: { fontSize: 10.5, color: color.tertiary, fontFamily: font.regular },
+  dirTitle: { fontSize: 13, fontFamily: font.semibold, color: color.navy },
+  dirNote: { fontSize: 10.5, color: color.muted, fontFamily: font.regular },
+  // Tertiary button treatment, shrunk to the row.
   flipButton: {
-    backgroundColor: color.chipBg, borderRadius: radius.segmentInner,
-    paddingHorizontal: 10, paddingVertical: 6,
+    borderWidth: 1.5, borderColor: color.lineStrong, borderRadius: radius.pill,
+    paddingHorizontal: 12, paddingVertical: 6, backgroundColor: color.surface,
   },
-  flipText: { fontSize: 11, fontFamily: font.bold, color: color.navy },
+  flipText: { fontSize: 11, fontFamily: font.semibold, color: color.navy },
 
+  // Hero surface: the one cobalt per viewport.
   hero: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    backgroundColor: color.navy, borderRadius: radius.card,
-    paddingHorizontal: 16, paddingVertical: 14, gap: 8,
+    backgroundColor: color.cobalt, borderRadius: radius.hero,
+    paddingHorizontal: 20, paddingVertical: 20, gap: 9,
   },
+  // Micro label on dark: 10/600, 0.11em.
   heroLabel: {
-    fontSize: 10.5, fontFamily: font.bold, letterSpacing: 1,
-    color: color.navySubtle,
+    fontSize: 10, fontFamily: font.semibold, letterSpacing: 1.1,
+    color: color.cobaltLight,
   },
   heroRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  heroName: { fontSize: 17, fontFamily: font.bold, color: color.card },
-  heroSub: { fontSize: 12, fontFamily: font.regular, color: color.navySubtle },
-  heroTotal: {
-    backgroundColor: color.green, borderRadius: radius.segmentInner,
-    paddingHorizontal: 10, paddingVertical: 6, alignItems: 'center',
+  heroName: { fontSize: 17, fontFamily: font.semibold, color: color.surface },
+  heroSub: { fontSize: 12, fontFamily: font.regular, color: color.cobaltLight },
+  heroTotal: { alignItems: 'flex-end' },
+  // Hero number treatment: 700, tight tracking, unit spelled out below.
+  heroTotalNum: {
+    fontSize: 40, fontFamily: font.bold, color: color.surface,
+    letterSpacing: -1.8, lineHeight: 40,
   },
-  heroTotalNum: { fontSize: 22, fontFamily: font.extrabold, color: color.card, lineHeight: 26 },
-  heroTotalUnit: { fontSize: 9.5, fontFamily: font.bold, color: color.card, letterSpacing: 0.5 },
-  heroApprox: { fontSize: 10.5, fontFamily: font.regular, color: color.navySubtle },
+  heroTotalUnit: { fontSize: 11, fontFamily: font.medium, color: color.cobaltLight },
+  heroApprox: { fontSize: 10.5, fontFamily: font.regular, color: color.cobaltLight },
   heroFooter: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  heroDirections: { fontSize: 10.5, fontFamily: font.bold, color: color.navySubtle },
+  heroDirections: { fontSize: 11, fontFamily: font.semibold, color: color.surface },
 
   listHeader: {
     marginTop: space.sectionGap,
@@ -474,47 +549,58 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'baseline',
   },
+  // All-caps label: 11/600, 0.1em.
   listHeaderTitle: {
-    fontSize: 11, fontFamily: font.bold, letterSpacing: 0.8, color: color.secondary,
+    fontSize: 11, fontFamily: font.semibold, letterSpacing: 1.1, color: color.muted,
   },
-  listHeaderNote: { fontSize: 11, fontFamily: font.regular, color: color.tertiary },
+  listHeaderNote: { fontSize: 11, fontFamily: font.regular, color: color.muted },
 
   list: { marginTop: 8, paddingHorizontal: space.gutter, gap: space.stackGap },
+  // Crossing card: white, 1px line, radius 16, padding 13x15, gap 13.
   row: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: color.card, borderWidth: 1, borderColor: color.border,
-    borderRadius: radius.card, padding: space.cardPad,
+    flexDirection: 'row', alignItems: 'center', gap: 13,
+    backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
+    borderRadius: radius.card, paddingVertical: 13, paddingHorizontal: 15,
   },
-  rank: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  rankText: { fontSize: 12, fontFamily: font.bold },
-  rowName: { fontSize: 14.5, fontFamily: font.bold, color: color.ink },
-  rowSub: { fontSize: 11.5, fontFamily: font.regular, color: color.secondary },
+  // The card's navigable area; the pin button is its sibling (see PortRow).
+  rowBody: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 13 },
+  statusBar: { width: 4, alignSelf: 'stretch', borderRadius: radius.pill },
+  rowName: { fontSize: 15, fontFamily: font.semibold, color: color.navy },
+  rowSub: { fontSize: 11, fontFamily: font.regular, color: color.muted },
   chipRow: { flexDirection: 'row', gap: 6, marginTop: 2 },
-  rowTotal: { fontSize: 20, fontFamily: font.extrabold },
+  rowTotalWrap: { flexDirection: 'row', alignItems: 'baseline', gap: 2 },
+  rowTotal: { fontSize: 20, fontFamily: font.bold, color: color.navy },
+  rowTotalUnit: { fontSize: 11, fontFamily: font.medium, color: color.muted },
 
+  // Notice banner: info tint, radius 14, 7px cobalt dot.
   notice: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    backgroundColor: color.card, borderWidth: 1, borderColor: color.border,
-    borderRadius: radius.card, padding: 16, gap: 6,
+    flexDirection: 'row', gap: 10,
+    backgroundColor: color.infoTint,
+    borderRadius: radius.banner, paddingVertical: 13, paddingHorizontal: 15,
   },
-  noticeTitle: { fontSize: 14, fontFamily: font.bold, color: color.ink },
-  noticeBody: { fontSize: 12.5, fontFamily: font.regular, color: color.bodyMuted, lineHeight: 18 },
+  noticeDot: {
+    width: 7, height: 7, borderRadius: 3.5, marginTop: 6,
+    backgroundColor: color.cobalt,
+  },
+  noticeTitle: { fontSize: 13, fontFamily: font.semibold, color: color.infoInk },
+  noticeBody: { fontSize: 13, fontFamily: font.regular, color: color.infoInk, lineHeight: 19 },
 
-  emptyText: { fontSize: 13, color: color.secondary, fontFamily: font.regular, paddingVertical: 20, textAlign: 'center' },
-  sourceText: { fontSize: 10.5, fontFamily: font.regular, color: color.tertiary },
-  errorText: { fontSize: 11.5, fontFamily: font.semibold, color: color.redOnTint },
+  emptyText: { fontSize: 13, color: color.muted, fontFamily: font.regular, paddingVertical: 20, textAlign: 'center' },
+  sourceText: { fontSize: 11, fontFamily: font.regular, color: color.muted },
+  errorText: { fontSize: 11.5, fontFamily: font.semibold, color: status.heavy.ink },
 
   errorCard: {
-    backgroundColor: color.redTint, borderWidth: 1, borderColor: color.redBorder,
-    borderRadius: radius.card, padding: 16, gap: 6,
+    backgroundColor: status.heavy.tint,
+    borderRadius: radius.banner, paddingVertical: 13, paddingHorizontal: 15, gap: 6,
   },
-  errorCardTitle: { fontSize: 14, fontFamily: font.bold, color: color.redOnTint },
+  errorCardTitle: { fontSize: 14, fontFamily: font.semibold, color: status.heavy.ink },
   errorCardBody: {
-    fontSize: 12.5, fontFamily: font.regular, color: color.redOnTint, lineHeight: 18,
+    fontSize: 13, fontFamily: font.regular, color: status.heavy.ink, lineHeight: 19,
   },
   retryButton: {
-    alignSelf: 'flex-start', marginTop: 4, backgroundColor: color.navy,
-    borderRadius: radius.button, paddingVertical: 8, paddingHorizontal: 14,
+    alignSelf: 'flex-start', marginTop: 4, backgroundColor: color.cobalt,
+    borderRadius: radius.button, paddingVertical: 9, paddingHorizontal: 16,
   },
-  retryText: { fontSize: 12.5, fontFamily: font.bold, color: color.card },
+  retryText: { fontSize: 12.5, fontFamily: font.semibold, color: color.surface },
 });
