@@ -12,6 +12,7 @@
     "services:status": "brew services list",
     "dev:api": "pnpm --filter @otrolado/api dev",
     "ingest": "pnpm --filter @otrolado/api ingest",
+    "coverage": "pnpm --filter @otrolado/api coverage",
     "import:typical": "pnpm --filter @otrolado/api import:typical",
     "migrate": "pnpm --filter @otrolado/api migrate",
     "db:reset": "pnpm --filter @otrolado/api db:reset",

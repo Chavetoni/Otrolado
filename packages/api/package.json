@@ -14,7 +14,8 @@
     "db:reset": "tsx --env-file=../../.env scripts/migrate.ts --reset",
     "seed": "tsx --env-file=../../.env scripts/seed-ports.ts",
     "import:typical": "tsx --env-file=../../.env scripts/import-typical-waits.ts",
-    "ingest": "tsx --env-file=../../.env scripts/ingest-once.ts"
+    "ingest": "tsx --env-file=../../.env scripts/ingest-once.ts",
+    "coverage": "tsx --env-file=../../.env scripts/coverage.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",
