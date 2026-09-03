@@ -17,6 +17,12 @@ name = "otrolado-ingest-cron"
 main = "src/index.ts"
 compatibility_date = "2026-09-02"
 
+# This Worker has no `fetch` handler — it is a clock, not a service. Cloudflare
+# enables a public workers.dev URL by default, so turn it off rather than leave
+# an addressable endpoint that exists only to return an error.
+workers_dev = false
+preview_urls = false
+
 # Same cadence the workflow asks for. CBP stamps readings to the hour, so this
 # is four chances to catch each one, not four hours of data.
 [triggers]
