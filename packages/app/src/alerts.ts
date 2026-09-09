@@ -1,4 +1,4 @@
-import type { TravelMode, WaitsResponse } from '@otrolado/shared';
+import type { Freshness, TravelMode, WaitsResponse } from '@otrolado/shared';
 
 /**
  * Alert rules: the catalogue, and the pure evaluation over two feed snapshots.
@@ -16,7 +16,19 @@ import type { TravelMode, WaitsResponse } from '@otrolado/shared';
  * An alert that never arrives is worse than one you were never promised.
  */
 
-export type AlertRuleId = 'spike' | 'time_to_leave' | 'closure' | 'reroute';
+export type AlertRuleId = 'faster' | 'spike' | 'time_to_leave' | 'closure';
+
+/**
+ * Jump, in minutes, that counts as a spike. From the prototype's copy.
+ *
+ * Declared ahead of `ALERT_RULES` because the catalogue's description quotes
+ * it — a `const` is in its temporal dead zone until its line runs, so the
+ * other order would throw at module load.
+ */
+export const SPIKE_THRESHOLD = 15;
+
+/** How long before the planned departure the time-to-leave nudge fires. */
+export const LEAVE_LEAD_MINUTES = 15;
 
 export interface AlertRule {
   readonly id: AlertRuleId;
@@ -28,44 +40,58 @@ export interface AlertRule {
   readonly blockedReason: string | null;
 }
 
-/** Wording from the prototype's rule list; the reasons are ours. */
+/**
+ * How much better an alternative must be before it is worth interrupting
+ * someone. 15 minutes clears CBP's own ±10 min officer-reporting accuracy, so
+ * the alert cannot fire on two readings that are, within the feed's
+ * precision, the same. Deliberately equal to SPIKE_THRESHOLD: both answer
+ * "is this difference real?" against the same instrument.
+ */
+export const FASTER_THRESHOLD = 15;
+
+/**
+ * The rules, most decision-shaped first.
+ *
+ * "Another crossing is faster" leads because it is the only rule that hands
+ * the user an action rather than a fact — a spike tells you the line grew, this
+ * tells you what to do about it. It replaces the old `reroute` rule, which was
+ * permanently disabled behind "needs turn-by-turn routing": that framing was
+ * too ambitious for the question most people actually have. Comparing a saved
+ * trip's crossing against the alternatives from a STATIC origin needs no
+ * position on the road at all — only the trip the user already saved and the
+ * feed we already poll. A mid-drive version still needs routing; this is the
+ * part that does not.
+ */
 export const ALERT_RULES: readonly AlertRule[] = [
   {
-    id: 'spike',
-    name: 'Wait spikes at favorites',
-    desc: `When a watched crossing jumps ${15}+ min`,
+    id: 'faster',
+    name: 'Another crossing is faster',
+    desc: `When your saved trip could leave ${FASTER_THRESHOLD}+ min later elsewhere`,
     available: true,
     blockedReason: null,
   },
   {
     id: 'time_to_leave',
-    name: 'Time-to-leave for trips',
+    name: 'Leave-by updates',
     desc: 'A nudge when your planned window opens',
     available: true,
     blockedReason: null,
   },
   {
     id: 'closure',
-    name: 'Closures & port status',
-    desc: 'Standard lane closing or going quiet',
+    name: 'Closures & lane status',
+    desc: 'Standard lane closing or going quiet at a watched crossing',
     available: true,
     blockedReason: null,
   },
   {
-    id: 'reroute',
-    name: 'Better crossing on route',
-    desc: 'Mid-drive switch suggestions',
-    available: false,
-    blockedReason:
-      'Needs turn-by-turn routing to know where you are on the road. Drive times here are straight-line estimates.',
+    id: 'spike',
+    name: 'Wait changes',
+    desc: `Spikes of ${SPIKE_THRESHOLD}+ min at a watched crossing`,
+    available: true,
+    blockedReason: null,
   },
 ];
-
-/** Jump, in minutes, that counts as a spike. From the prototype's copy. */
-export const SPIKE_THRESHOLD = 15;
-
-/** How long before the planned departure the time-to-leave nudge fires. */
-export const LEAVE_LEAD_MINUTES = 15;
 
 export interface AlertEvent {
   readonly id: string;
@@ -189,24 +215,139 @@ export function evaluateFeedRules(
  * The time-to-leave nudge. Separate from the feed diff because it is a function
  * of the clock, not of a snapshot change — it must be able to fire on a tick
  * where the feed did not move at all.
+ *
+ * `leaveMinutes` is the saved trip's departure RE-SOLVED against the wait
+ * reported now, not the figure from save time — see `resolveSavedTrip`.
+ *
+ * THE EVENT ID IS THE TRIP, AND NOTHING ELSE. `tripKey` is the trip's
+ * `savedAt`, unique per saved trip. It is deliberately NOT keyed by the leave
+ * time (which drifts as the line moves, and would fire a fresh "leave in N
+ * min" every time the number ticked inside the window) and NOT keyed by the
+ * calendar day either. A day component taken from the ISO timestamp is the UTC
+ * date, while the trip lives on the local day: a departure window straddling
+ * 00:00Z — 19:00–19:15 CDT — would produce two ids and two rows for one trip.
+ * Day scoping is unnecessary anyway, because a saved trip expires with the day
+ * it was saved on (`tripIsForToday`) and a new trip gets a new `savedAt`.
+ *
+ * `notLive` is true when the wait behind the re-solve is anything other than
+ * `live` — estimated or stale. Either way the leave time is standing on a
+ * number the feed has not confirmed, and the nudge says so.
  */
 export function evaluateLeaveRule(
   leaveMinutes: number,
   nowMinutes: number,
   viaName: string,
   at: string,
+  tripKey: string,
+  notLive: boolean,
 ): AlertEvent | null {
   const until = leaveMinutes - nowMinutes;
   if (until > LEAVE_LEAD_MINUTES || until < 0) return null;
   return {
-    // Day-scoped so the nudge dedupes within one departure but can fire again
-    // for the same saved trip tomorrow.
-    id: `trip-leave-${at.slice(0, 10)}-${leaveMinutes}`,
+    id: `trip-leave-${tripKey}`,
     ruleId: 'time_to_leave',
     portId: null,
     title: until <= 0 ? 'Time to leave' : `Leave in ${until} min`,
-    body: `Your saved trip goes via ${viaName}.`,
+    body: notLive
+      ? `Your saved trip goes via ${viaName}. The wait behind this isn’t live — check the line before you go.`
+      : `Your saved trip goes via ${viaName}.`,
     at,
     tone: 'warn',
+  };
+}
+
+/**
+ * The saved crossing cannot be planned through right now — the trip's lane is
+ * closed, does not exist at that crossing, or is not reporting. Firing nothing
+ * here would be the silent non-delivery this product is built to avoid: the
+ * user is waiting for a nudge that can no longer be computed, and needs to be
+ * told that instead.
+ *
+ * `laneLabel` is the trip's lane as the picker names it (General, Ready,
+ * SENTRI, Walking) — a SENTRI trip must not be told about the standard lane.
+ * Once per trip, via the id; same scheme and same reasoning as
+ * `evaluateLeaveRule` — no day component.
+ */
+export function evaluateUnplannableRule(
+  viaName: string,
+  laneLabel: string,
+  at: string,
+  tripKey: string,
+): AlertEvent {
+  return {
+    id: `trip-unplannable-${tripKey}`,
+    ruleId: 'time_to_leave',
+    portId: null,
+    title: 'Saved trip needs a look',
+    body: `${viaName} has no open ${laneLabel} lane reported right now, so your leave time can’t be updated.`,
+    at,
+    tone: 'warn',
+  };
+}
+
+/**
+ * "Another crossing is faster" — the one rule that hands back a decision.
+ *
+ * WHAT IT COMPARES. Both sides are the SAME question solved on the SAME lane
+ * for the SAME arrival target: how late can you leave and still make it? A
+ * crossing you can leave for later is strictly better, and because leave-by
+ * already folds in both the drive and the line, this is a door-to-door
+ * comparison rather than a raw-wait one. Comparing raw waits would recommend a
+ * bridge with a shorter line an extra half-hour up the valley.
+ *
+ * WHAT IT REFUSES TO DO.
+ *  - It will not recommend a switch off a non-live reading, on either side. A
+ *    stale figure is exactly the case where a "faster" verdict is most likely
+ *    to be wrong and most expensive to act on.
+ *  - It will not fire on a departure that has already passed, or one where the
+ *    alternative's own departure has passed — there is nothing to switch to.
+ *  - It will not fire below FASTER_THRESHOLD, which sits outside CBP's own
+ *    reporting accuracy.
+ *
+ * DEDUPE. The id keys on the trip and the alternative, not on the size of the
+ * gap, so one saved trip produces one notification per crossing that overtakes
+ * it — not a new row every time the margin moves a minute.
+ *
+ * Pure, and takes already-solved options rather than raw ports, so the rule and
+ * the Plan screen can never disagree about what "faster" means.
+ */
+export function evaluateFasterRule(
+  saved: { readonly leaveMinutes: number; readonly freshness: Freshness; readonly portId: string },
+  alternatives: readonly {
+    readonly portId: string;
+    readonly name: string;
+    readonly leaveMinutes: number;
+    readonly freshness: Freshness;
+  }[],
+  nowMinutes: number,
+  viaName: string,
+  at: string,
+  tripKey: string,
+): AlertEvent | null {
+  if (saved.freshness !== 'live') return null;
+  // Already past your own departure: the question is no longer "which bridge",
+  // it is whether the trip still works at all — which the leave rule owns.
+  if (saved.leaveMinutes < nowMinutes) return null;
+
+  const better = alternatives
+    .filter(
+      (a) =>
+        a.portId !== saved.portId &&
+        a.freshness === 'live' &&
+        a.leaveMinutes >= nowMinutes &&
+        a.leaveMinutes - saved.leaveMinutes >= FASTER_THRESHOLD,
+    )
+    .sort((a, b) => b.leaveMinutes - a.leaveMinutes)[0];
+  if (!better) return null;
+
+  const gain = better.leaveMinutes - saved.leaveMinutes;
+  return {
+    id: `trip-faster-${tripKey}-${better.portId}`,
+    ruleId: 'faster',
+    portId: better.portId,
+    title: `${better.name} is now ${gain} min faster`,
+    body: `For your saved trip via ${viaName} — you could leave ${gain} min later and still make it. Drive times are approximate.`,
+    at,
+    tone: 'good',
   };
 }

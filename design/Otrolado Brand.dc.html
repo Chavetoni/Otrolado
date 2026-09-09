@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#EEF2FB;}
+a{color:#1B45C4;text-decoration:none;}
+a:hover{color:#1638A5;}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#EEF2FB;font-family:'Poppins',sans-serif;padding:56px 48px 80px;box-sizing:border-box;">
+<div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:44px;">
+
+  <div>
+    <div style="font-size:12px;font-weight:600;letter-spacing:0.14em;color:#7E8DB5;text-transform:uppercase;margin-bottom:8px;">Otrolado — brand</div>
+    <h1 style="font-size:32px;font-weight:700;color:#16234A;margin:0;letter-spacing:-0.02em;">Mark, lockup, and launch</h1>
+    <p style="font-size:15px;color:#7E8DB5;margin:10px 0 0;max-width:640px;line-height:1.55;">White booth and gate on cobalt. The barrier stripes knock out to the background so the mark holds at 30px and prints in one ink.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="position:relative;background:#1B45C4;border-radius:28px;aspect-ratio:390/844;max-height:720px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:44px;">
+        <div style="position:relative;width:248px;height:200px;">
+          <img src="mark-white-booth.png" alt="" style="position:absolute;left:0;top:0;width:248px;height:200px;display:block;">
+          <div style="{{ armStyle }}"></div>
+        </div>
+        <div style="{{ wordStyle }}">
+          <div style="font-size:28px;font-weight:700;color:#FFFFFF;letter-spacing:-0.02em;line-height:1;">Otrolado</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.14em;color:#B9CCFF;text-transform:uppercase;margin-top:8px;">Border wait times</div>
+        </div>
+        <div onClick="{{ replay }}" style="position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:rgba(255,255,255,0.14);color:#FFFFFF;font-size:12px;font-weight:600;padding:9px 16px;border-radius:999px;cursor:pointer;" style-hover="background:rgba(255,255,255,0.24);">Replay</div>
+      </div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#1B45C4;text-transform:uppercase;text-align:center;">Launch — gate closed → opens → app</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:24px;">
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:18px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7E8DB5;text-transform:uppercase;">Sequence</div>
+        <div style="display:flex;flex-direction:column;gap:12px;font-size:14px;color:#16234A;line-height:1.5;">
+          <div style="display:flex;gap:12px;"><div style="color:#1B45C4;font-weight:700;width:44px;flex:none;">0.0s</div><div>Cobalt field, booth with gate down. Holds while the app renders.</div></div>
+          <div style="display:flex;gap:12px;"><div style="color:#1B45C4;font-weight:700;width:44px;flex:none;">0.7s</div><div>Arm rotates 90° on the hinge, 750ms, ease-out. Wordmark fades up 250ms behind it.</div></div>
+          <div style="display:flex;gap:12px;"><div style="color:#1B45C4;font-weight:700;width:44px;flex:none;">1.7s</div><div>Splash dissolves, 450ms, revealing the Now screen underneath.</div></div>
+          <div style="display:flex;gap:12px;"><div style="color:#1B45C4;font-weight:700;width:44px;flex:none;">2.2s</div><div>Done. If the app is ready earlier, still finish the arm — never cut it mid-swing.</div></div>
+        </div>
+      </div>
+
+      <div style="background:#16234A;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:22px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#8FA0C6;text-transform:uppercase;">Lockup</div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div style="width:56px;height:56px;border-radius:15px;background:#1B45C4;display:flex;align-items:center;justify-content:center;flex:none;"><img src="mark-white-2.png" alt="" style="height:32px;width:auto;display:block;"></div>
+          <div>
+            <div style="font-size:26px;font-weight:700;color:#FFFFFF;letter-spacing:-0.02em;line-height:1;">Otrolado</div>
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.14em;color:#B9CCFF;text-transform:uppercase;margin-top:6px;">Border wait times</div>
+          </div>
+        </div>
+        <div style="height:1px;background:#2C3F6E;"></div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <img src="mark-white-2.png" alt="" style="height:32px;width:auto;display:block;flex:none;">
+          <div style="font-size:26px;font-weight:700;color:#FFFFFF;letter-spacing:-0.02em;">Otrolado</div>
+        </div>
+        <div style="font-size:13px;color:#8FA0C6;line-height:1.5;">On navy or cobalt the mark runs untiled. On white or mist it sits in a cobalt tile — never white-on-white.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <img src="tile-cobalt-3.png" alt="Gate closed" style="width:100%;height:auto;display:block;border-radius:28px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7E8DB5;text-transform:uppercase;text-align:center;">Closed</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <img src="tile-cobalt-2.png" alt="Gate lifting" style="width:100%;height:auto;display:block;border-radius:28px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#1B45C4;text-transform:uppercase;text-align:center;">Lifting — primary mark</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <img src="tile-cobalt-1.png" alt="Gate open" style="width:100%;height:auto;display:block;border-radius:28px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7E8DB5;text-transform:uppercase;text-align:center;">Open</div>
+    </div>
+  </div>
+
+  <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:24px;">
+    <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7E8DB5;text-transform:uppercase;">App icon scale</div>
+    <div style="display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="width:84px;height:84px;border-radius:22px;background:#1B45C4;display:flex;align-items:center;justify-content:center;"><img src="mark-white-2.png" alt="" style="height:48px;width:auto;display:block;"></div>
+        <div style="font-size:10px;color:#7E8DB5;">84</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="width:56px;height:56px;border-radius:15px;background:#1B45C4;display:flex;align-items:center;justify-content:center;"><img src="mark-white-2.png" alt="" style="height:32px;width:auto;display:block;"></div>
+        <div style="font-size:10px;color:#7E8DB5;">56</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="width:40px;height:40px;border-radius:11px;background:#1B45C4;display:flex;align-items:center;justify-content:center;"><img src="mark-white-2.png" alt="" style="height:23px;width:auto;display:block;"></div>
+        <div style="font-size:10px;color:#7E8DB5;">40</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="width:30px;height:30px;border-radius:9px;background:#1B45C4;display:flex;align-items:center;justify-content:center;"><img src="mark-white-2.png" alt="" style="height:17px;width:auto;display:block;"></div>
+        <div style="font-size:10px;color:#7E8DB5;">30 · minimum</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:#7E8DB5;line-height:1.5;">Mark occupies ~57% of the tile height. 30px is the floor — below that the gate arm blurs, so don't go smaller.</div>
+  </div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { open:false };
+  componentDidMount() { this.play(); }
+  componentWillUnmount() { clearTimeout(this.t1); clearTimeout(this.t2); }
+  play() {
+    clearTimeout(this.t1); clearTimeout(this.t2);
+    this.setState({ open:false });
+    this.t1 = setTimeout(() => this.setState({ open:true }), 700);
+    this.t2 = setTimeout(() => this.play(), 3600);
+  }
+  renderVals() {
+    const open = this.state.open;
+    return {
+      replay: () => this.play(),
+      armStyle: 'position:absolute;left:128px;top:108.5px;width:116px;height:17px;border-radius:999px;transform-origin:8.5px 50%;'
+        + 'background:radial-gradient(circle at 8.5px 50%,#1B45C4 0 3.5px,transparent 4px),linear-gradient(112deg,#FFFFFF 0 40%,#1B45C4 40% 52%,#FFFFFF 52% 64%,#1B45C4 64% 76%,#FFFFFF 76%);'
+        + 'transition:transform .75s cubic-bezier(.3,.9,.3,1);transform:rotate(' + (open ? -90 : 0) + 'deg);',
+      wordStyle: 'text-align:center;transition:opacity .5s ease .25s,transform .5s ease .25s;opacity:' + (open ? 1 : 0) + ';transform:translateY(' + (open ? 0 : 8) + 'px);'
+    };
+  }
+}
+</script>
+</body>
+</html>

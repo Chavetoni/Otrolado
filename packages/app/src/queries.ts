@@ -52,6 +52,11 @@ export function useWaits() {
     queryFn: fetchWaits,
     staleTime: 30_000,
     refetchInterval: 60_000,
+    // Explicit, not just the default: the interval must stop when the app is
+    // backgrounded (app/_layout.tsx wires focusManager to AppState so React
+    // Query knows when that is). No background polling is a client invariant —
+    // alerts belong to push, not to a timer ticking in a suspended app.
+    refetchIntervalInBackground: false,
     refetchOnReconnect: true,
     gcTime: Infinity,
   });

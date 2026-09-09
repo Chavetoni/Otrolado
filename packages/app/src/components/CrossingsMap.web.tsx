@@ -99,7 +99,7 @@ function escapeHtml(value: string): string {
 
 /**
  * The prototype's pin, as a Leaflet divIcon: a coloured bubble carrying the
- * total in tabular numerals, a caret, and the short crossing name beneath.
+ * wait in tabular numerals, a caret, and the short crossing name beneath.
  */
 function pinIcon(L: Leaflet, row: RankedPort): Leaflet {
   const fill = pinColor(row);

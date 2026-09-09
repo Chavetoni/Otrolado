@@ -26,6 +26,11 @@ export const color = {
   cobaltLight: '#B9CCFF',
   /** Borders of secondary buttons sitting on cobalt. */
   cobaltOutline: '#5878DB',
+  /**
+   * Translucent white fill on cobalt — the "pressed / selected" state of a
+   * secondary button on the hero. From the brand sheet's Replay chip.
+   */
+  surfaceOnCobalt: 'rgba(255,255,255,0.14)',
 
   /** App background. */
   mist: '#EEF2FB',
@@ -33,10 +38,21 @@ export const color = {
   line: '#DFE5F3',
   /** Inactive controls needing more weight. */
   lineStrong: '#C9D3E9',
-  /** Secondary text, captions, inactive labels. */
-  muted: '#7E8DB5',
+  /**
+   * Secondary text, captions, inactive labels.
+   *
+   * Darkened from the design system's #7E8DB5, which measured 2.9:1 on `mist`
+   * and 3.3:1 on `surface` — under WCAG AA's 4.5:1 at any size, and this token
+   * carries the caveats (ages, "approx", attribution, the reasons a row has no
+   * total) at 11px on a screen used in a car in Rio Grande Valley sun. The
+   * disclosures were the least legible text in the app, which is backwards.
+   * #5B6B95 keeps the same blue-grey family at 4.7:1 on mist, 5.3:1 on white.
+   */
+  muted: '#5B6B95',
   /** Secondary text on navy. */
   mutedOnDark: '#8FA0C6',
+  /** Hairline and inactive chip borders on navy. From the brand sheet's lockup divider. */
+  lineOnDark: '#2C3F6E',
 
   /** Notice banner background / text. */
   infoTint: '#E3EBFD',

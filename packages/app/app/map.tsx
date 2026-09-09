@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import CrossingsMap from '../src/components/CrossingsMap';
+import { ArrowLeftGlyph } from '../src/components/glyphs';
 import { formatAge } from '../src/freshness-ui';
 import {
   DEFAULT_TRAVEL_MODE,
@@ -78,7 +79,8 @@ export default function FullScreenMap() {
           style={styles.back}
           accessibilityRole="button"
         >
-          <Text style={styles.backText}>‹  Crossings</Text>
+          <ArrowLeftGlyph size={15} color={color.cobalt} />
+          <Text style={styles.backText}>Crossings</Text>
         </Pressable>
       </View>
 
@@ -121,6 +123,12 @@ const styles = StyleSheet.create({
   // hairline border does the separating.
   backWrap: { position: 'absolute', left: space.gutter, zIndex: 1000 },
   back: {
+    // Drawn arrow, not a typed "‹": that is a quotation mark standing in for a
+    // chevron, and it left this back control drawn differently from the port
+    // detail's (ArrowLeftGlyph). Row + gap replaces the two literal spaces.
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: color.surface,
     borderWidth: 1,
     borderColor: color.line,

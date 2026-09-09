@@ -15,11 +15,11 @@ export function ModeChip({ label }: { label: string }) {
   return (
     <View style={styles.chip}>
       {/*
-        "total min" states what the pin numbers ARE. Without it a pin reading
-        "41m" is indistinguishable from a raw wait, which is the number the
-        product deliberately does not rank on.
+        "wait" states what the pin numbers ARE. Without it a pin reading "41m"
+        is indistinguishable from the door-to-door total shown elsewhere in
+        the app, which this number deliberately is not.
       */}
-      <Text style={styles.chipText}>{label} · total min</Text>
+      <Text style={styles.chipText}>{label} · wait</Text>
     </View>
   );
 }

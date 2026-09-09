@@ -1,8 +1,13 @@
 node_modules/
 dist/
 *.tsbuildinfo
+
+# pnpm's local content-addressable store. Machine state, not project state, and
+# its SQLite WAL/SHM sidecars can be mid-write when git reads them.
+.pnpm-store/
 .env
 .env.local
+.env.local.*
 .DS_Store
 .expo/
 *.log

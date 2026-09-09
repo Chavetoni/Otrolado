@@ -1,5 +1,6 @@
 import { Platform, Pressable, StyleSheet, Text } from 'react-native';
-import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
+import { BridgeGlyph } from '../../src/components/glyphs';
 import { TabList, TabSlot, TabTrigger, Tabs, type TabTriggerSlotProps } from 'expo-router/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAlertWatch } from '../../src/useAlertWatch';
@@ -25,28 +26,28 @@ const WEB_SLOT_FIX =
     : undefined;
 
 /**
- * Three tabs, matching the prototype verbatim:
- *   tabsDef = [['home','Crossings'],['trips','Trips'],['alerts','Alerts']]
- * The map is not a tab — it is the inline card on Crossings (`CrossingsMap`).
+ * Three tabs: Crossings, Plan, Alerts.
+ *
+ * "Plan" rather than "Trips" — the tab holds one question ("when do I leave"),
+ * not a list of saved journeys, and "Trips" implied the latter. The ROUTE stays
+ * `/trips`: renaming it would break every existing deep link for a label
+ * change, and the path is not user-visible.
+ *
+ * The map is not a tab — it is a pushed route (`app/map.tsx`) reached from the
+ * "View map" row on Crossings.
  */
 const TABS: readonly { name: string; href: string; label: string; icon: IconKey }[] = [
   { name: 'index', href: '/', label: 'Crossings', icon: 'crossings' },
-  { name: 'trips', href: '/trips', label: 'Trips', icon: 'trips' },
+  { name: 'trips', href: '/trips', label: 'Plan', icon: 'trips' },
   { name: 'alerts', href: '/alerts', label: 'Alerts', icon: 'alerts' },
 ];
 
 /** Icon paths lifted verbatim from the prototype's 20x20 SVGs, drawn at the
  * spec's 21px item size. */
 function TabIcon({ name, tint }: { name: IconKey; tint: string }) {
-  if (name === 'crossings') {
-    return (
-      <Svg width={21} height={21} viewBox="0 0 20 20">
-        <Rect x={3} y={4} width={14} height={3} rx={1.5} fill={tint} />
-        <Rect x={3} y={9} width={14} height={3} rx={1.5} fill={tint} />
-        <Rect x={3} y={14} width={9} height={3} rx={1.5} fill={tint} />
-      </Svg>
-    );
-  }
+  // A bridge, not three stacked bars: the old icon read as a generic list and
+  // gave the tab bar no sense of what the app is about.
+  if (name === 'crossings') return <BridgeGlyph size={21} color={tint} />;
   if (name === 'trips') {
     return (
       <Svg width={21} height={21} viewBox="0 0 20 20">
@@ -118,9 +119,9 @@ export default function TabLayout() {
         TabList IS the bar, and must be a direct child of Tabs. The trigger
         parser only recurses through Fragments and TabList itself, so wrapping
         it in a View hides every trigger and the navigator throws "Couldn't
-        find any screens". Non-trigger children inside TabList (the pill) are
-        skipped by that parser but still rendered, which is what lets the bar
-        carry the sliding indicator.
+        find any screens". The bar is flat per the design system — three
+        triggers, no pill, no sliding indicator — so TabList holds nothing but
+        the triggers.
       */}
       <TabList style={[styles.bar, { paddingBottom: Math.max(20, insets.bottom) }]}>
         {TABS.map((t) => (

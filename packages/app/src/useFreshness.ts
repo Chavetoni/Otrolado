@@ -104,9 +104,10 @@ export interface AgedWaits {
  * The waits query result, re-aged on a ticking clock.
  *
  * Takes the query result rather than calling `useWaits` itself so there is one
- * query instance per screen and this hook cannot drift from it. Deliberately
- * NOT used by `useAlertWatch` — alert rules diff consecutive polls, they don't
- * present ages.
+ * query instance per screen and this hook cannot drift from it. The feed-delta
+ * alert rules deliberately do NOT use it — they diff consecutive polls, they
+ * don't present ages. The saved-trip re-solve (`useSavedTrip`) does, because
+ * its stale verdict is shown and spoken.
  */
 export function useAgedWaits(query: {
   readonly data: WaitsResponse | undefined;

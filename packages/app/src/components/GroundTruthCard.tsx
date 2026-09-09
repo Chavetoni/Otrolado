@@ -1,8 +1,7 @@
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Port } from '@otrolado/shared';
-import { openDirections } from '../directions';
 import { color, font, radius, space } from '../theme';
-import { CameraGlyph, PinGlyph } from './glyphs';
+import { ArrowUpRightGlyph, CameraGlyph, PinGlyph } from './glyphs';
 
 /**
  * "Ground truth" card on the port detail screen (v4 change 4): what a person
@@ -18,13 +17,12 @@ import { CameraGlyph, PinGlyph } from './glyphs';
  * The webcam is a link-out to the operator's page, never embedded video:
  * honest about whose camera it is, and Expo Go-safe (no native video module).
  *
- * The Route pill deep-links to the line-start coordinate — where the queue
- * usually ENDS for an arriving driver — rather than the port pin, which sits
- * mid-bridge past the very wait being measured (v4 change 5). The prototype
- * routes this through a Route sheet; the app's directions handoff is a direct
- * deep-link (see directions.ts), so the pill goes straight there. Shown only
- * when the coordinate is actually curated; a label without a coordinate
- * renders as information, not a button that would navigate somewhere else.
+ * This row is INFORMATION ONLY. It used to carry a "Route" pill deep-linking
+ * to the line-start coordinate; navigation now lives in the screen's entrance
+ * row at the top, which routes to that same coordinate when it is curated.
+ * Two buttons to the same place, one of them below the fold, was a choice
+ * nobody needed to make — and the top row is where someone looks for "where do
+ * I drive to".
  */
 export function GroundTruthCard({ port }: { port: Port }) {
   // `!= null`, not `!== null`: a /v1/ports response persisted from an app
@@ -34,11 +32,6 @@ export function GroundTruthCard({ port }: { port: Port }) {
   const hasCam = port.webcamUrl != null;
   const hasLineStart = port.lineStartLabel != null;
   if (!hasCam && !hasLineStart) return null;
-
-  const lineStartCoord =
-    port.lineStartLat != null && port.lineStartLng != null
-      ? { lat: port.lineStartLat, lng: port.lineStartLng }
-      : null;
 
   return (
     <View style={styles.card}>
@@ -59,7 +52,7 @@ export function GroundTruthCard({ port }: { port: Port }) {
             <Text style={styles.rowTitle}>Watch the line live</Text>
             {port.webcamLabel && <Text style={styles.rowSub}>{port.webcamLabel}</Text>}
           </View>
-          <Text style={styles.linkOut}>↗</Text>
+          <ArrowUpRightGlyph size={14} color={color.muted} />
         </Pressable>
       )}
 
@@ -74,17 +67,6 @@ export function GroundTruthCard({ port }: { port: Port }) {
             <Text style={styles.rowTitle}>Line usually starts at</Text>
             <Text style={styles.rowSub}>{port.lineStartLabel}</Text>
           </View>
-          {lineStartCoord && (
-            <Pressable
-              onPress={() => openDirections(lineStartCoord)}
-              style={styles.routePill}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={`Navigate to the line start: ${port.lineStartLabel}`}
-            >
-              <Text style={styles.routePillText}>Route</Text>
-            </Pressable>
-          )}
         </View>
       )}
     </View>
@@ -119,12 +101,4 @@ const styles = StyleSheet.create({
   rowBody: { flex: 1, gap: 2 },
   rowTitle: { fontSize: 13.5, fontFamily: font.semibold, color: color.navy },
   rowSub: { fontSize: 11, fontFamily: font.regular, color: color.muted, lineHeight: 15 },
-  linkOut: { fontSize: 14, fontFamily: font.semibold, color: color.muted },
-  routePill: {
-    backgroundColor: color.mist,
-    borderRadius: radius.pill,
-    paddingHorizontal: 11,
-    paddingVertical: 4,
-  },
-  routePillText: { fontSize: 11.5, fontFamily: font.semibold, color: color.cobalt },
 });

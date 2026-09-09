@@ -39,7 +39,7 @@ const MAP_HEIGHT = 260;
 export interface CrossingsMapProps {
   readonly rows: readonly RankedPort[];
   readonly origin: Origin;
-  /** "Vehicle" / "Walk" — the chip reads "<mode> · total min". */
+  /** "Vehicle" / "Walk" — the chip reads "<mode> · wait". */
   readonly modeLabel: string;
   /** `card` (default) is static and tappable; `full` pans and zooms. */
   readonly variant?: 'card' | 'full';

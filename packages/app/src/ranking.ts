@@ -107,6 +107,42 @@ export function savingsText(ranked: readonly RankedPort[]): string | null {
 }
 
 /**
+ * The hero's advantage chip: "29 min faster than Anzalduas Intl".
+ *
+ * Names the crossing being beaten rather than saying "vs the next one",
+ * because the comparison is only useful if you know what it is against — a
+ * traveller who habitually uses Anzalduas needs to see Anzalduas.
+ *
+ * Both totals are door-to-door, so this is a like-for-like difference. It is
+ * NOT a promised saving: both halves rest on a straight-line drive estimate,
+ * and the caller renders the "approx" disclosure alongside.
+ */
+export function fasterThanText(ranked: readonly RankedPort[]): string | null {
+  const usable = ranked.filter((r) => r.totalMinutes !== null);
+  const [best, second] = usable;
+  if (!best) return null;
+  if (!second) return 'Only crossing reporting right now';
+  const delta = second.totalMinutes! - best.totalMinutes!;
+  if (delta <= 0) return `Tied with ${second.port.displayName}`;
+  return `${delta} min faster than ${second.port.displayName}`;
+}
+
+/**
+ * A row's door-to-door penalty against the fastest crossing, for the list's
+ * "+29 min" chip. Null for the leader itself and for any row with no total,
+ * so the chip is never drawn on a row that has nothing to compare.
+ */
+export function minutesBehindBest(
+  row: RankedPort,
+  ranked: readonly RankedPort[],
+): number | null {
+  const best = ranked.find((r) => r.totalMinutes !== null);
+  if (!best || row.totalMinutes === null || row.port.id === best.port.id) return null;
+  const delta = row.totalMinutes - best.totalMinutes!;
+  return delta > 0 ? delta : null;
+}
+
+/**
  * Minutes the Ready Lane saves over standard, or null when the comparison
  * can't honestly be made.
  *
@@ -143,4 +179,29 @@ export function laneStatusLabel(lane: WaitsLane | null): string {
     case 'open':
       return lane.waitMinutes === null ? 'no update' : `${lane.waitMinutes}m`;
   }
+}
+
+/**
+ * Sentence explaining a row with no total, for the flat "no data" capsule
+ * that replaces the drive/wait bar when there is no split to draw. `closed`
+ * is a definitive fact worth naming distinctly from a transient feed gap —
+ * see `noTotalTone` for the color that pairs with this text.
+ */
+export function noTotalReason(lane: WaitsLane | null): string {
+  if (!lane) return 'No standard lane here';
+  switch (lane.status) {
+    case 'not_available':
+      return 'No standard lane here';
+    case 'closed':
+      return 'Standard lane closed';
+    case 'update_pending':
+      return 'No update from CBP';
+    case 'open':
+      return 'No update from CBP';
+  }
+}
+
+/** Whether the no-total capsule reads as a definitive closure or a mere gap. */
+export function noTotalTone(lane: WaitsLane | null): 'bad' | 'neutral' {
+  return lane?.status === 'closed' ? 'bad' : 'neutral';
 }

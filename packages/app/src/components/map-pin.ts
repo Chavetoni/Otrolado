@@ -1,6 +1,6 @@
 import type { RankedPort } from '../ranking';
 import { freshnessBadge } from '../freshness-ui';
-import { color, status, totalColor } from '../theme';
+import { color, status, waitColor } from '../theme';
 
 /**
  * What a map pin says, in one place.
@@ -10,38 +10,47 @@ import { color, status, totalColor } from '../theme';
  * is exactly how the full-screen map ended up colouring pins on the raw-wait
  * scale while the list beside it used the total scale.
  *
- * The pin carries the TOTAL door-to-door minutes on `totalColor`'s thresholds,
- * matching the prototype (`txt: `${p.total}m`, bg: tc(p.total)`) and the list's
- * headline number. Colouring by raw wait here would contradict the product's
- * central claim that the total is what ranks a crossing.
+ * The pin carries the STANDARD lane's WAIT minutes on `waitColor`'s thresholds —
+ * the same number and scale as the list row's loud right-column figure. A
+ * crossing far from the driver but with a short wait and one nearby with a long
+ * wait should not read as the same colour just because their totals happen to
+ * match; the map is a spatial picture of the booth, not the door-to-door pick.
  */
 
-/** A crossing whose standard lane has no usable number has no total to show. */
+/** Standard lane's wait minutes, or null when there is nothing numeric to show. */
+function pinWaitMinutes(row: RankedPort): number | null {
+  return row.primary?.status === 'open' ? row.primary.waitMinutes : null;
+}
+
+/** A crossing whose standard lane has no usable number has no wait to show. */
 export function pinLabel(row: RankedPort): string {
-  if (row.totalMinutes === null) return '—';
-  // A non-live total is marked, not printed bare — "41m" with no qualifier
+  const wait = pinWaitMinutes(row);
+  if (wait === null) return '—';
+  // A non-live wait is marked, not printed bare — "41m" with no qualifier
   // reads as a live figure, which is exactly what it isn't.
-  return row.freshness === 'live' ? `${row.totalMinutes}m` : `~${row.totalMinutes}m`;
+  return row.freshness === 'live' ? `${wait}m` : `~${wait}m`;
 }
 
 /**
- * Neutral grey for "no total", never a colour from the scale. A closed or
+ * Neutral grey for "no wait", never a colour from the scale. A closed or
  * unreported crossing rendered green would read as a fast crossing.
  *
- * An estimated or stale total leaves the live scale entirely and takes the
+ * An estimated or stale wait leaves the live scale entirely and takes the
  * freshness badge's own colours (amber tint for ESTIMATED, red tint for STALE) —
  * the same vocabulary the list-row badges use — so a reading nobody stands
  * behind can't wear the live green.
  */
 export function pinColor(row: RankedPort): string {
-  if (row.totalMinutes === null) return color.tabInactive;
+  const wait = pinWaitMinutes(row);
+  if (wait === null) return color.tabInactive;
   const badge = freshnessBadge(row.freshness);
-  return badge ? badge.bg : totalColor(row.totalMinutes);
+  return badge ? badge.bg : waitColor(wait);
 }
 
 /** Bubble text: white on the saturated live scale, badge fg on the pale tints. */
 export function pinTextColor(row: RankedPort): string {
-  if (row.totalMinutes === null) return color.surface;
+  const wait = pinWaitMinutes(row);
+  if (wait === null) return color.surface;
   const badge = freshnessBadge(row.freshness);
   return badge ? badge.fg : color.surface;
 }
@@ -98,12 +107,12 @@ export function pinAnchorY(showName: boolean): number {
   return showName ? PIN_TIP / PIN_H_NAMED : 1;
 }
 
-/** Mirrors what the pins can actually render: the live total scale plus the
+/** Mirrors what the pins can actually render: the live wait scale plus the
  * two non-live badge tints. Keep in lockstep with `pinColor`. */
 export const LEGEND: readonly { label: string; color: string }[] = [
-  { label: '<50m', color: status.clear.dot },
-  { label: '50–65m', color: status.moderate.dot },
-  { label: '>65m', color: status.heavy.dot },
+  { label: '<20m', color: status.clear.dot },
+  { label: '20–60m', color: status.moderate.dot },
+  { label: '>60m', color: status.heavy.dot },
   { label: 'est.', color: status.moderate.tint },
   { label: 'stale', color: status.heavy.tint },
 ];

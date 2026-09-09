@@ -25,7 +25,18 @@ The files in this bundle are **design references created in HTML** — interacti
 **High-fidelity.** Colors, typography, spacing, copy, and interactions are final. Recreate pixel-perfectly with the codebase's component library. The prototype is iOS-framed; adapt chrome (status bar, tab bar) to platform conventions on Android but keep layout, palette, and copy.
 
 ## Design Tokens
-Font: **Schibsted Grotesk** (weights 400–800), system-ui fallback. Tabular numerals (`font-variant-numeric: tabular-nums`) on ALL wait/time numbers.
+The palette below is the prototype's — it is **pre-Cobalt and superseded**. The
+current system is `Otrolado Design System.md` (v1.0 Cobalt) and its
+implementation is `packages/app/src/theme.ts`; every colour, radius, spacing
+and type value in the app comes from there. Two rules carry over unchanged:
+**Poppins 400/500/600/700 only**, and tabular numerals
+(`font-variant-numeric: tabular-nums`) on ALL wait/time numbers. Use the
+prototype for layout, copy and behaviour (`renderVals()`), not for hex values.
+
+<details>
+<summary>Prototype-era tokens (Schibsted Grotesk / #17427A) — historical</summary>
+
+Font: **Schibsted Grotesk** (weights 400–800), system-ui fallback.
 
 Colors:
 - Navy (primary/brand): `#17427A`; pressed/hover `#0F2E56`
@@ -39,9 +50,11 @@ Colors:
 - Dark-mode widget env: bg `#1D2735`, text `#FFFFFF`, sub `#93A7C0`, green `#4CC98A`, amber `#E8A63D`, red `#E36A52`
 
 Radii: cards 14–16px, buttons 12px, segmented controls 10px (inner 8px), chips 16–17px (pill), widgets 22px, sheets 22px top, floating tab bar 36px.
-Shadows: card hover `0 2px 8px rgba(11,31,51,.08)`; widget `0 10px 26px rgba(11,31,51,.22)`; tab bar `0 12px 32px rgba(11,31,51,.20), 0 2px 8px rgba(11,31,51,.08)`; sheet `0 -8px 30px rgba(11,31,51,.25)`.
+Shadows: card hover `0 2px 8px rgba(11,31,51,.08)`; widget `0 10px 26px rgba(11,31,51,.22)`; tab bar `0 12px 32px rgba(11,31,51,.20), 0 2px 8px rgba(11,31,51,.08)`; sheet `0 -8px 30px rgba(11,31,51,.25)`. (The Cobalt system has no shadows.)
 Spacing: screen gutter 20px; card padding 12–16px; stacked-card gap 8–10px; section gap 14px.
 Type scale: page title 28/800 (−0.5px tracking); detail title 19/800; big stat 38–46/800; card title 13.5–15/700; body 12–13; section label 11/700 uppercase +0.8px tracking; captions 10.5.
+
+</details>
 
 ## Screens
 
