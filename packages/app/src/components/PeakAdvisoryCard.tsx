@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { peakAdvisory, type ForecastPoint } from '../peak';
 import { color, font, radius, space } from '../theme';
+import { type } from '../typography';
 import { ClockGlyph } from './glyphs';
 
 /**
@@ -33,9 +34,10 @@ export function PeakAdvisoryCard({
 
   return (
     <View style={styles.card}>
-      <ClockGlyph size={16} color={color.navy} />
+      <ClockGlyph size={18} color={color.navy} />
       <Text style={styles.text}>
-        <Text style={{ fontFamily: font.semibold }}>{advisory.head}</Text> {advisory.body}
+        <Text style={{ fontFamily: font.semibold, color: color.navy }}>{advisory.head}</Text>{' '}
+        {advisory.body}
       </Text>
     </View>
   );
@@ -47,13 +49,13 @@ const styles = StyleSheet.create({
     marginTop: space.stackGap,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     backgroundColor: color.surface,
     borderWidth: 1,
     borderColor: color.line,
-    borderRadius: radius.button,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    borderRadius: radius.card,
+    paddingHorizontal: space.cardPad,
+    paddingVertical: 12,
   },
-  text: { flex: 1, fontSize: 12, fontFamily: font.regular, color: color.muted, lineHeight: 17 },
+  text: { flex: 1, ...type.metadata, color: color.muted },
 });

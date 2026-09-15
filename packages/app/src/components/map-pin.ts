@@ -1,6 +1,6 @@
 import type { RankedPort } from '../ranking';
 import { freshnessBadge } from '../freshness-ui';
-import { color, status, waitColor } from '../theme';
+import { color, status, waitColor, waitStatus } from '../theme';
 
 /**
  * What a map pin says, in one place.
@@ -32,8 +32,8 @@ export function pinLabel(row: RankedPort): string {
 }
 
 /**
- * Neutral grey for "no wait", never a colour from the scale. A closed or
- * unreported crossing rendered green would read as a fast crossing.
+ * Neutral grey (`lineStrong`) for "no wait", never a colour from the scale. A
+ * closed or unreported crossing rendered green would read as a fast crossing.
  *
  * An estimated or stale wait leaves the live scale entirely and takes the
  * freshness badge's own colours (amber tint for ESTIMATED, red tint for STALE) —
@@ -42,17 +42,23 @@ export function pinLabel(row: RankedPort): string {
  */
 export function pinColor(row: RankedPort): string {
   const wait = pinWaitMinutes(row);
-  if (wait === null) return color.tabInactive;
+  if (wait === null) return color.lineStrong;
   const badge = freshnessBadge(row.freshness);
   return badge ? badge.bg : waitColor(wait);
 }
 
-/** Bubble text: white on the saturated live scale, badge fg on the pale tints. */
+/**
+ * Bubble text. On the saturated live scale: white on green (4.3:1) and red
+ * (4.9:1), NAVY on amber — white on the amber dot is 2.6:1, under even the
+ * large-text bar, and navy there is 5.9:1. Badge ink on the pale non-live
+ * tints; navy on the neutral no-wait grey.
+ */
 export function pinTextColor(row: RankedPort): string {
   const wait = pinWaitMinutes(row);
-  if (wait === null) return color.surface;
+  if (wait === null) return color.navy;
   const badge = freshnessBadge(row.freshness);
-  return badge ? badge.fg : color.surface;
+  if (badge) return badge.fg;
+  return waitStatus(wait) === 'moderate' ? color.navy : color.surface;
 }
 
 /** Short label under the pin — the prototype drops the ` · …` qualifier. */
@@ -107,12 +113,25 @@ export function pinAnchorY(showName: boolean): number {
   return showName ? PIN_TIP / PIN_H_NAMED : 1;
 }
 
-/** Mirrors what the pins can actually render: the live wait scale plus the
- * two non-live badge tints. Keep in lockstep with `pinColor`. */
+/**
+ * The same placement for Apple Maps, which ignores `anchor` (Google-only) and
+ * centres the pin view on the coordinate. This is the shift, in points with
+ * +y down, that moves the caret tip there instead — without it every iOS pin
+ * sat half its height (~14pt) south of its crossing.
+ */
+export function pinCenterOffsetY(showName: boolean): number {
+  const height = showName ? PIN_H_NAMED : PIN_TIP;
+  return height / 2 - PIN_TIP;
+}
+
+/** Mirrors what the pins can actually render: the live wait scale, the two
+ * non-live badge tints, and the neutral no-wait grey. Keep in lockstep with
+ * `pinColor` — map-pin.test.ts checks every colour it can return is here. */
 export const LEGEND: readonly { label: string; color: string }[] = [
   { label: '<20m', color: status.clear.dot },
   { label: '20–60m', color: status.moderate.dot },
   { label: '>60m', color: status.heavy.dot },
   { label: 'est.', color: status.moderate.tint },
   { label: 'stale', color: status.heavy.tint },
+  { label: 'none', color: color.lineStrong },
 ];

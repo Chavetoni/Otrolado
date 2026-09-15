@@ -13,8 +13,9 @@ import { color, font, radius, status } from '../theme';
  * picker (`app/origin.tsx`).
  *
  * The eyebrow line is the source, in the source's own words: a real fix says
- * "Starting near", a place the user picked says "Starting from" (we are not
- * guessing — they told us), and the fallback says "Approximate start" and
+ * "Starting near" a town, or "Starting at" "Your location" when no town is
+ * close enough to name; a place the user picked says "Starting from" (we are
+ * not guessing — they told us); and the fallback says "Approximate start" and
  * pairs with the amber dot, because a ranking measured from a point nobody
  * supplied is the one case a user should want to fix.
  */
@@ -23,23 +24,28 @@ export function OriginChip({ origin }: { origin: Origin }) {
     origin.source === 'chosen'
       ? 'Starting from'
       : origin.source === 'gps'
-        ? 'Starting near'
+        ? origin.near
+          ? 'Starting near'
+          : 'Starting at'
         : 'Approximate start';
   const dot = origin.isFallback ? status.moderate.dot : status.clear.dot;
 
   return (
     <Pressable
-      style={styles.chip}
+      // A card-like control: pressed takes the mist fill, not a scale.
+      style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
       onPress={() => router.push('/origin')}
-      accessibilityRole="button"
-      accessibilityLabel={`${eyebrow} ${origin.label}. Change starting point`}
+      role="button"
+      aria-label={`${eyebrow} ${origin.label}. Change starting point`}
     >
       <View style={styles.iconWrap}>
-        <PinGlyph size={15} color={color.cobalt} />
+        <PinGlyph size={16} color={color.cobalt} />
         <View style={[styles.dot, { backgroundColor: dot }]} />
       </View>
       <View style={{ flexShrink: 1 }}>
-        <Text style={styles.eyebrow}>{eyebrow}</Text>
+        <Text style={styles.eyebrow} numberOfLines={1}>
+          {eyebrow}
+        </Text>
         <Text style={styles.label} numberOfLines={1}>
           {origin.label}
         </Text>
@@ -53,15 +59,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    maxWidth: 200,
+    // Wide enough for the fallback's region name in full; the header row wraps
+    // the chip onto its own line before this would truncate it.
+    maxWidth: 240,
     backgroundColor: color.surface,
     borderWidth: 1,
     borderColor: color.line,
     borderRadius: radius.pill,
-    paddingLeft: 11,
+    paddingLeft: 12,
     paddingRight: 14,
-    paddingVertical: 7,
+    // 44pt tall on its own, not via hitSlop — iOS clips slop at the header's
+    // edge, and this chip sits at the top of it.
+    minHeight: 44,
+    paddingVertical: 4,
   },
+  chipPressed: { backgroundColor: color.mist },
   iconWrap: { position: 'relative' },
   // A 6px status dot on the pin's shoulder: fallback vs. real start, without
   // a second line of text in a chip this small.
@@ -75,6 +87,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: color.surface,
   },
-  eyebrow: { fontSize: 9.5, fontFamily: font.semibold, color: color.muted, letterSpacing: 0.4 },
-  label: { fontSize: 12.5, fontFamily: font.bold, color: color.navy, letterSpacing: -0.2 },
+  // The source of the point, set like the v2 pill word: 10/600 spaced caps —
+  // the smallest size the system uses, and only for a word, never a sentence.
+  eyebrow: {
+    fontSize: 10, lineHeight: 14, fontFamily: font.semibold, color: color.muted,
+    letterSpacing: 0.8, textTransform: 'uppercase',
+  },
+  label: { fontSize: 13, lineHeight: 17, fontFamily: font.bold, color: color.navy, letterSpacing: -0.2 },
 });

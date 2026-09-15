@@ -1,15 +1,17 @@
-import { Platform, Pressable, StyleSheet, Text } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
-import { BridgeGlyph } from '../../src/components/glyphs';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { TabList, TabSlot, TabTrigger, Tabs, type TabTriggerSlotProps } from 'expo-router/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BellGlyph, ClockGlyph, CrossingGlyph } from '../../src/components/glyphs';
+import { pressedScale } from '../../src/components/ui';
 import { useAlertWatch } from '../../src/useAlertWatch';
-import { color, font } from '../../src/theme';
+import { color, font, space } from '../../src/theme';
 
 /**
- * The design-system tab bar, built on `expo-router/ui`: white surface,
- * 1px `line` border-top, active items in cobalt, inactive icons in the
- * dedicated tabInactive tint with muted labels. Flat — no shadow, no pill.
+ * The design-system tab bar (v2 §05), built on `expo-router/ui`: white
+ * surface, 1px `line` border-top, no shadow, no pill. Active is a cobalt
+ * glyph and a cobalt label; inactive is `muted` for BOTH — v1's pale
+ * `#D3DBEE` icon square is gone, because a pale fill read as disabled rather
+ * than as "the other tabs". Labels went 10 → 11px.
  *
  * SDK 57's router dropped @react-navigation/bottom-tabs, so the older
  * `<Tabs tabBar={...}>` pattern does not exist here — the headless
@@ -28,13 +30,17 @@ const WEB_SLOT_FIX =
 /**
  * Three tabs: Crossings, Plan, Alerts.
  *
+ * The v2 sheet draws a four-tab bar (Now / Map / Alerts / You). Not adopted:
+ * the map is a pushed route from the Crossings card, because panning does not
+ * belong inside a scroll view and the card already shows where the crossings
+ * are; and there is no account, so there is nothing for a "You" tab to hold.
+ * What IS taken from that sheet is the icon family and the active/inactive
+ * treatment.
+ *
  * "Plan" rather than "Trips" — the tab holds one question ("when do I leave"),
  * not a list of saved journeys, and "Trips" implied the latter. The ROUTE stays
  * `/trips`: renaming it would break every existing deep link for a label
  * change, and the path is not user-visible.
- *
- * The map is not a tab — it is a pushed route (`app/map.tsx`) reached from the
- * "View map" row on Crossings.
  */
 const TABS: readonly { name: string; href: string; label: string; icon: IconKey }[] = [
   { name: 'index', href: '/', label: 'Crossings', icon: 'crossings' },
@@ -42,31 +48,18 @@ const TABS: readonly { name: string; href: string; label: string; icon: IconKey 
   { name: 'alerts', href: '/alerts', label: 'Alerts', icon: 'alerts' },
 ];
 
-/** Icon paths lifted verbatim from the prototype's 20x20 SVGs, drawn at the
- * spec's 21px item size. */
+/** Optical size 23 — the sheet's own tab-bar mock. */
+const ICON_SIZE = 23;
+
+/**
+ * Crossings is the mark itself as a glyph — the booth with its arm; Plan is
+ * the clock ("now" in the family), because the tab answers "when"; Alerts is
+ * the bell.
+ */
 function TabIcon({ name, tint }: { name: IconKey; tint: string }) {
-  // A bridge, not three stacked bars: the old icon read as a generic list and
-  // gave the tab bar no sense of what the app is about.
-  if (name === 'crossings') return <BridgeGlyph size={21} color={tint} />;
-  if (name === 'trips') {
-    return (
-      <Svg width={21} height={21} viewBox="0 0 20 20">
-        <Circle cx={10} cy={10} r={7} fill="none" stroke={tint} strokeWidth={1.5} />
-        <Path d="M10 6v4l3 2" fill="none" stroke={tint} strokeWidth={1.5} strokeLinecap="round" />
-      </Svg>
-    );
-  }
-  return (
-    <Svg width={21} height={21} viewBox="0 0 20 20">
-      <Path
-        d="M10 3c-2.5 0-4 1.8-4 4v3l-1.2 2.5h10.4L14 10V7c0-2.2-1.5-4-4-4z"
-        fill="none"
-        stroke={tint}
-        strokeWidth={1.5}
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
+  if (name === 'crossings') return <CrossingGlyph size={ICON_SIZE} color={tint} />;
+  if (name === 'trips') return <ClockGlyph size={ICON_SIZE} color={tint} />;
+  return <BellGlyph size={ICON_SIZE} color={tint} />;
 }
 
 function TabButton({
@@ -75,19 +68,19 @@ function TabButton({
   icon,
   ...props
 }: TabTriggerSlotProps & { label: string; icon: IconKey }) {
-  // Active is cobalt on both icon and label; inactive splits — the icon takes
-  // the pale tabInactive tint, the label takes muted, exactly as specified.
+  const tint = isFocused ? color.cobalt : color.muted;
   return (
     <Pressable
       {...props}
-      style={styles.trigger}
-      accessibilityRole="tab"
-      accessibilityState={{ selected: Boolean(isFocused) }}
+      // Pressed: the 0.97 scale, never a tint toward cobalt — cobalt already
+      // means "the tab you're on", and colouring toward it would claim the
+      // switch before it happens.
+      style={({ pressed }) => [styles.trigger, pressedScale(pressed)]}
+      role="tab"
+      aria-selected={Boolean(isFocused)}
     >
-      <TabIcon name={icon} tint={isFocused ? color.cobalt : color.tabInactive} />
-      <Text style={[styles.label, { color: isFocused ? color.cobalt : color.muted }]}>
-        {label}
-      </Text>
+      <TabIcon name={icon} tint={tint} />
+      <Text style={[styles.label, { color: tint }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -123,34 +116,55 @@ export default function TabLayout() {
         triggers, no pill, no sliding indicator — so TabList holds nothing but
         the triggers.
       */}
-      <TabList style={[styles.bar, { paddingBottom: Math.max(20, insets.bottom) }]}>
+      {/* role=tablist: a `tab` only announces "n of m" inside one. */}
+      <TabList
+        role="tablist"
+        style={[styles.bar, { paddingBottom: Math.max(20, insets.bottom) }]}
+      >
         {TABS.map((t) => (
           <TabTrigger key={t.name} name={t.name} href={t.href} asChild>
             <TabButton label={t.label} icon={t.icon} />
           </TabTrigger>
         ))}
       </TabList>
+      {/*
+        The status bar is transparent on iOS, and every tab screen pads its
+        inset INSIDE its ScrollView — so anything scrolled up slid under the
+        clock and the Dynamic Island (dark clock over the cobalt hero). A mist
+        band the height of the inset gives the bar a ground on all three tabs.
+        Web has no status bar: the inset is 0 there and this renders nothing.
+      */}
+      <View style={[styles.statusBand, { height: insets.top }]} />
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
-  // Spec: white, border-top 1px line, padding 11px 34px 20px. The bottom
-  // padding is applied inline so the safe-area inset can widen it.
+  // White, border-top 1px line, padding 12 20 20. The bottom padding is
+  // applied inline so the safe-area inset can widen it.
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: color.surface,
     borderTopWidth: 1,
     borderTopColor: color.line,
-    paddingTop: 11,
-    paddingHorizontal: 34,
+    paddingTop: 12,
+    paddingHorizontal: space.gutter,
   },
   trigger: {
     flex: 1,
+    minHeight: space.hitMin,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 6,
   },
-  label: { fontSize: 10, fontFamily: font.semibold },
+  label: { fontSize: 11, lineHeight: 14, fontFamily: font.semibold },
+  statusBand: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: color.mist,
+    pointerEvents: 'none',
+  },
 });

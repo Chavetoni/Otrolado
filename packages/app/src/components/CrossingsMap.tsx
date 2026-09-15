@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { router } from 'expo-router';
-import { ExpandHint, Legend, LEGEND_BOTTOM, ModeChip } from './MapChrome';
-import { PIN, pinAnchorY, pinColor, pinLabel, pinName, pinShowsName, pinTextColor, pinZIndex } from './map-pin';
+import { ExpandHint, Legend, LEGEND_BOTTOM, MODE_CHIP_TOP, ModeChip } from './MapChrome';
+import { PIN, pinAnchorY, pinCenterOffsetY, pinColor, pinLabel, pinName, pinShowsName, pinTextColor, pinZIndex } from './map-pin';
 import { boundsOf, boundsToRegion } from '../map-bounds';
 import type { RankedPort } from '../ranking';
 import type { Origin } from '../useOrigin';
@@ -54,6 +54,12 @@ export interface CrossingsMapProps {
    * legend lifts clear of it rather than hiding behind it.
    */
   readonly insetBottom?: number;
+  /**
+   * Full screen only: the status-bar inset. The map runs edge to edge under
+   * the bar there, and the mode chip at `top: 10` sat on the Wi-Fi and battery
+   * icons.
+   */
+  readonly insetTop?: number;
 }
 
 export default function CrossingsMap({
@@ -63,6 +69,7 @@ export default function CrossingsMap({
   variant = 'card',
   onExpand,
   insetBottom = 0,
+  insetTop = 0,
 }: CrossingsMapProps) {
   const region = useMemo(() => {
     const bounds = boundsOf(rows, origin);
@@ -89,6 +96,9 @@ export default function CrossingsMap({
         rotateEnabled={false}
         pitchEnabled={false}
         toolbarEnabled={false}
+        // Apple's "Legal" link must stay visible; lift it (and the logo) clear
+        // of whatever the caller floats at the bottom.
+        legalLabelInsets={{ top: 0, left: 0, bottom: insetBottom, right: 0 }}
         onPress={isCard ? onExpand : undefined}
       >
         {rows.map((row) => {
@@ -100,7 +110,9 @@ export default function CrossingsMap({
               key={row.port.id}
               coordinate={{ latitude: lat, longitude: lng }}
               // The caret tip marks the crossing, not the bubble's centre.
+              // `anchor` places it on Google Maps, `centerOffset` on Apple Maps.
               anchor={{ x: 0.5, y: pinAnchorY(showName) }}
+              centerOffset={{ x: 0, y: pinCenterOffsetY(showName) }}
               zIndex={pinZIndex(row)}
               tracksViewChanges={false}
               onPress={() => router.push(`/port/${row.port.id}`)}
@@ -137,7 +149,7 @@ export default function CrossingsMap({
         </Marker>
       </MapView>
 
-      <ModeChip label={modeLabel} />
+      <ModeChip label={modeLabel} top={MODE_CHIP_TOP + insetTop} />
       <Legend bottom={LEGEND_BOTTOM + insetBottom} />
       {isCard && onExpand ? <ExpandHint onPress={onExpand} /> : null}
     </View>
@@ -145,7 +157,7 @@ export default function CrossingsMap({
 }
 
 const surface = {
-  borderRadius: radius.cardLg,
+  borderRadius: radius.card,
   overflow: 'hidden' as const,
   borderWidth: 1,
   borderColor: color.line,
@@ -162,11 +174,12 @@ const styles = StyleSheet.create({
   full: { ...surface, flex: 1, borderRadius: 0, borderWidth: 0 },
 
   pin: { alignItems: 'center' },
-  // No shadow — a white hairline separates the bubble from the basemap.
+  // No shadow — a white hairline separates the bubble from the basemap. A
+  // pill, like every other capsule in the system.
   pinBubble: {
     height: PIN.bubbleH,
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: radius.pill,
     paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: color.surface,
@@ -189,8 +202,8 @@ const styles = StyleSheet.create({
     fontFamily: font.semibold,
     color: color.navy,
     backgroundColor: 'rgba(255,255,255,0.85)',
-    borderRadius: 5,
-    paddingHorizontal: 5,
+    borderRadius: radius.sm,
+    paddingHorizontal: 6,
     overflow: 'hidden',
   },
 

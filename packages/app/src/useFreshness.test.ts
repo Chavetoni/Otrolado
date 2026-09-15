@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { reAgeWaits, reportedAgeSeconds } from './useFreshness';
+import {
+  feedIsLive,
+  laneAgeSeconds,
+  observedAgeSeconds,
+  reAgeWaits,
+  reportedAgeSeconds,
+} from './useFreshness';
 import { HIDALGO, OBSERVED_AT, open, waits } from './__fixtures__/waits';
 
 const MIN = 60_000;
@@ -45,5 +51,37 @@ describe('reportedAgeSeconds', () => {
     expect(reportedAgeSeconds({ reportedAt: '2026-09-05T16:00:00Z' }, Date.parse('2026-09-05T15:00:00Z'))).toBe(0);
     expect(reportedAgeSeconds({ reportedAt: 'At 3:00 pm' }, Date.now())).toBeNull();
     expect(reportedAgeSeconds({ reportedAt: null }, Date.now())).toBeNull();
+  });
+});
+
+describe('laneAgeSeconds', () => {
+  const OBS = Date.parse(OBSERVED_AT);
+
+  it('is the older of the poll and the reading — the two inputs of the verdict', () => {
+    // CBP dropped this crossing from an otherwise-healthy feed: the poll is a
+    // minute old, the reading six hours. Printing the poll's age beside a
+    // STALE verdict read "STALE · 2 min ago".
+    const lane = open(20);
+    const now = OBS + 6 * 60 * MIN;
+    expect(observedAgeSeconds(lane, now)).toBe(6 * 60 * 60);
+    expect(laneAgeSeconds(60, lane, now)).toBe(6 * 60 * 60);
+    // And the other way: a stalled ingest, a reading seen just before it.
+    expect(laneAgeSeconds(50 * 60, lane, OBS + MIN)).toBe(50 * 60);
+  });
+
+  it('falls back to whichever age is known', () => {
+    expect(laneAgeSeconds(null, open(20), Date.parse(OBSERVED_AT) + MIN)).toBe(60);
+    expect(laneAgeSeconds(120, null, 0)).toBe(120);
+    expect(laneAgeSeconds(null, undefined, 0)).toBeNull();
+  });
+});
+
+describe('feedIsLive', () => {
+  it('says "live" about the poll only within the response\'s own threshold', () => {
+    expect(feedIsLive(undefined)).toBe(false);
+    expect(feedIsLive(waits({}, { ingestAgeSeconds: 60 }))).toBe(true);
+    // DEFAULT_THRESHOLDS.estimatedAfterS is 30 min.
+    expect(feedIsLive(waits({}, { ingestAgeSeconds: 31 * 60 }))).toBe(false);
+    expect(feedIsLive(waits({}, { ingestAgeSeconds: null }))).toBe(false);
   });
 });

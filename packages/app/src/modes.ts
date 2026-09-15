@@ -1,4 +1,23 @@
-import type { TravelMode } from '@otrolado/shared';
+import type { Direction, TravelMode } from '@otrolado/shared';
+
+/**
+ * Direction, as every screen with a direction control offers it (Crossings,
+ * Plan, port detail) — one list, so the three cannot drift.
+ *
+ * NORTHBOUND IS FIRST AND IS THE DEFAULT, deliberately. A mockup round drew
+ * "To Mexico" selected with a populated ranking, which cannot be honest:
+ * Mexico publishes no federal wait-time feed and CBP publishes northbound
+ * only, so a southbound default would make the app's first screen a page of
+ * invented numbers. Southbound is offered — travellers ask the question — and
+ * each screen answers it with its no-official-data notice.
+ *
+ * Labels name the destination, because that is how travellers say it; compass
+ * words are the feed's vocabulary, not theirs.
+ */
+export const DIRECTIONS = [
+  { value: 'northbound', label: 'To U.S.' },
+  { value: 'southbound', label: 'To Mexico' },
+] as const satisfies readonly { value: Direction; label: string }[];
 
 /**
  * The traveller classes the app offers.

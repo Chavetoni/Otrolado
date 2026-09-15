@@ -46,9 +46,17 @@ export function useTypical(portId: string | undefined, month: number) {
   });
 }
 
+/**
+ * The waits query's key, exported because the launch reads the persisted
+ * entry directly to decide warm vs cold start (app/_layout.tsx). A second
+ * copy of the literal would let the two drift and silently turn every launch
+ * cold.
+ */
+export const WAITS_QUERY_KEY = ['waits'] as const;
+
 export function useWaits() {
   return useQuery({
-    queryKey: ['waits'],
+    queryKey: WAITS_QUERY_KEY,
     queryFn: fetchWaits,
     staleTime: 30_000,
     refetchInterval: 60_000,

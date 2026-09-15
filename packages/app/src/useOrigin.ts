@@ -46,10 +46,18 @@ export interface Origin {
   /** True only for `fallback` — a starting point nobody supplied. */
   readonly isFallback: boolean;
   readonly source: OriginSource;
-  /** "McAllen, TX", or the region when no town is near enough / none chosen. */
+  /**
+   * "McAllen, TX" for a chosen place or a fix near one; the region for the
+   * fallback; "Your location" for a fix no town is near (see `near`).
+   */
   readonly label: string;
   /** The chosen place, when there is one. Null for gps and fallback. */
   readonly place: Place | null;
+  /**
+   * gps only: the town the fix is within `NEAR_MAX_MILES` of. Null means the
+   * label names no place, so a sentence built on it must not say "near".
+   */
+  readonly near: Place | null;
 }
 
 /**
@@ -64,7 +72,8 @@ export interface Origin {
  * one fix per refresh.
  *
  * Nothing runs at import: the first `useOrigin()` subscriber starts the read,
- * so the permission prompt cannot appear before there is UI behind it. Tab
+ * and not before the launch splash has finished (`allowLocationPrompt`), so
+ * the permission prompt cannot appear before there is UI behind it. Tab
  * screens stay mounted for the session, so mounts alone would read GPS once
  * per launch; the store also refreshes when the app returns to the foreground
  * (throttled by LAST_KNOWN_MAX_AGE_MS), which is when a user who granted
@@ -80,6 +89,7 @@ const FALLBACK: Origin = {
   source: 'fallback',
   label: PILOT_REGION.shortName,
   place: null,
+  near: null,
 };
 
 let fix: { lat: number; lng: number } | null = null;
@@ -89,6 +99,14 @@ let origin: Origin = FALLBACK;
 let attemptedAt = 0;
 let inflight: Promise<void> | null = null;
 let hydrated = false;
+/**
+ * Closed until the launch splash has finished (`allowLocationPrompt`). Home
+ * mounts, and subscribes, UNDER the 1.2 s splash so it can fetch during the
+ * hold — without this gate the system permission dialog landed on top of the
+ * splash animation, before the user had seen a single thing the app does. A
+ * warm start skips the splash and opens the gate at once.
+ */
+let promptAllowed = false;
 const listeners = new Set<() => void>();
 
 /**
@@ -105,6 +123,7 @@ function recompute(): void {
       source: 'chosen',
       label: chosen.label,
       place: chosen,
+      near: null,
     };
   } else if (fix) {
     const near = nearestPlace(fix);
@@ -113,9 +132,13 @@ function recompute(): void {
       isFallback: false,
       source: 'gps',
       // The label is decoration on a real fix; the coordinates stay the
-      // device's own (see nearestPlace).
-      label: near ? near.label : PILOT_REGION.shortName,
+      // device's own (see nearestPlace). With no town near, it used to fall
+      // back to the region, so a phone in Cupertino read "Starting near Rio
+      // Grande Valley, TX". The fix is real, so "Your location" is the one
+      // label that is true everywhere.
+      label: near ? near.label : 'Your location',
       place: null,
+      near,
     };
   } else {
     origin = FALLBACK;
@@ -153,7 +176,7 @@ async function locate(): Promise<void> {
  * foreground past the window.
  */
 function refresh(): void {
-  if (inflight || chosen !== null) return;
+  if (!promptAllowed || inflight || chosen !== null) return;
   if (Date.now() - attemptedAt < LAST_KNOWN_MAX_AGE_MS) return;
   attemptedAt = Date.now();
   inflight = locate().finally(() => {
@@ -200,6 +223,16 @@ export function setOriginPlace(id: string | null): void {
     attemptedAt = 0;
     refresh();
   }
+}
+
+/**
+ * Open the gate: called once the launch splash has dissolved. Waits for the
+ * stored choice to hydrate if it hasn't yet (hydrate's own `refresh` then
+ * runs), so a returning user with a chosen place is still never prompted.
+ */
+export function allowLocationPrompt(): void {
+  promptAllowed = true;
+  if (hydrated && listeners.size > 0) refresh();
 }
 
 let appState: NativeEventSubscription | null = null;

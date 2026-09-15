@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -10,15 +9,29 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { freshnessOf, type Direction, type Freshness } from '@otrolado/shared';
+import type { Direction, Freshness } from '@otrolado/shared';
 import { SPIKE_THRESHOLD } from '../../src/alerts';
-import { Badge, Chip, SegmentedControl } from '../../src/components/ui';
+import {
+  Button,
+  Chip,
+  FreshnessBadge,
+  IconButton,
+  Notice,
+  Pill,
+  SectionLabel,
+  SegmentedControl,
+  Skeleton,
+} from '../../src/components/ui';
+import { AppIcon } from '../../src/components/AppIcon';
 import { OriginChip } from '../../src/components/OriginChip';
 import {
   BellGlyph,
   CarGlyph,
   ClockGlyph,
+  CrossingGlyph,
+  LockGlyph,
   NavigateGlyph,
+  OfflineGlyph,
   PushpinGlyph,
 } from '../../src/components/glyphs';
 import { openDirections } from '../../src/directions';
@@ -27,13 +40,18 @@ import CrossingsMap from '../../src/components/CrossingsMap';
 import { PeakAdvisoryCard } from '../../src/components/PeakAdvisoryCard';
 import { CardCarousel } from '../../src/components/CardCarousel';
 import { TimeBar } from '../../src/components/TimeBar';
-import { formatAge, freshnessBadge } from '../../src/freshness-ui';
+import {
+  formatAge,
+  freshnessBadge,
+  numberInk,
+  numberInkOnCobalt,
+  spokenFreshness,
+} from '../../src/freshness-ui';
 import {
   fasterThanText,
   laneStatusLabel,
   minutesBehindBest,
   noTotalReason,
-  noTotalTone,
   rankPorts,
   readySavings,
   READY_HIGHLIGHT_MIN,
@@ -41,14 +59,27 @@ import {
 } from '../../src/ranking';
 import {
   DEFAULT_TRAVEL_MODE,
+  DIRECTIONS,
   TRAVEL_MODES,
   travelModeLabel,
   type UiTravelMode,
 } from '../../src/modes';
 import { usePorts, useWaits } from '../../src/queries';
-import { useAgedWaits } from '../../src/useFreshness';
+import { feedIsLive, laneAgeSeconds, useAgedWaits } from '../../src/useFreshness';
+import { useOnline } from '../../src/useOnline';
 import { useOrigin } from '../../src/useOrigin';
-import { color, font, radius, space, status, tabular, waitColor } from '../../src/theme';
+import {
+  color,
+  DISPLAY_MAX_FONT_SCALE,
+  font,
+  radius,
+  space,
+  status,
+  tabular,
+  waitColor,
+  waitTextColor,
+} from '../../src/theme';
+import { caption, type } from '../../src/typography';
 
 /**
  * Cards shown in the ranking window before it starts scrolling in place.
@@ -59,32 +90,10 @@ import { color, font, radius, space, status, tabular, waitColor } from '../../sr
  */
 const VISIBLE_CROSSINGS = 3;
 
-/**
- * Direction, as a full-width sliding pill under the wordmark.
- *
- * NORTHBOUND IS FIRST AND IS THE DEFAULT, deliberately. The layout this screen
- * is built to showed "To Mexico" selected with a populated ranking, which
- * cannot be honest: Mexico publishes no federal wait-time feed, so a
- * southbound default would make the app's very first screen a page of invented
- * numbers. Southbound is offered — travellers ask the question — and answered
- * with the no-data notice below.
- *
- * Labels name the destination, because that is how travellers say it; compass
- * words are the feed's vocabulary, not theirs.
- */
-const DIRECTIONS = [
-  { value: 'northbound', label: 'To U.S.' },
-  { value: 'southbound', label: 'To Mexico' },
-] as const satisfies readonly { value: Direction; label: string }[];
-
-// The primary mark (gate lifting), white; on mist it sits in a cobalt tile
-// per the brand sheet — never white-on-white.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const MARK = require('../../assets/mark.png');
-
 export default function Home() {
   const insets = useSafeAreaInsets();
   const [mode, setMode] = useState<UiTravelMode>(DEFAULT_TRAVEL_MODE);
+  // Northbound first and default — see DIRECTIONS in modes.ts.
   const [direction, setDirection] = useState<Direction>('northbound');
 
   const origin = useOrigin();
@@ -93,6 +102,9 @@ export default function Home() {
   // Verdicts and ages re-judged against the clock NOW, not at fetch time —
   // cached data must degrade on screen, not stay "2 min ago" forever.
   const aged = useAgedWaits(waits);
+  // The link state, for the OFFLINE freshness state: the numbers keep their
+  // own ages; this says why they are not getting newer.
+  const online = useOnline();
 
   const ranked = useMemo(
     () => rankPorts(ports.data?.ports ?? [], aged.data, origin, mode, direction),
@@ -118,25 +130,27 @@ export default function Home() {
   const best = ranked.find((r) => r.totalMinutes !== null);
   const advantage = fasterThanText(ranked);
   const ingestAge = aged.data?.ingestAgeSeconds ?? null;
-  const refreshing = waits.isFetching && !waits.isLoading;
   /**
-   * "Live from CBP" in the footer is a claim, so it is judged by the same
-   * policy as the row badges — `freshnessOf` against the thresholds the
-   * response shipped — on its ingest-age term alone. The footer describes the
-   * poll, not one reading, so the reading-age input mirrors the ingest age
-   * rather than picking a lane. Past `estimatedAfterS` the word goes.
+   * The hero's age: the older of the poll and the hero crossing's own
+   * reading, because its verdict is the worse of those two. The poll's age
+   * alone could print "STALE · 2 min ago" for a crossing CBP dropped from an
+   * otherwise-healthy feed.
    */
-  const feedLive =
-    aged.data !== undefined &&
-    freshnessOf(
-      {
-        status: 'open',
-        ingestAgeSeconds: ingestAge,
-        readingAgeSeconds: ingestAge,
-        feedAgeSeconds: null,
-      },
-      aged.data.thresholds,
-    ) === 'live';
+  const heroAge = laneAgeSeconds(ingestAge, best?.primary, aged.nowMs);
+  /**
+   * The spinner shows only for a refresh the user pulled for — never for the
+   * 60 s background poll or the refetch on returning to the app. Handing iOS
+   * `refreshing={true}` without a pull makes it scroll the page down by the
+   * spinner's height, so every poll yanked the list ~60pt wherever the user
+   * was reading. (Web's RefreshControl is inert, which is why it never showed.)
+   */
+  const [pulling, setPulling] = useState(false);
+  const onPull = (): void => {
+    setPulling(true);
+    void waits.refetch().finally(() => setPulling(false));
+  };
+  /** "Live from CBP" in the footer is a claim about the poll — see feedIsLive. */
+  const feedLive = feedIsLive(aged.data);
   /**
    * `usePorts` sets `placeholderData`, which forces React Query's status to
    * 'success' — `ports.isLoading` is therefore never true. "Still loading the
@@ -158,12 +172,13 @@ export default function Home() {
    * nothing restored from the persisted cache — with the answer still on its
    * way. Without this gate the bundled port directory (placeholderData) puts
    * 11 rows up immediately and `rankPorts` fills their missing lanes with
-   * "no lane" plus a fabricated STALE verdict, which flashed on every cold
-   * start for the length of the first round trip. STALE means "we have a
+   * "not reporting" plus a fabricated STALE verdict, which flashed on every
+   * cold start for the length of the first round trip. STALE means "we have a
    * number and it is old"; a load in flight is a different sentence — say
-   * "loading". `fetchStatus === 'paused'` (offline with no cache) deliberately
-   * falls through to the rows: the bundled directory with no numbers IS the
-   * designed no-network first launch.
+   * "loading", as skeletons (v2 §07: first open only; once a number has been
+   * seen, a refresh never blanks it). `fetchStatus === 'paused'` (offline with
+   * no cache) deliberately falls through to the rows: the bundled directory
+   * with no numbers IS the designed no-network first launch.
    */
   const waitsLoading =
     aged.data === undefined && waits.isPending && waits.fetchStatus !== 'paused';
@@ -178,22 +193,26 @@ export default function Home() {
       style={{ backgroundColor: color.mist }}
       contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: space.tabBarClearance }}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={() => void waits.refetch()} tintColor={color.cobalt} />
+        <RefreshControl refreshing={pulling} onRefresh={onPull} tintColor={color.cobalt} />
       }
     >
       {/*
         Wordmark lockup and the origin, side by side. The origin is up here,
         beside the brand, because it is the input every number below is
-        measured from — see OriginChip.
+        measured from — see OriginChip. The row wraps: when the chip's label
+        is too long to share the line (the fallback's region name at 402pt),
+        it drops under the lockup whole rather than truncating or folding the
+        tagline onto two lines.
       */}
       <View style={styles.header}>
         <View style={styles.lockup}>
-          <View style={styles.logoTile} accessible accessibilityLabel="Otrolado">
-            <Image source={MARK} style={styles.logoMark} resizeMode="contain" />
-          </View>
-          <View style={{ flexShrink: 1 }}>
+          {/* The official icon — the same artwork as the home screen's. */}
+          <AppIcon size={40} />
+          <View>
             <Text style={styles.wordmark}>otrolado</Text>
-            <Text style={styles.tagline}>A faster way across</Text>
+            <Text style={styles.tagline} numberOfLines={1}>
+              A faster way across
+            </Text>
           </View>
         </View>
         <OriginChip origin={origin} />
@@ -212,19 +231,27 @@ export default function Home() {
       </View>
 
       {direction === 'southbound' ? (
-        <SouthboundNotice />
+        /*
+          Southbound has no government feed. Rather than render a modelled
+          guess in the same visual language as fed data, the app says so
+          plainly — the prototype's 0.35x southbound multiplier was mock data,
+          not a prediction.
+        */
+        <Notice title="No official data heading south" style={styles.sectionBlock}>
+          Mexico publishes no federal wait-time feed. We would rather show nothing than show a
+          number we can’t stand behind.
+        </Notice>
       ) : waitsLoading ? (
-        <View style={styles.list}>
-          <Text style={styles.emptyText}>Loading crossings…</Text>
-        </View>
+        <HomeSkeleton />
       ) : (
         <>
           {best && (
             <HeroCard
               best={best}
               advantage={advantage}
-              ingestAge={ingestAge}
+              age={heroAge}
               feedLive={feedLive}
+              online={online}
             />
           )}
           {best && (
@@ -261,7 +288,7 @@ export default function Home() {
           {pinnedRows.length > 0 && (
             <>
               <View style={styles.listHeader}>
-                <Text style={styles.listHeaderTitle}>PINNED</Text>
+                <SectionLabel>Pinned</SectionLabel>
                 <Text style={styles.listHeaderNote}>fastest first</Text>
               </View>
               <View style={styles.list}>
@@ -273,7 +300,7 @@ export default function Home() {
           )}
           {unpinnedRows.length > 0 && (
             <View style={styles.listHeader}>
-              <Text style={styles.listHeaderTitle}>ALL CROSSINGS</Text>
+              <SectionLabel>All crossings</SectionLabel>
               {/* Names the sort key. The loud number on each row IS this
                   number, so the header and the column agree. */}
               <Text style={styles.listHeaderNote}>sorted by total time</Text>
@@ -301,9 +328,24 @@ export default function Home() {
           {ranked.length === 0 && (
             <View style={styles.list}>
               {portsLoading || waits.isLoading ? (
-                <Text style={styles.emptyText}>Loading crossings…</Text>
+                <HomeSkeleton inline />
               ) : loadError ? (
-                <UnreachableNotice onRetry={retry} />
+                /*
+                  The list slot, not the footer. A hard failure used to
+                  surface only as an 11.5px line below an empty list, which
+                  reads as "nothing to show" rather than "this is broken" —
+                  the reason a CORS fault went undiagnosed.
+                */
+                <Notice
+                  tone="error"
+                  title="Can’t reach the server"
+                  action={
+                    <Button label="Try again" size="sm" onPress={retry} style={styles.retry} />
+                  }
+                >
+                  No wait times loaded, and there’s no saved copy from an earlier visit to fall
+                  back on. Check that the API is running, then try again.
+                </Notice>
               ) : (
                 <Text style={styles.emptyText}>No crossings report this mode right now.</Text>
               )}
@@ -317,34 +359,36 @@ export default function Home() {
         feedLive={feedLive}
         hasWaits={hasWaits}
         showingCached={showingCached}
+        online={online}
         originIsFallback={origin.isFallback}
       />
     </ScrollView>
   );
 }
 
-/** Travel modes with their glyphs, as the reference layout draws them. */
+/** Travel modes, as the reference layout words them. */
 const MODE_OPTIONS = TRAVEL_MODES.map((m) => ({
   ...m,
   label: m.value === 'pedestrian' ? 'Walking' : m.label,
 })) as readonly { value: UiTravelMode; label: string }[];
 
 /**
- * Southbound has no government feed. Rather than render a modelled guess in
- * the same visual language as fed data, the app says so plainly — the
- * prototype's 0.35x southbound multiplier was mock data, not a prediction.
+ * The first-open loading state: the shapes of the hero and three rows, in
+ * `line`, pulsing. Never a full-screen spinner. `inline` drops the hero and
+ * the gutter for use inside an existing list slot.
  */
-function SouthboundNotice() {
+function HomeSkeleton({ inline = false }: { inline?: boolean }) {
   return (
-    <View style={styles.notice}>
-      <View style={styles.noticeDot} />
-      <View style={{ flex: 1, gap: 3 }}>
-        <Text style={styles.noticeTitle}>No official data heading south</Text>
-        <Text style={styles.noticeBody}>
-          Mexico publishes no federal wait-time feed. We would rather show nothing than show a
-          number we can’t stand behind.
-        </Text>
-      </View>
+    <View
+      style={inline ? { gap: 12 } : styles.list}
+      accessible
+      role="progressbar"
+      aria-label="Loading crossings"
+    >
+      {!inline && <Skeleton width="100%" height={236} round={radius.hero} />}
+      <Skeleton width="100%" height={88} round={radius.card} />
+      <Skeleton width="100%" height={88} round={radius.card} />
+      <Skeleton width="100%" height={88} round={radius.card} />
     </View>
   );
 }
@@ -358,55 +402,86 @@ function SouthboundNotice() {
  * confidence badge would be a claim with no source behind it. This pill is the
  * honest version of the same reassurance: the freshness verdict the whole app
  * runs on, with the age that produced it.
+ *
+ * Every state carries its own word AND mark, so colour is never the only
+ * channel: LIVE (dot); ESTIMATED / STALE (clock — this has aged); OFFLINE
+ * (struck signal — no link). Offline never REPLACES a verdict: a non-live
+ * reading offline keeps its ESTIMATED/STALE colours and word, with "offline"
+ * added — the connection explains why the number is old, it does not excuse
+ * saying so.
  */
 function HeroStatusPill({
   freshness,
-  ingestAge,
+  age,
   feedLive,
+  online,
 }: {
   freshness: Freshness;
-  ingestAge: number | null;
+  age: number | null;
   feedLive: boolean;
+  online: boolean;
 }) {
+  const ageText = formatAge(age);
   const badge = freshnessBadge(freshness);
-  const tone = badge
-    ? { bg: badge.bg, fg: badge.fg, label: badge.label }
-    : {
-        bg: status.clear.tint,
-        fg: status.clear.ink,
-        // "LIVE" describes the reading; the poll can still have gone quiet
-        // under it, which is what feedLive tracks.
-        label: feedLive ? 'LIVE' : 'REPORTED',
-      };
+  if (badge) {
+    return (
+      <Pill
+        label={online ? `${badge.label} · ${ageText}` : `${badge.label} · offline · ${ageText}`}
+        bg={badge.bg}
+        fg={badge.fg}
+        icon={
+          online ? (
+            <ClockGlyph size={12} strokeWidth={2.4} color={badge.fg} />
+          ) : (
+            <OfflineGlyph compact size={12} strokeWidth={2.4} color={badge.fg} />
+          )
+        }
+      />
+    );
+  }
+  if (!online) {
+    return (
+      <Pill
+        label={`Offline · last known ${ageText}`}
+        bg={color.mist}
+        fg={color.navy}
+        icon={<OfflineGlyph compact size={12} strokeWidth={2.4} color={color.navy} />}
+      />
+    );
+  }
+  // "LIVE" describes the reading; the poll can still have gone quiet under
+  // it, which is what feedLive tracks. "Updated" is dropped on purpose: the
+  // age next to a verdict is the age that verdict was judged on.
   return (
-    <View style={[styles.heroPill, { backgroundColor: tone.bg }]}>
-      <View style={[styles.heroPillDot, { backgroundColor: tone.fg }]} />
-      {/* "Updated" is dropped from the reference copy on purpose: at 402pt the
-          longer string pushed the label onto two lines, and the age next to a
-          freshness verdict can only be the age OF that reading. */}
-      <Text style={[styles.heroPillText, { color: tone.fg }, tabular]} numberOfLines={1}>
-        {tone.label} · {formatAge(ingestAge)}
-      </Text>
-    </View>
+    <Pill
+      label={`${feedLive ? 'Live' : 'Reported'} · ${ageText}`}
+      bg={status.clear.tint}
+      fg={status.clear.ink}
+      dot
+    />
   );
 }
 
 function HeroCard({
   best,
   advantage,
-  ingestAge,
+  age,
   feedLive,
+  online,
 }: {
   best: RankedPort;
   advantage: string | null;
-  ingestAge: number | null;
+  /** The age the hero's verdict was judged on — see `laneAgeSeconds`. */
+  age: number | null;
   feedLive: boolean;
+  online: boolean;
 }) {
   // rankPorts only ranks ports with coordinates, but the types don't know that.
   const { lat, lng } = best.port;
   // `best` only ever comes from `ranked.find(r => r.totalMinutes !== null)`,
   // so the standard lane's wait is guaranteed numeric here.
   const waitMinutes = best.primary!.waitMinutes!;
+  const live = best.freshness === 'live';
   /**
    * "Watch" puts the crossing on the watchlist — the same switch as the
    * Alerts tab's chips, so spike and closure rules start evaluating it on the
@@ -414,16 +489,27 @@ function HeroCard({
    * the one alert mechanism that actually runs, and says so once it is on.
    */
   const watching = usePrefs().watchlist.includes(best.port.id);
+  // The tap-to-detail area sits inside the hero's padding, so its pressed
+  // state is lifted here to darken the whole surface rather than an inset box.
+  const [heroPressed, setHeroPressed] = useState(false);
+  // A Pressable's label replaces what it contains, so everything the badge,
+  // the `~` and the offline pill say to the eye is said here too.
+  const spoken =
+    `${best.port.displayName}, about ${best.totalMinutes} minutes total: ` +
+    `${best.drive.minutes} minutes driving, approximate, and ${waitMinutes} at the border. ` +
+    `${spokenFreshness(best.freshness)}${online ? '' : ', offline'}, ${formatAge(age)}. Open details`;
   // The card is a View with the tap-to-detail area and the buttons as
   // siblings — nested Pressables render as nested <button>s on web, which is
   // invalid HTML (see PortRow).
   return (
-    <View style={styles.hero}>
+    <View style={[styles.hero, heroPressed && styles.heroPressed]}>
       <Pressable
-        style={{ gap: 10 }}
+        style={{ gap: 12 }}
+        onPressIn={() => setHeroPressed(true)}
+        onPressOut={() => setHeroPressed(false)}
         onPress={() => router.push(`/port/${best.port.id}`)}
-        accessibilityRole="button"
-        accessibilityLabel={`${best.port.displayName}, about ${best.totalMinutes} minutes total. Open details`}
+        role="button"
+        aria-label={spoken}
       >
         <View style={styles.heroTopRow}>
           {/*
@@ -432,28 +518,34 @@ function HeroCard({
             journey it measures ends at the bridge, from the origin named in
             the header — so that is what the label says.
           */}
-          <Text style={styles.heroLabel} numberOfLines={1}>
-            BEST CROSSING FROM YOU
-          </Text>
-          <HeroStatusPill
-            freshness={best.freshness}
-            ingestAge={ingestAge}
-            feedLive={feedLive}
-          />
+          <SectionLabel tone="cobalt">
+            Best crossing from you
+          </SectionLabel>
+          <HeroStatusPill freshness={best.freshness} age={age} feedLive={feedLive} online={online} />
         </View>
 
-        <Text style={styles.heroName}>{best.port.displayName}</Text>
+        <View style={{ gap: 4 }}>
+          <Text style={styles.heroName}>{best.port.displayName}</Text>
 
-        {/*
-          "About" is load-bearing, not politeness. Half of this total is a
-          straight-line drive estimate (drive.ts), so the sum is accurate to
-          about as much as that is — and a bare "59 min total" claims a
-          precision the inputs do not have.
-        */}
-        <View style={styles.heroTotalRow}>
-          <Text style={styles.heroAbout}>About</Text>
-          <Text style={[styles.heroTotalNum, tabular]}>{best.totalMinutes}</Text>
-          <Text style={styles.heroTotalUnit}>min total</Text>
+          {/*
+            "About" is load-bearing, not politeness. Half of this total is a
+            straight-line drive estimate (drive.ts), so the sum is accurate to
+            about as much as that is — and a bare "59 min total" claims a
+            precision the inputs do not have. A total resting on a reading that
+            is not live gets the `~` every other non-live number wears and
+            steps down to cobalt-light — never `muted`, which is 1.5:1 here.
+          */}
+          <View style={styles.heroTotalRow}>
+            <Text style={styles.heroUnit}>About</Text>
+            <Text
+              style={[styles.heroTotalNum, { color: numberInkOnCobalt(best.freshness) }, tabular]}
+              maxFontSizeMultiplier={DISPLAY_MAX_FONT_SCALE}
+            >
+              {live ? '' : '~'}
+              {best.totalMinutes}
+            </Text>
+            <Text style={styles.heroUnit}>min total</Text>
+          </View>
         </View>
 
         {advantage && (
@@ -462,27 +554,34 @@ function HeroCard({
           </View>
         )}
 
-        <TimeBar
-          driveMinutes={best.drive.minutes}
-          waitMinutes={waitMinutes}
-          driveColor={color.cobaltOutline}
-          waitColor={color.surface}
-          height={8}
-        />
-
-        <View style={styles.heroSplit}>
-          <View style={styles.heroSplitItem}>
-            <CarGlyph size={16} color={color.cobaltLight} />
-            <Text style={[styles.heroSplitText, tabular]}>
-              <Text style={styles.heroSplitNum}>{best.drive.minutes} min</Text> drive · approx
-            </Text>
-          </View>
-          <View style={styles.heroSplitDivider} />
-          <View style={styles.heroSplitItem}>
-            <ClockGlyph size={16} color={color.cobaltLight} />
-            <Text style={[styles.heroSplitText, tabular]}>
-              <Text style={styles.heroSplitNum}>{waitMinutes} min</Text> border wait
-            </Text>
+        {/*
+          The proportion bar (v2 §10): cobalt-light for the drive, white for
+          the border, so it reads at a glance which half is the problem. The
+          split beneath it says the same in numbers — two numbers, never three.
+          It wraps rather than truncating: "· approx" is the disclosure, and
+          it was the first thing a one-line clamp cut at 375pt.
+        */}
+        <View style={{ gap: 8 }}>
+          <TimeBar
+            driveMinutes={best.drive.minutes}
+            waitMinutes={waitMinutes}
+            driveColor={color.cobaltLight}
+            waitColor={color.surface}
+          />
+          <View style={styles.heroSplit}>
+            <View style={styles.heroSplitItem}>
+              <CarGlyph size={15} color={color.cobaltLight} strokeWidth={2.2} />
+              <Text style={[styles.heroSplitText, tabular]}>
+                {best.drive.minutes} min drive
+                <Text style={styles.heroSplitNote}> · approx</Text>
+              </Text>
+            </View>
+            <View style={styles.heroSplitItem}>
+              <CrossingGlyph size={15} color={color.surface} strokeWidth={2.2} />
+              <Text style={[styles.heroSplitText, styles.heroSplitStrong, tabular]}>
+                {waitMinutes} min border
+              </Text>
+            </View>
           </View>
         </View>
       </Pressable>
@@ -490,33 +589,32 @@ function HeroCard({
       <View style={styles.heroActions}>
         {/*
           Navigate hands off to the platform maps app (see directions.ts) —
-          the primary action on cobalt is a white fill, not a second cobalt.
+          the primary action on cobalt is a white fill with navy text, so the
+          hero keeps a single focal point. Watch is the outline secondary.
         */}
         {lat !== null && lng !== null && (
-          <Pressable
-            style={styles.heroPrimary}
+          <Button
+            variant="inverse"
+            label="Navigate"
+            grow
+            icon={(tint) => <NavigateGlyph size={16} color={tint} />}
             onPress={() => openDirections({ lat, lng })}
-            accessibilityRole="button"
             accessibilityLabel={`Navigate to ${best.port.displayName}`}
-          >
-            <NavigateGlyph size={16} color={color.cobalt} />
-            <Text style={styles.heroPrimaryText}>Navigate</Text>
-          </Pressable>
+          />
         )}
-        <Pressable
-          style={[styles.heroSecondary, watching && styles.heroSecondaryOn]}
+        <Button
+          variant="ghostOnCobalt"
+          label={watching ? 'Watching' : 'Watch'}
+          selected={watching}
+          grow
+          icon={(tint) => <BellGlyph size={16} color={tint} />}
           onPress={() => prefs.toggleWatch(best.port.id)}
-          accessibilityRole="button"
-          accessibilityState={{ selected: watching }}
           accessibilityLabel={
             watching
               ? `Stop watching ${best.port.displayName}`
               : `Watch ${best.port.displayName}`
           }
-        >
-          <BellGlyph size={16} color={color.surface} />
-          <Text style={styles.heroSecondaryText}>{watching ? 'Watching' : 'Watch'}</Text>
-        </Pressable>
+        />
       </View>
       {watching && (
         <Text style={styles.heroApprox}>
@@ -540,8 +638,8 @@ function PortRow({
   mode: UiTravelMode;
   isPinned: boolean;
 }) {
-  const badge = freshnessBadge(row.freshness);
   const closed = row.primary?.status === 'closed';
+  const live = row.freshness === 'live';
   // No standard-lane number at all — closed, an overdue report, or a lane
   // this crossing doesn't have.
   const noTotal = row.totalMinutes === null;
@@ -557,59 +655,62 @@ function PortRow({
    */
   const readyBeats =
     mode === 'passenger' && (readySavings(row) ?? 0) >= READY_HIGHLIGHT_MIN;
+  // Lifted for the same reason as the hero's: the whole card tints, not just
+  // the body inside its padding.
+  const [bodyPressed, setBodyPressed] = useState(false);
+  const wait = row.primary?.status === 'open' ? row.primary.waitMinutes : null;
 
   // The pin sits BESIDE the tap-to-detail Pressable, not inside it: on web
   // both render as real <button> elements and nested buttons are invalid
   // HTML (React logs a hydration error). Siblings under one card View keep
   // the visuals identical and the roles legal on every platform.
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, bodyPressed && styles.rowPressed]}>
       <Pressable
         style={styles.rowBody}
+        onPressIn={() => setBodyPressed(true)}
+        onPressOut={() => setBodyPressed(false)}
         onPress={() => router.push(`/port/${row.port.id}`)}
-        accessibilityRole="button"
-        accessibilityLabel={
+        role="button"
+        aria-label={
           noTotal
             ? `${row.port.displayName}, ${noTotalReason(row.primary).toLowerCase()}`
-            : `${row.port.displayName}, about ${row.totalMinutes} minutes total`
+            : `${row.port.displayName}, about ${row.totalMinutes} minutes total, ${spokenFreshness(row.freshness)}`
         }
       >
         {/*
           The card's 4px status bar carries wait severity, so the total itself
-          stays navy — status colour lives in exactly one place per row. Grey
-          when the lane is closed-adjacent or reporting nothing numeric.
+          stays in ink — status colour lives in exactly one place per row. It
+          wears the severity scale only for a LIVE reading, the same rule the
+          map pins follow: a reading nobody stands behind can't wear the live
+          green. `lineStrong` when not live or not numeric (the badge and the
+          `~` say which), `line` when the lane is closed (a state, not a
+          severity — the lock on the right says so).
         */}
         <View
           style={[
             styles.statusBar,
             {
-              backgroundColor: closed
-                ? status.heavy.dot
-                : row.primary?.status === 'open' && row.primary.waitMinutes !== null
-                  ? waitColor(row.primary.waitMinutes)
-                  : color.lineStrong,
+              backgroundColor:
+                wait !== null && live ? waitColor(wait) : closed ? color.line : color.lineStrong,
             },
           ]}
         />
 
-        <View style={{ flex: 1, gap: 5, minWidth: 0 }}>
+        <View style={{ flex: 1, gap: 4, minWidth: 0 }}>
           <Text style={styles.rowName} numberOfLines={1}>
             {row.port.displayName}
           </Text>
           {noTotal ? (
-            <Text
-              style={[
-                styles.rowReason,
-                { color: noTotalTone(row.primary) === 'bad' ? status.heavy.ink : color.muted },
-              ]}
-            >
-              {noTotalReason(row.primary)}
-            </Text>
+            <Text style={styles.rowSub}>{noTotalReason(row.primary)}</Text>
           ) : (
-            <Text style={[styles.rowSplit, tabular]} numberOfLines={1}>
-              {row.drive.minutes} drive ·{' '}
-              <Text style={{ color: waitColor(row.primary!.waitMinutes!) }}>
-                {row.primary!.waitMinutes} border
+            // The two halves of the total, so the loud number reads as their
+            // sum. The border half wears its severity as TEXT ink (the AA pair
+            // of the bar's dot colour) while live, and plain `muted` once not.
+            <Text style={[styles.rowSub, tabular]} numberOfLines={1}>
+              {row.drive.minutes} min drive +{' '}
+              <Text style={live ? { color: waitTextColor(row.primary!.waitMinutes!) } : undefined}>
+                {row.primary!.waitMinutes} min border
               </Text>
             </Text>
           )}
@@ -619,68 +720,54 @@ function PortRow({
             {/* Freshness rides in the chip row rather than beside the number:
                 the reference layout has no badge at all, and dropping it would
                 let an hours-old figure read as live. */}
-            {badge && <Badge label={badge.label} bg={badge.bg} fg={badge.fg} />}
+            <FreshnessBadge freshness={row.freshness} />
             {readyBeats && <Chip label={`READY ${laneStatusLabel(row.ready)}`} tone="good" />}
           </View>
         </View>
 
         <View style={styles.rowTotalCol}>
-          {noTotal ? (
-            <Text style={[styles.rowTotalNum, { color: color.muted }]}>—</Text>
+          {closed ? (
+            // A closed lane is a state with its own glyph and word (v2 §07),
+            // not a severity and not a zero.
+            <View style={styles.rowClosed}>
+              <LockGlyph size={16} color={color.muted} strokeWidth={2.2} />
+              <Text style={styles.rowClosedText}>Closed</Text>
+            </View>
+          ) : noTotal ? (
+            // Em dash, never a zero. Decorative, so it may sit in `inkMuted`.
+            <Text style={[styles.rowTotalNum, { color: color.inkMuted }]}>—</Text>
           ) : (
-            <>
-              {/*
-                The list is sorted by total, the header says so, and this is
-                that number — the sort key is the loud one. A `~` marks a
-                total resting on a reading that is not live, the same mark the
-                map pins and the Plan table use.
-              */}
-              <Text style={[styles.rowTotalNum, tabular]} numberOfLines={1}>
-                {row.freshness === 'live' ? '' : '~'}
-                {row.totalMinutes}
-              </Text>
-              <Text style={styles.rowTotalUnit}>min total</Text>
-            </>
+            /*
+              The list is sorted by total, the header says so, and this is
+              that number — the sort key is the loud one. A `~` marks a total
+              resting on a reading that is not live, the same mark the map
+              pins and the Plan table use, and the number steps down to
+              `muted` — still readable, visibly not current.
+            */
+            <Text
+              style={[styles.rowTotalNum, { color: numberInk(row.freshness) }, tabular]}
+              numberOfLines={1}
+              maxFontSizeMultiplier={DISPLAY_MAX_FONT_SCALE}
+            >
+              {live ? '' : '~'}
+              {row.totalMinutes}
+              <Text style={styles.rowTotalUnit}>m</Text>
+            </Text>
           )}
         </View>
       </Pressable>
 
-      {/* hitSlop lifts the 15px glyph to a usable target. */}
-      <Pressable
-        hitSlop={12}
+      {/* 44pt, 24px glyph. Pinned is the colour of the glyph and the tile
+          behind it — glyphs are never filled in. */}
+      <IconButton
+        selected={isPinned}
         onPress={() => prefs.togglePin(row.port.id)}
-        accessibilityRole="button"
         accessibilityLabel={
           isPinned ? `Unpin ${row.port.displayName}` : `Pin ${row.port.displayName}`
         }
-        accessibilityState={{ selected: isPinned }}
       >
-        <PushpinGlyph
-          size={15}
-          color={isPinned ? color.navy : color.lineStrong}
-          filled={isPinned}
-        />
-      </Pressable>
-    </View>
-  );
-}
-
-/**
- * The list slot, not the footer. A hard failure used to surface only as an
- * 11.5px line below an empty list, which reads as "nothing to show" rather than
- * "this is broken" — the reason a CORS fault went undiagnosed.
- */
-function UnreachableNotice({ onRetry }: { onRetry: () => void }) {
-  return (
-    <View style={styles.errorCard}>
-      <Text style={styles.errorCardTitle}>Can’t reach the server</Text>
-      <Text style={styles.errorCardBody}>
-        No wait times loaded, and there’s no saved copy from an earlier visit to fall
-        back on. Check that the API is running, then try again.
-      </Text>
-      <Pressable onPress={onRetry} style={styles.retryButton} accessibilityRole="button">
-        <Text style={styles.retryText}>Try again</Text>
-      </Pressable>
+        <PushpinGlyph size={22} color={isPinned ? color.cobalt : color.muted} />
+      </IconButton>
     </View>
   );
 }
@@ -697,6 +784,7 @@ function SourceNote({
   feedLive,
   hasWaits,
   showingCached,
+  online,
   originIsFallback,
 }: {
   ingestAge: number | null;
@@ -704,18 +792,23 @@ function SourceNote({
   feedLive: boolean;
   hasWaits: boolean;
   showingCached: boolean;
+  online: boolean;
   originIsFallback: boolean;
 }) {
   return (
-    <View style={{ paddingHorizontal: space.gutter, marginTop: 16, gap: 4 }}>
-      {showingCached ? (
+    <View style={{ paddingHorizontal: space.gutter, marginTop: space.sectionGap, gap: 4 }}>
+      {!online && hasWaits ? (
+        <Text style={styles.sourceStrong}>
+          Offline — showing the last data we saved. Alerts wait for the connection.
+        </Text>
+      ) : showingCached ? (
         <Text style={styles.errorText}>
           Can’t reach the server — showing the last data we saved.
         </Text>
       ) : null}
       {hasWaits ? (
         <Text style={[styles.sourceText, tabular]}>
-          {feedLive ? 'Live from CBP' : 'From CBP'} · updated {formatAge(ingestAge)}
+          {feedLive && online ? 'Live from CBP' : 'From CBP'} · updated {formatAge(ingestAge)}
         </Text>
       ) : null}
       <Text style={styles.sourceText}>
@@ -728,81 +821,54 @@ function SourceNote({
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: space.gutter, flexDirection: 'row',
-    justifyContent: 'space-between', alignItems: 'center', gap: 12,
+    paddingHorizontal: space.gutter, flexDirection: 'row', flexWrap: 'wrap',
+    justifyContent: 'space-between', alignItems: 'center', columnGap: 12, rowGap: 8,
   },
-  lockup: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
+  lockup: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   // Wordmark: the brand sheet's lowercase lockup, set in the app's own type.
-  wordmark: { fontSize: 22, fontFamily: font.bold, color: color.navy, letterSpacing: -0.9 },
-  tagline: { fontSize: 11.5, fontFamily: font.regular, color: color.muted, marginTop: -1 },
-  // Brand sheet's 40px tile: radius 11, mark ~57% of the tile height.
-  logoTile: {
-    width: 40, height: 40, borderRadius: 11, backgroundColor: color.cobalt,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  logoMark: { height: 23, width: 26 },
+  wordmark: { fontSize: 22, lineHeight: 26, fontFamily: font.bold, color: color.navy, letterSpacing: -0.9 },
+  tagline: { fontSize: 12, lineHeight: 16, fontFamily: font.regular, color: color.muted },
 
-  controls: { paddingHorizontal: space.gutter, marginTop: 14, gap: 8 },
+  controls: { paddingHorizontal: space.gutter, marginTop: space.sectionGap, gap: 8 },
+  sectionBlock: { marginHorizontal: space.gutter, marginTop: space.sectionGap },
 
-  // Hero surface: the one cobalt per viewport.
+  // Hero surface: the one cobalt per viewport. Radius 24, padding 20.
   hero: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
     backgroundColor: color.cobalt, borderRadius: radius.hero,
-    paddingHorizontal: 20, paddingVertical: 18, gap: 10,
+    padding: space.heroPad, gap: 12,
   },
-  heroTopRow: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', gap: 10,
-  },
-  // Micro label on dark: 10/600, 0.11em.
-  heroLabel: {
-    fontSize: 10, fontFamily: font.semibold, letterSpacing: 0.9,
-    color: color.cobaltLight, flexShrink: 1,
-  },
-  heroPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    borderRadius: radius.pill, paddingHorizontal: 9, paddingVertical: 4,
-  },
-  heroPillDot: { width: 6, height: 6, borderRadius: 3 },
-  heroPillText: { fontSize: 10, fontFamily: font.semibold, letterSpacing: 0.2 },
-  heroName: { fontSize: 20, fontFamily: font.bold, color: color.surface, letterSpacing: -0.4 },
-  heroTotalRow: { flexDirection: 'row', alignItems: 'baseline', gap: 7 },
-  heroAbout: { fontSize: 19, fontFamily: font.medium, color: color.surface },
-  // Hero number (§3): 46/700, -0.045em. Poppins digits are lining figures
-  // (~0.7em, no descenders) so the tightened line box leaves clearance.
-  heroTotalNum: {
-    fontSize: 46, fontFamily: font.bold, color: color.surface,
-    letterSpacing: -2.07, lineHeight: 46,
-  },
-  heroTotalUnit: { fontSize: 17, fontFamily: font.medium, color: color.surface },
-  // The advantage chip: light fill on cobalt, so it reads as a callout rather
-  // than a second brand surface.
+  heroPressed: { backgroundColor: color.cobaltPress },
+  // Eyebrow, then the pill beneath it — ALWAYS stacked. Side by side, the
+  // pair only fit while the age was short: a wrapping row made the hero jump
+  // height the moment "9 min ago" became "10 min ago", and the long offline
+  // pill squeezed the eyebrow onto four lines at 375pt. A fixed stack costs
+  // one line and never moves.
+  heroTopRow: { alignItems: 'flex-start', gap: 8 },
+  heroName: { fontSize: 20, lineHeight: 26, fontFamily: font.bold, color: color.surface, letterSpacing: -0.4 },
+  heroTotalRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  // Wait hero (§3): 48/48/700, −0.04em. Colour from numberInkOnCobalt. See
+  // tightLineHeightFor for iOS.
+  heroTotalNum: { ...type.waitHero },
+  // Units one step down: 16/500 in cobalt-light, sat on the number's baseline.
+  heroUnit: { fontSize: 16, lineHeight: 20, fontFamily: font.medium, color: color.cobaltLight, paddingBottom: 4 },
+  // The advantage: a callout on the hero in the hero's own inks — it is a
+  // comparison, not a severity, so it borrows no status colour.
   heroAdvantage: {
-    alignSelf: 'flex-start', backgroundColor: status.clear.tint,
-    borderRadius: radius.pill, paddingHorizontal: 11, paddingVertical: 5,
+    alignSelf: 'flex-start', backgroundColor: color.surfaceOnCobalt,
+    borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 4,
   },
-  heroAdvantageText: { fontSize: 12.5, fontFamily: font.semibold, color: status.clear.ink },
-  heroSplit: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  heroSplitItem: { flexDirection: 'row', alignItems: 'center', gap: 7, flexShrink: 1 },
-  heroSplitDivider: { width: 1, height: 16, backgroundColor: color.cobaltOutline },
-  heroSplitText: { fontSize: 11.5, fontFamily: font.regular, color: color.cobaltLight },
-  heroSplitNum: { fontFamily: font.semibold, color: color.surface },
-  heroApprox: { fontSize: 11, fontFamily: font.regular, color: color.cobaltLight },
-  // Two equal buttons, 48 tall, button radius, 14/600 (§5). Primary on cobalt
-  // is a white fill with COBALT text; secondary is the cobaltOutline border.
-  heroActions: { flexDirection: 'row', gap: 10, marginTop: 2 },
-  heroPrimary: {
-    flex: 1, height: 48, borderRadius: radius.button, flexDirection: 'row', gap: 8,
-    backgroundColor: color.surface, alignItems: 'center', justifyContent: 'center',
+  heroAdvantageText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.surface },
+  heroSplit: {
+    flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',
+    justifyContent: 'space-between', columnGap: 12, rowGap: 4,
   },
-  heroPrimaryText: { fontSize: 14.5, fontFamily: font.bold, color: color.cobalt },
-  heroSecondary: {
-    flex: 1, height: 48, borderRadius: radius.button, flexDirection: 'row', gap: 8,
-    borderWidth: 1.5, borderColor: color.cobaltOutline,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  heroSecondaryOn: { backgroundColor: color.surfaceOnCobalt, borderColor: color.surface },
-  heroSecondaryText: { fontSize: 14.5, fontFamily: font.semibold, color: color.surface },
+  heroSplitItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  heroSplitText: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.cobaltLight },
+  heroSplitStrong: { color: color.surface },
+  heroSplitNote: { fontFamily: font.medium },
+  heroApprox: { ...caption, color: color.cobaltLight },
+  heroActions: { flexDirection: 'row', gap: 12, marginTop: 4 },
 
   listHeader: {
     marginTop: space.sectionGap,
@@ -811,60 +877,35 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'baseline',
   },
-  // All-caps label: 11/600, 0.1em.
-  listHeaderTitle: {
-    fontSize: 11, fontFamily: font.semibold, letterSpacing: 1.1, color: color.muted,
-  },
-  listHeaderNote: { fontSize: 11, fontFamily: font.regular, color: color.muted },
+  listHeaderNote: { ...caption, color: color.muted },
 
   list: { marginTop: 8, paddingHorizontal: space.gutter, gap: 12 },
-  // Crossing card: white, 1px line, radius 16.
+  // Crossing card: white, 1px line, radius 16, padding 14 16 (the pin button
+  // brings its own 44pt target to the right edge).
   row: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
-    borderRadius: radius.card, paddingVertical: 14, paddingHorizontal: 15,
+    borderRadius: radius.card, paddingVertical: 12, paddingLeft: space.cardPad, paddingRight: 4,
   },
+  // Cards get the mist fill when pressed, not a scale.
+  rowPressed: { backgroundColor: color.mist },
   // The card's navigable area; the pin button is its sibling (see PortRow).
   rowBody: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   statusBar: { width: 4, alignSelf: 'stretch', borderRadius: radius.pill },
-  rowName: { fontSize: 15, fontFamily: font.semibold, color: color.navy },
-  rowSplit: { fontSize: 12, fontFamily: font.regular, color: color.muted },
-  rowReason: { fontSize: 12, fontFamily: font.semibold },
-  chipRow: { flexDirection: 'row', gap: 6, alignItems: 'center', flexWrap: 'wrap' },
+  rowName: { ...type.cardTitle, color: color.navy },
+  rowSub: { ...type.metadata, color: color.muted },
+  chipRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
   // Right column: the door-to-door total, which is what the list is sorted by.
-  rowTotalCol: { alignItems: 'flex-end', gap: 1 },
-  rowTotalNum: { fontSize: 27, fontFamily: font.bold, color: color.navy, letterSpacing: -1 },
-  rowTotalUnit: { fontSize: 10, fontFamily: font.semibold, color: color.muted, letterSpacing: 0.2 },
+  rowTotalCol: { alignItems: 'flex-end', justifyContent: 'center', minWidth: 44 },
+  rowTotalNum: { ...type.metric, color: color.navy },
+  // "m", one step down from its number: 13/500 in muted.
+  rowTotalUnit: { fontSize: 13, fontFamily: font.medium, color: color.muted, letterSpacing: 0 },
+  rowClosed: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  rowClosedText: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.muted },
 
-  // Notice banner: info tint, radius 14, 7px cobalt dot.
-  notice: {
-    marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    flexDirection: 'row', gap: 10,
-    backgroundColor: color.infoTint,
-    borderRadius: radius.banner, paddingVertical: 13, paddingHorizontal: 15,
-  },
-  noticeDot: {
-    width: 7, height: 7, borderRadius: 3.5, marginTop: 6,
-    backgroundColor: color.cobalt,
-  },
-  noticeTitle: { fontSize: 13, fontFamily: font.semibold, color: color.infoInk },
-  noticeBody: { fontSize: 13, fontFamily: font.regular, color: color.infoInk, lineHeight: 19 },
-
-  emptyText: { fontSize: 13, color: color.muted, fontFamily: font.regular, paddingVertical: 20, textAlign: 'center' },
-  sourceText: { fontSize: 11, fontFamily: font.regular, color: color.muted },
-  errorText: { fontSize: 11.5, fontFamily: font.semibold, color: status.heavy.ink },
-
-  errorCard: {
-    backgroundColor: status.heavy.tint,
-    borderRadius: radius.banner, paddingVertical: 13, paddingHorizontal: 15, gap: 6,
-  },
-  errorCardTitle: { fontSize: 14, fontFamily: font.semibold, color: status.heavy.ink },
-  errorCardBody: {
-    fontSize: 13, fontFamily: font.regular, color: status.heavy.ink, lineHeight: 19,
-  },
-  retryButton: {
-    alignSelf: 'flex-start', marginTop: 4, backgroundColor: color.cobalt,
-    borderRadius: radius.button, paddingVertical: 9, paddingHorizontal: 16,
-  },
-  retryText: { fontSize: 12.5, fontFamily: font.semibold, color: color.surface },
+  retry: { alignSelf: 'flex-start', marginTop: 4 },
+  emptyText: { ...type.body, color: color.muted, paddingVertical: 20, textAlign: 'center' },
+  sourceText: { ...caption, color: color.muted },
+  sourceStrong: { ...caption, fontFamily: font.semibold, color: color.navy },
+  errorText: { ...caption, fontFamily: font.semibold, color: status.heavy.ink },
 });

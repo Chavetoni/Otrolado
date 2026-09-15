@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SectionLabel, Toggle } from '../../src/components/ui';
+import { pressedScale, SectionLabel, Toggle } from '../../src/components/ui';
 import {
   ArrowDownGlyph,
+  ArrowUpGlyph,
   BellGlyph,
   ChevronRightGlyph,
   ClockGlyph,
-  TrendGlyph,
+  LockGlyph,
   WarningGlyph,
 } from '../../src/components/glyphs';
 import { formatAge, formatClock } from '../../src/freshness-ui';
@@ -18,6 +19,7 @@ import { formatMinutes, tripLaneLabel } from '../../src/trip';
 import { useAgedWaits } from '../../src/useFreshness';
 import { useSavedTrip, type SavedTripView } from '../../src/useSavedTrip';
 import { color, font, radius, space, status, tabular } from '../../src/theme';
+import { caption, type } from '../../src/typography';
 
 /**
  * Alerts: rules, what they watch, and what has fired.
@@ -48,19 +50,23 @@ function eventClock(at: string): string {
   return sameDay ? formatClock(at) : `${d.toLocaleDateString('en-US', { weekday: 'short' })} ${formatClock(at)}`;
 }
 
-/** One icon per rule, so the list scans without reading four titles. */
+/**
+ * One icon per rule, from the family, so the list scans without reading four
+ * titles: falling for "another crossing is faster", a clock for time to
+ * leave, a lock for closure, rising for a spike.
+ */
 function RuleIcon({ id }: { id: AlertRuleId }) {
   const tint = color.cobalt;
   return (
     <View style={styles.ruleIcon}>
       {id === 'faster' ? (
-        <TrendGlyph size={17} color={tint} />
+        <ArrowDownGlyph size={20} color={tint} />
       ) : id === 'time_to_leave' ? (
-        <ClockGlyph size={17} color={tint} />
+        <ClockGlyph size={20} color={tint} />
       ) : id === 'closure' ? (
-        <WarningGlyph size={17} color={tint} />
+        <LockGlyph size={20} color={tint} />
       ) : (
-        <TrendGlyph size={17} color={tint} />
+        <ArrowUpGlyph size={20} color={tint} />
       )}
     </View>
   );
@@ -75,11 +81,11 @@ function EventIcon({ tone }: { tone: 'good' | 'bad' | 'warn' }) {
   return (
     <View style={[styles.eventIcon, { backgroundColor: bg }]}>
       {tone === 'good' ? (
-        <ArrowDownGlyph size={16} color={tint} />
+        <ArrowDownGlyph size={18} color={tint} />
       ) : tone === 'bad' ? (
-        <WarningGlyph size={16} color={tint} />
+        <WarningGlyph size={18} color={tint} />
       ) : (
-        <ClockGlyph size={16} color={tint} />
+        <ClockGlyph size={18} color={tint} />
       )}
     </View>
   );
@@ -118,7 +124,7 @@ export default function Alerts() {
         paddingBottom: space.tabBarClearance,
       }}
     >
-      <View style={{ paddingHorizontal: space.gutter }}>
+      <View style={{ paddingHorizontal: space.gutter, gap: 2 }}>
         <Text style={styles.title}>Alerts</Text>
         <Text style={styles.subtitle}>Get notified when it matters.</Text>
       </View>
@@ -130,16 +136,18 @@ export default function Alerts() {
         here would read as "you're covered".
       */}
       <Pressable
-        style={styles.limitCard}
+        // Pressed: the scale, never a darker amber — a status tint is not
+        // touch feedback.
+        style={({ pressed }) => [styles.limitCard, pressedScale(pressed)]}
         onPress={() => setLimitOpen((o) => !o)}
-        accessibilityRole="button"
-        accessibilityState={{ expanded: limitOpen }}
+        role="button"
+        aria-expanded={limitOpen}
       >
-        <View style={styles.limitIcon}>
-          <BellGlyph size={16} color={status.moderate.ink} />
-        </View>
+        <BellGlyph size={20} color={status.moderate.ink} />
         <Text style={styles.limitTitle}>Alerts only run while the app is open</Text>
-        <ChevronRightGlyph size={15} color={status.moderate.ink} />
+        <View style={limitOpen && styles.chevronOpen}>
+          <ChevronRightGlyph size={18} color={status.moderate.ink} />
+        </View>
       </Pressable>
       {limitOpen && (
         <Text style={styles.limitBody}>
@@ -153,17 +161,17 @@ export default function Alerts() {
       {/* Watchlist summary, with the full picker behind "Manage". */}
       <View style={styles.watchCard}>
         <View style={styles.watchHead}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.watchLabel}>WATCHING</Text>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={[type.eyebrow, { color: color.infoInk }]}>Watching</Text>
             <Text style={[styles.watchCount, tabular]}>
               {watched.length === 1 ? '1 crossing' : `${watched.length} crossings`}
             </Text>
           </View>
           <Pressable
-            style={styles.manageBtn}
+            style={({ pressed }) => [styles.manageBtn, pressed && styles.manageBtnPressed, pressedScale(pressed)]}
             onPress={() => setManageOpen((o) => !o)}
-            accessibilityRole="button"
-            accessibilityState={{ expanded: manageOpen }}
+            role="button"
+            aria-expanded={manageOpen}
           >
             <Text style={styles.manageText}>{manageOpen ? 'Done' : 'Manage'}</Text>
           </Pressable>
@@ -189,9 +197,12 @@ export default function Alerts() {
                     <Pressable
                       key={p.id}
                       onPress={() => prefs.toggleWatch(p.id)}
-                      accessibilityRole="checkbox"
-                      accessibilityState={{ checked: on }}
-                      style={on ? styles.watchChipOn : styles.watchChipOff}
+                      role="checkbox"
+                      aria-checked={on}
+                      style={({ pressed }) => [
+                        on ? styles.watchChipOn : styles.watchChipOff,
+                        pressed && (on ? styles.watchChipOnPressed : styles.watchChipOffPressed),
+                      ]}
                     >
                       <Text
                         style={[
@@ -222,9 +233,7 @@ export default function Alerts() {
         )}
       </View>
 
-      <View style={{ paddingHorizontal: space.gutter, marginTop: 18, marginBottom: 8 }}>
-        <SectionLabel>Alert rules</SectionLabel>
-      </View>
+      <SectionLabel style={styles.sectionLabel}>Alert rules</SectionLabel>
       <View style={styles.rulesCard}>
         {ALERT_RULES.map((rule, i) => (
           <View
@@ -233,7 +242,8 @@ export default function Alerts() {
           >
             <RuleIcon id={rule.id} />
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={[styles.ruleName, !rule.available && { color: color.muted }]}>
+              {/* An unavailable rule reads in the disabled ink — never opacity. */}
+              <Text style={[styles.ruleName, !rule.available && { color: color.inkMuted }]}>
                 {rule.name}
               </Text>
               <Text style={styles.ruleDesc}>{rule.desc}</Text>
@@ -264,12 +274,20 @@ export default function Alerts() {
         ))}
       </View>
 
-      <View style={{ paddingHorizontal: space.gutter, marginTop: 20, gap: 8 }}>
+      <View style={{ paddingHorizontal: space.gutter, marginTop: space.sectionGap, gap: 8 }}>
         <View style={styles.activityHead}>
           <SectionLabel>Recent</SectionLabel>
           {activity.length > 0 && (
-            <Pressable onPress={() => prefs.clearActivity()} accessibilityRole="button">
-              <Text style={styles.clearText}>Clear</Text>
+            <Pressable
+              onPress={() => prefs.clearActivity()}
+              role="button"
+              aria-label="Clear recent alerts"
+              hitSlop={{ left: 8, right: 8 }}
+              style={styles.inlineLink}
+            >
+              {({ pressed }) => (
+                <Text style={[styles.clearText, pressed && styles.linkPressed]}>Clear</Text>
+              )}
             </Pressable>
           )}
         </View>
@@ -293,13 +311,13 @@ export default function Alerts() {
               </View>
               {/* Activity survives relaunch, so an entry from another day
                   says which day — "3:12 PM" alone reads as today. */}
-              <Text style={styles.eventTime}>{eventClock(e.at)}</Text>
+              <Text style={[styles.eventTime, tabular]}>{eventClock(e.at)}</Text>
             </View>
           ))
         )}
       </View>
 
-      <Text style={styles.footnote}>
+      <Text style={[styles.footnote, tabular]}>
         {aged.data
           ? `Feed checked ${formatAge(aged.data.ingestAgeSeconds)} · rules re-run on every poll.`
           : 'No feed data loaded, so nothing is being checked right now.'}
@@ -359,59 +377,69 @@ function TripRuleLine({ view }: { view: SavedTripView | null }) {
   );
 }
 
+const TILE = 36;
+
 const styles = StyleSheet.create({
-  title: { fontSize: 30, fontFamily: font.bold, color: color.navy, letterSpacing: -0.75 },
-  subtitle: { fontSize: 14, fontFamily: font.regular, color: color.muted, marginTop: 1 },
+  title: { ...type.screenTitle, color: color.navy },
+  subtitle: { ...type.body, color: color.muted },
 
   // Capability limit: amber, one row, expandable. See the module comment for
   // why this is not the reference layout's green "push is on".
   limitCard: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    flexDirection: 'row', alignItems: 'center', gap: 10,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: status.moderate.tint, borderRadius: radius.banner,
-    paddingVertical: 13, paddingHorizontal: 15,
+    paddingVertical: 14, paddingHorizontal: space.cardPad,
   },
-  limitIcon: { width: 22, alignItems: 'center' },
-  limitTitle: { flex: 1, fontSize: 13.5, fontFamily: font.semibold, color: status.moderate.ink },
+  limitTitle: { flex: 1, fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: status.moderate.ink },
+  chevronOpen: { transform: [{ rotate: '90deg' }] },
   limitBody: {
-    fontSize: 12.5, fontFamily: font.regular, color: color.muted, lineHeight: 18,
+    ...type.body, fontSize: 13, lineHeight: 19, color: color.muted,
     paddingHorizontal: space.gutter, marginTop: 8,
   },
 
   watchCard: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
     backgroundColor: color.infoTint, borderRadius: radius.card,
-    paddingVertical: 14, paddingHorizontal: 15, gap: 10,
+    padding: space.cardPad, gap: 12,
   },
   watchHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  watchLabel: { fontSize: 10.5, fontFamily: font.semibold, letterSpacing: 1.1, color: color.infoInk },
-  watchCount: { fontSize: 20, fontFamily: font.bold, color: color.navy, letterSpacing: -0.4 },
+  watchCount: { ...type.metric, color: color.navy },
+  // 44pt tall inside the card's own padding, so the whole target is real
+  // (iOS only hit-tests slop that lands inside the parent's bounds).
   manageBtn: {
     backgroundColor: color.surface, borderRadius: radius.pill,
-    paddingHorizontal: 16, paddingVertical: 8,
+    paddingHorizontal: 16, minHeight: space.hitMin, justifyContent: 'center',
   },
-  manageText: { fontSize: 13, fontFamily: font.semibold, color: color.cobalt },
-  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
-  // Filter chips per the design system: active navy fill, 8/14, no border;
-  // inactive white, 7/13 plus the 1px line border so both sit the same height.
+  manageBtnPressed: { backgroundColor: color.mist },
+  manageText: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.cobalt },
+  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  // Filter chips: active navy fill, inactive white with a 1px line border.
+  // Both carry the 1px border (the active one in its own fill) so both sit on
+  // the 4pt grid at the same height — v1's 7/13-plus-border trick is gone.
+  // 12 + 16 + 12 + 2 = 42pt, and the 2pt of row gap reaches the 44 floor.
   watchChipOn: {
-    paddingHorizontal: 14, paddingVertical: 8,
+    paddingHorizontal: 12, paddingVertical: 12,
     borderRadius: radius.pill, backgroundColor: color.navy,
+    borderWidth: 1, borderColor: color.navy,
   },
   watchChipOff: {
-    paddingHorizontal: 13, paddingVertical: 7,
+    paddingHorizontal: 12, paddingVertical: 12,
     borderRadius: radius.pill, backgroundColor: color.surface,
     borderWidth: 1, borderColor: color.line,
   },
-  watchChipText: { fontSize: 12, fontFamily: font.semibold },
+  watchChipOnPressed: { backgroundColor: color.navyTint, borderColor: color.navyTint },
+  watchChipOffPressed: { backgroundColor: color.mist },
+  watchChipText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold },
   // Summary chips are not controls — they read as labels so nobody taps one
   // expecting it to toggle. Managing happens behind the button.
   watchChipQuiet: {
-    paddingHorizontal: 13, paddingVertical: 7,
+    paddingHorizontal: 12, paddingVertical: 8,
     borderRadius: radius.pill, backgroundColor: color.surface,
   },
-  watchChipQuietText: { fontSize: 12, fontFamily: font.semibold, color: color.cobalt },
+  watchChipQuietText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.cobalt },
 
+  sectionLabel: { paddingHorizontal: space.gutter, marginTop: space.sectionGap, marginBottom: 8 },
   rulesCard: {
     marginHorizontal: space.gutter,
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
@@ -419,44 +447,49 @@ const styles = StyleSheet.create({
   },
   ruleRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 15, paddingVertical: 14,
+    paddingHorizontal: space.cardPad, paddingVertical: 14,
   },
   ruleIcon: {
-    width: 34, height: 34, borderRadius: 17, backgroundColor: color.infoTint,
+    width: TILE, height: TILE, borderRadius: radius.sm, backgroundColor: color.infoTint,
     alignItems: 'center', justifyContent: 'center',
   },
   ruleDivider: { borderBottomWidth: 1, borderBottomColor: color.line },
-  ruleName: { fontSize: 14, fontFamily: font.semibold, color: color.navy },
-  ruleDesc: { fontSize: 11.5, fontFamily: font.regular, color: color.muted, lineHeight: 16 },
-  ruleBlocked: { fontSize: 11, fontFamily: font.regular, color: color.muted, lineHeight: 15 },
+  ruleName: { ...type.cardTitle, color: color.navy },
+  ruleDesc: { ...type.metadata, fontFamily: font.regular, color: color.muted },
+  ruleBlocked: { ...type.metadata, color: color.muted },
 
-  helpText: { fontSize: 11.5, fontFamily: font.regular, color: color.infoInk, lineHeight: 16 },
+  helpText: { fontSize: 12, lineHeight: 17, fontFamily: font.regular, color: color.infoInk },
 
   activityHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  clearText: { fontSize: 12, fontFamily: font.semibold, color: color.cobalt },
+  clearText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.cobalt },
+  // A text link's 44pt touch height, held by its own padding and given back
+  // with a negative margin, so the frame overflows the row and iOS hit-tests
+  // it (hitSlop past the parent's bounds it clips).
+  inlineLink: { paddingVertical: 14, marginVertical: -14, justifyContent: 'center' },
+  linkPressed: { color: color.cobaltDeep },
 
   emptyCard: {
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
-    borderRadius: radius.card, padding: 16, gap: 5,
+    borderRadius: radius.card, padding: space.cardPad, gap: 4,
   },
-  emptyTitle: { fontSize: 13.5, fontFamily: font.semibold, color: color.navy },
-  emptyBody: { fontSize: 11.5, fontFamily: font.regular, color: color.muted, lineHeight: 16 },
+  emptyTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  emptyBody: { ...type.metadata, fontFamily: font.regular, color: color.muted },
 
   eventRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 11,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
-    borderRadius: radius.card, paddingVertical: 13, paddingHorizontal: 15,
+    borderRadius: radius.card, paddingVertical: 12, paddingHorizontal: space.cardPad,
   },
   eventIcon: {
-    width: 32, height: 32, borderRadius: 16,
+    width: TILE, height: TILE, borderRadius: radius.sm,
     alignItems: 'center', justifyContent: 'center',
   },
-  eventTitle: { fontSize: 13.5, fontFamily: font.semibold, color: color.navy },
-  eventBody: { fontSize: 11.5, fontFamily: font.regular, color: color.muted, lineHeight: 16 },
-  eventTime: { fontSize: 11, fontFamily: font.regular, color: color.muted, ...tabular },
+  eventTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  eventBody: { ...type.metadata, fontFamily: font.regular, color: color.muted },
+  eventTime: { ...type.metadata, color: color.muted },
 
   footnote: {
-    fontSize: 11, fontFamily: font.regular, color: color.muted,
-    paddingHorizontal: space.gutter, marginTop: 16, lineHeight: 15, ...tabular,
+    ...caption, color: color.muted,
+    paddingHorizontal: space.gutter, marginTop: space.sectionGap,
   },
 });

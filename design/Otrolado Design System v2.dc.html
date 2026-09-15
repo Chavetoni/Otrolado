@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#EEF2FB;}
+a{color:#1B45C4;text-decoration:none;}
+a:hover{color:#1638A5;}
+</style>
+</helmet>
+
+<section style="background:#EEF2FB;padding:56px 48px 96px;font-family:'Poppins',sans-serif;box-sizing:border-box;">
+<div style="max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:52px;">
+
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:32px;flex-wrap:wrap;">
+    <div style="min-width:0;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.14em;color:#1B45C4;text-transform:uppercase;margin-bottom:10px;">Otrolado — product design system · v2.0</div>
+      <h1 style="font-size:36px;font-weight:700;color:#16234A;margin:0;letter-spacing:-0.025em;line-height:1.1;">Same opinion, tighter system</h1>
+      <p style="font-size:14px;color:#5E6D90;margin:12px 0 0;max-width:660px;line-height:1.6;text-wrap:pretty;">v1 set the direction: navy structure, one cobalt, cool ground, no shadows. v2 doesn't redesign any of it. It fixes the contrast of secondary text, cuts the radius scale to four values, locks an icon family, adds the production states the product actually hits, and ships the whole thing as tokens.</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;flex:none;">
+      <div style="width:76px;height:76px;border-radius:24px;background:#16234A;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white-2.png" alt="Otrolado" style="height:46px;width:auto;display:block;"></div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    <a href="#sec-changed" style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;color:#16234A;" style-hover="border-color:#16234A;">What changed</a>
+    <a href="#sec-color" style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;color:#16234A;" style-hover="border-color:#16234A;">Color &amp; contrast</a>
+    <a href="#sec-type" style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;color:#16234A;" style-hover="border-color:#16234A;">Type</a>
+    <a href="#sec-radius" style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;color:#16234A;" style-hover="border-color:#16234A;">Radius</a>
+    <a href="#sec-icons" style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;color:#16234A;" style-hover="border-color:#16234A;">Icons</a>
+    <a href="#sec-states" style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;color:#16234A;" style-hover="border-color:#16234A;">Control states</a>
+    <a href="#sec-data" style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;color:#16234A;" style-hover="border-color:#16234A;">Data trust</a>
+    <a href="#sec-chart" style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;color:#16234A;" style-hover="border-color:#16234A;">Charts</a>
+    <a href="#sec-brand" style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;color:#16234A;" style-hover="border-color:#16234A;">Micro-mark &amp; motion</a>
+    <a href="#sec-hero" style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;color:#16234A;" style-hover="border-color:#16234A;">Total-time hero</a>
+    <a href="#sec-tokens" style="background:#16234A;border:1px solid #16234A;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;color:#EEF2FB;" style-hover="background:#24345C;">Tokens →</a>
+  </div>
+
+  <!-- ══════════ 01 WHAT CHANGED ══════════ -->
+  <div id="sec-changed" style="display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;color:#5E6D90;text-transform:uppercase;">01 — What changed from v1</div>
+      <div style="height:1px;background:#DFE5F3;flex:1;"></div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:150px 1fr 1fr;gap:0;background:#EEF2FB;border-bottom:1px solid #DFE5F3;">
+        <div style="padding:13px 20px;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Area</div>
+        <div style="padding:13px 20px;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">v1</div>
+        <div style="padding:13px 20px;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">v2</div>
+      </div>
+      <div style="display:grid;grid-template-columns:150px 1fr 1fr;border-bottom:1px solid #EEF2FB;">
+        <div style="padding:14px 20px;font-size:13px;font-weight:600;color:#16234A;">Secondary text</div>
+        <div style="padding:14px 20px;font-size:13px;color:#5E6D90;line-height:1.5;">#7E8DB5 everywhere — 3.3:1 on white</div>
+        <div style="padding:14px 20px;font-size:13px;color:#16234A;line-height:1.5;">#5E6D90 for information, #7E8DB5 demoted to disabled &amp; decorative</div>
+      </div>
+      <div style="display:grid;grid-template-columns:150px 1fr 1fr;border-bottom:1px solid #EEF2FB;">
+        <div style="padding:14px 20px;font-size:13px;font-weight:600;color:#16234A;">Status text</div>
+        <div style="padding:14px 20px;font-size:13px;color:#5E6D90;line-height:1.5;">Dot colors reused as 11px text</div>
+        <div style="padding:14px 20px;font-size:13px;color:#16234A;line-height:1.5;">Separate ink pair per status — dots stay vivid, text darkens</div>
+      </div>
+      <div style="display:grid;grid-template-columns:150px 1fr 1fr;border-bottom:1px solid #EEF2FB;">
+        <div style="padding:14px 20px;font-size:13px;font-weight:600;color:#16234A;">Radius</div>
+        <div style="padding:14px 20px;font-size:13px;color:#5E6D90;line-height:1.5;">13 · 14 · 16 · 18 · 20 · 22 · 999</div>
+        <div style="padding:14px 20px;font-size:13px;color:#16234A;line-height:1.5;">12 · 16 · 24 · 999. Four values, no exceptions but the device frame</div>
+      </div>
+      <div style="display:grid;grid-template-columns:150px 1fr 1fr;border-bottom:1px solid #EEF2FB;">
+        <div style="padding:14px 20px;font-size:13px;font-weight:600;color:#16234A;">Numerals</div>
+        <div style="padding:14px 20px;font-size:13px;color:#5E6D90;line-height:1.5;">Proportional — digits jog on refresh</div>
+        <div style="padding:14px 20px;font-size:13px;color:#16234A;line-height:1.5;">tabular-nums on every wait, drive, count and axis</div>
+      </div>
+      <div style="display:grid;grid-template-columns:150px 1fr 1fr;border-bottom:1px solid #EEF2FB;">
+        <div style="padding:14px 20px;font-size:13px;font-weight:600;color:#16234A;">Icons</div>
+        <div style="padding:14px 20px;font-size:13px;color:#5E6D90;line-height:1.5;">Rounded-square placeholders</div>
+        <div style="padding:14px 20px;font-size:13px;color:#16234A;line-height:1.5;">One family: 24px grid, 2px rounded stroke, drawn off the gate mark</div>
+      </div>
+      <div style="display:grid;grid-template-columns:150px 1fr 1fr;border-bottom:1px solid #EEF2FB;">
+        <div style="padding:14px 20px;font-size:13px;font-weight:600;color:#16234A;">States</div>
+        <div style="padding:14px 20px;font-size:13px;color:#5E6D90;line-height:1.5;">Default only</div>
+        <div style="padding:14px 20px;font-size:13px;color:#16234A;line-height:1.5;">Pressed, disabled, loading + five data-freshness states</div>
+      </div>
+      <div style="display:grid;grid-template-columns:150px 1fr 1fr;border-bottom:1px solid #EEF2FB;">
+        <div style="padding:14px 20px;font-size:13px;font-weight:600;color:#16234A;">Charts</div>
+        <div style="padding:14px 20px;font-size:13px;color:#5E6D90;line-height:1.5;">Decorative bars, cobalt on the current hour</div>
+        <div style="padding:14px 20px;font-size:13px;color:#16234A;line-height:1.5;">NOW marker, and history / reading / forecast drawn differently</div>
+      </div>
+      <div style="display:grid;grid-template-columns:150px 1fr 1fr;border-bottom:1px solid #EEF2FB;">
+        <div style="padding:14px 20px;font-size:13px;font-weight:600;color:#16234A;">Launch</div>
+        <div style="padding:14px 20px;font-size:13px;color:#5E6D90;line-height:1.5;">2.2s, always plays</div>
+        <div style="padding:14px 20px;font-size:13px;color:#16234A;line-height:1.5;">1.2s, skipped on warm data, fade under Reduce Motion</div>
+      </div>
+      <div style="display:grid;grid-template-columns:150px 1fr 1fr;">
+        <div style="padding:14px 20px;font-size:13px;font-weight:600;color:#16234A;">Delivery</div>
+        <div style="padding:14px 20px;font-size:13px;color:#5E6D90;line-height:1.5;">Hex values in a document</div>
+        <div style="padding:14px 20px;font-size:13px;color:#16234A;line-height:1.5;">CSS custom properties + JSON, named the same on both sides</div>
+      </div>
+    </div>
+    <div style="background:#16234A;border-radius:24px;padding:24px 28px;display:flex;flex-wrap:wrap;gap:28px;align-items:center;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.11em;color:#8FA0C6;text-transform:uppercase;flex:none;">Unchanged on purpose</div>
+      <div style="font-size:14px;color:#EEF2FB;line-height:1.5;flex:1;min-width:260px;text-wrap:pretty;">Cobalt is still a spotlight, not wallpaper. Still flat — elevation only for things that physically sit above the interface. Still Poppins. Still no gradients, no glass.</div>
+    </div>
+  </div>
+
+  <!-- ══════════ 02 COLOR ══════════ -->
+  <div id="sec-color" style="display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;color:#5E6D90;text-transform:uppercase;">02 — Color &amp; contrast</div>
+      <div style="height:1px;background:#DFE5F3;flex:1;"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;">
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+        <div style="height:104px;box-sizing:border-box;background:#16234A;display:flex;align-items:flex-end;padding:14px;"><div style="font-size:22px;font-weight:700;color:#FFFFFF;letter-spacing:-0.02em;">Aa</div></div>
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:3px;">
+          <div style="font-size:13px;font-weight:600;color:#16234A;">ink</div>
+          <div style="font-size:12px;font-weight:500;color:#5E6D90;font-variant-numeric:tabular-nums;">#16234A · 13.6:1</div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.45;">Headings, numbers, body</div>
+        </div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+        <div style="height:104px;box-sizing:border-box;background:#5E6D90;display:flex;align-items:flex-end;padding:14px;"><div style="font-size:22px;font-weight:700;color:#FFFFFF;letter-spacing:-0.02em;">Aa</div></div>
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:3px;">
+          <div style="font-size:13px;font-weight:600;color:#16234A;">ink-secondary <span style="font-size:10px;font-weight:600;color:#1B45C4;letter-spacing:0.06em;">NEW</span></div>
+          <div style="font-size:12px;font-weight:500;color:#5E6D90;font-variant-numeric:tabular-nums;">#5E6D90 · 5.2:1 / 4.6:1 mist</div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.45;">Every label, caption, sub-line</div>
+        </div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+        <div style="height:104px;box-sizing:border-box;background:#7E8DB5;display:flex;align-items:flex-end;padding:14px;"><div style="font-size:22px;font-weight:700;color:#FFFFFF;letter-spacing:-0.02em;">Aa</div></div>
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:3px;">
+          <div style="font-size:13px;font-weight:600;color:#16234A;">ink-muted</div>
+          <div style="font-size:12px;font-weight:500;color:#5E6D90;font-variant-numeric:tabular-nums;">#7E8DB5 · 3.3:1</div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.45;">Disabled text and decoration only — never information</div>
+        </div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+        <div style="height:104px;background:#DFE5F3;"></div>
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:3px;">
+          <div style="font-size:13px;font-weight:600;color:#16234A;">line</div>
+          <div style="font-size:12px;font-weight:500;color:#5E6D90;font-variant-numeric:tabular-nums;">#DFE5F3</div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.45;">Hairlines, dividers, empty tracks</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px;">
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+        <div style="height:74px;background:#1B45C4;"></div>
+        <div style="padding:12px 14px;"><div style="font-size:12px;font-weight:600;color:#16234A;">cobalt</div><div style="font-size:11px;color:#5E6D90;font-variant-numeric:tabular-nums;">#1B45C4</div></div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+        <div style="height:74px;background:#1638A5;"></div>
+        <div style="padding:12px 14px;"><div style="font-size:12px;font-weight:600;color:#16234A;">cobalt-deep</div><div style="font-size:11px;color:#5E6D90;font-variant-numeric:tabular-nums;">#1638A5</div></div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+        <div style="height:74px;background:#B9CCFF;"></div>
+        <div style="padding:12px 14px;"><div style="font-size:12px;font-weight:600;color:#16234A;">cobalt-light</div><div style="font-size:11px;color:#5E6D90;font-variant-numeric:tabular-nums;">#B9CCFF · 4.9:1</div></div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+        <div style="height:74px;background:#24345C;"></div>
+        <div style="padding:12px 14px;"><div style="font-size:12px;font-weight:600;color:#16234A;">navy-tint</div><div style="font-size:11px;color:#5E6D90;font-variant-numeric:tabular-nums;">#24345C</div></div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+        <div style="height:74px;background:#EEF2FB;border-bottom:1px solid #DFE5F3;"></div>
+        <div style="padding:12px 14px;"><div style="font-size:12px;font-weight:600;color:#16234A;">mist</div><div style="font-size:11px;color:#5E6D90;font-variant-numeric:tabular-nums;">#EEF2FB</div></div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+        <div style="height:74px;background:#8FA0C6;"></div>
+        <div style="padding:12px 14px;"><div style="font-size:12px;font-weight:600;color:#16234A;">ink-sec-dark</div><div style="font-size:11px;color:#5E6D90;font-variant-numeric:tabular-nums;">#8FA0C6 · 5.8:1</div></div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:26px 28px;display:flex;flex-direction:column;gap:18px;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Status — dot color and text color are now different tokens</div>
+        <div style="font-size:12px;color:#5E6D90;">Thresholds unchanged</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;">
+        <div style="border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+          <div style="background:#E4F0EA;padding:16px 18px;display:flex;align-items:center;gap:12px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#1F8A5B;flex:none;"></div>
+            <div style="font-size:13px;font-weight:600;color:#1E5540;">Clear · under 20 min</div>
+          </div>
+          <div style="padding:14px 18px;display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:#5E6D90;">dot / bar</span><span style="font-weight:600;color:#16234A;font-variant-numeric:tabular-nums;">#1F8A5B</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:#5E6D90;">text on white</span><span style="font-weight:600;color:#1A7A50;font-variant-numeric:tabular-nums;">#1A7A50 · 5.3:1</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:#5E6D90;">tint / ink</span><span style="font-weight:600;color:#16234A;font-variant-numeric:tabular-nums;">#E4F0EA / #1E5540</span></div>
+          </div>
+        </div>
+        <div style="border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+          <div style="background:#FBF1D9;padding:16px 18px;display:flex;align-items:center;gap:12px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#D9932A;flex:none;"></div>
+            <div style="font-size:13px;font-weight:600;color:#5A430A;">Moderate · 20–60 min</div>
+          </div>
+          <div style="padding:14px 18px;display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:#5E6D90;">dot / bar</span><span style="font-weight:600;color:#16234A;font-variant-numeric:tabular-nums;">#D9932A</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:#5E6D90;">text on white</span><span style="font-weight:600;color:#9A6408;font-variant-numeric:tabular-nums;">#9A6408 · 5.0:1</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:#5E6D90;">tint / ink</span><span style="font-weight:600;color:#16234A;font-variant-numeric:tabular-nums;">#FBF1D9 / #5A430A</span></div>
+          </div>
+        </div>
+        <div style="border:1px solid #DFE5F3;border-radius:16px;overflow:hidden;">
+          <div style="background:#F8E5E1;padding:16px 18px;display:flex;align-items:center;gap:12px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#C4462F;flex:none;"></div>
+            <div style="font-size:13px;font-weight:600;color:#8A4433;">Heavy · 60 min +</div>
+          </div>
+          <div style="padding:14px 18px;display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:#5E6D90;">dot / bar</span><span style="font-weight:600;color:#16234A;font-variant-numeric:tabular-nums;">#C4462F</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:#5E6D90;">text on white</span><span style="font-weight:600;color:#C4462F;font-variant-numeric:tabular-nums;">#C4462F · 4.9:1</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:#5E6D90;">tint / ink</span><span style="font-weight:600;color:#16234A;font-variant-numeric:tabular-nums;">#F8E5E1 / #8A4433</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;background:#EEF2FB;border-radius:16px;padding:14px 16px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B45C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px;"><path d="M12 4 21.5 20.5H2.5Z"></path><path d="M12 10.5v3.8"></path><path d="M12 17.4h0.01"></path></svg>
+        <div style="font-size:13px;color:#16234A;line-height:1.5;">Status is never the only channel. Every severity carries a word or an icon next to the color — <strong style="font-weight:600;">"95 min · heavy"</strong>, not a red dot alone.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 03 TYPE ══════════ -->
+  <div id="sec-type" style="display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;color:#5E6D90;text-transform:uppercase;">03 — Type · Poppins, seven tokens</div>
+      <div style="height:1px;background:#DFE5F3;flex:1;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:20px;align-items:start;">
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:30px 32px;display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;align-items:baseline;gap:22px;padding-bottom:20px;border-bottom:1px solid #EEF2FB;">
+          <div style="width:128px;flex:none;"><div style="font-size:11px;font-weight:600;letter-spacing:0.09em;color:#5E6D90;text-transform:uppercase;">Wait hero</div><div style="font-size:11px;color:#7E8DB5;font-variant-numeric:tabular-nums;">48/48/700</div></div>
+          <div style="font-size:48px;font-weight:700;color:#16234A;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums;">14<span style="font-size:18px;font-weight:500;color:#5E6D90;letter-spacing:0;"> min</span></div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:22px;padding:20px 0;border-bottom:1px solid #EEF2FB;">
+          <div style="width:128px;flex:none;"><div style="font-size:11px;font-weight:600;letter-spacing:0.09em;color:#5E6D90;text-transform:uppercase;">Metric</div><div style="font-size:11px;color:#7E8DB5;font-variant-numeric:tabular-nums;">26/30/700</div></div>
+          <div style="font-size:26px;font-weight:700;color:#16234A;letter-spacing:-0.02em;line-height:30px;font-variant-numeric:tabular-nums;">95 min · 5 of 10 booths</div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:22px;padding:20px 0;border-bottom:1px solid #EEF2FB;">
+          <div style="width:128px;flex:none;"><div style="font-size:11px;font-weight:600;letter-spacing:0.09em;color:#5E6D90;text-transform:uppercase;">Screen title</div><div style="font-size:11px;color:#7E8DB5;font-variant-numeric:tabular-nums;">24/29/700</div></div>
+          <div style="font-size:24px;font-weight:700;color:#16234A;letter-spacing:-0.02em;line-height:29px;">Best way north right now</div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:22px;padding:20px 0;border-bottom:1px solid #EEF2FB;">
+          <div style="width:128px;flex:none;"><div style="font-size:11px;font-weight:600;letter-spacing:0.09em;color:#5E6D90;text-transform:uppercase;">Card title</div><div style="font-size:11px;color:#7E8DB5;font-variant-numeric:tabular-nums;">16/22/600</div></div>
+          <div style="font-size:16px;font-weight:600;color:#16234A;line-height:22px;">San Ysidro</div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:22px;padding:20px 0;border-bottom:1px solid #EEF2FB;">
+          <div style="width:128px;flex:none;"><div style="font-size:11px;font-weight:600;letter-spacing:0.09em;color:#5E6D90;text-transform:uppercase;">Body</div><div style="font-size:11px;color:#7E8DB5;font-variant-numeric:tabular-nums;">14/21/400</div></div>
+          <div style="font-size:14px;font-weight:400;color:#16234A;line-height:21px;max-width:400px;">Times shown are for standard passenger vehicles, northbound.</div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:22px;padding:20px 0;border-bottom:1px solid #EEF2FB;">
+          <div style="width:128px;flex:none;"><div style="font-size:11px;font-weight:600;letter-spacing:0.09em;color:#5E6D90;text-transform:uppercase;">Metadata</div><div style="font-size:11px;color:#7E8DB5;font-variant-numeric:tabular-nums;">12/17/500</div></div>
+          <div style="font-size:12px;font-weight:500;color:#5E6D90;line-height:17px;font-variant-numeric:tabular-nums;">Ready lane · 8 of 12 booths · updated 2 min ago</div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:22px;padding-top:20px;">
+          <div style="width:128px;flex:none;"><div style="font-size:11px;font-weight:600;letter-spacing:0.09em;color:#5E6D90;text-transform:uppercase;">Eyebrow</div><div style="font-size:11px;color:#7E8DB5;font-variant-numeric:tabular-nums;">11/16/600 · .1em</div></div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#1B45C4;text-transform:uppercase;line-height:16px;">All crossings</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div style="background:#16234A;border-radius:24px;padding:26px 28px;display:flex;flex-direction:column;gap:16px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#8FA0C6;text-transform:uppercase;">Tabular numerals — mandatory</div>
+          <div style="font-size:13px;color:#EEF2FB;line-height:1.55;">Waits refresh under the user's eyes. Proportional digits reflow the whole row when 9 becomes 11; tabular digits don't move.</div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding-top:4px;">
+            <div style="background:#24345C;border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#8FA0C6;text-transform:uppercase;">Off</div>
+              <div style="font-size:22px;font-weight:700;color:#FFFFFF;letter-spacing:-0.02em;">11 · 14 · 95 · 111</div>
+            </div>
+            <div style="background:#1B45C4;border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#B9CCFF;text-transform:uppercase;">On</div>
+              <div style="font-size:22px;font-weight:700;color:#FFFFFF;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;">11 · 14 · 95 · 111</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:#B9CCFF;line-height:1.5;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">font-variant-numeric: tabular-nums;</div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:26px 28px;display:flex;flex-direction:column;gap:12px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Rules</div>
+          <div style="font-size:13px;color:#16234A;line-height:1.55;">Weights 400 / 500 / 600 / 700 only. Never 300, never italic. Units are 500 weight in <span style="font-weight:600;">ink-secondary</span>, one step down from their number — <span style="font-weight:600;">14 min</span> in hero positions, <span style="font-weight:600;">14m</span> in dense lists.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 04 RADIUS + SPACE ══════════ -->
+  <div id="sec-radius" style="display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;color:#5E6D90;text-transform:uppercase;">04 — Radius &amp; space</div>
+      <div style="height:1px;background:#DFE5F3;flex:1;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;">
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px;">
+        <div style="height:76px;background:#EEF2FB;border:1.5px solid #C9D3E9;border-radius:12px;"></div>
+        <div><div style="font-size:13px;font-weight:600;color:#16234A;">radius-sm · 12px</div><div style="font-size:12px;color:#5E6D90;line-height:1.45;margin-top:2px;">Compact controls, inline chips, chart bars at scale</div></div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px;">
+        <div style="height:76px;background:#EEF2FB;border:1.5px solid #C9D3E9;border-radius:16px;"></div>
+        <div><div style="font-size:13px;font-weight:600;color:#16234A;">radius-md · 16px</div><div style="font-size:12px;color:#5E6D90;line-height:1.45;margin-top:2px;">The default. Buttons, inputs, crossing cards, banners</div></div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px;">
+        <div style="height:76px;background:#EEF2FB;border:1.5px solid #C9D3E9;border-radius:24px;"></div>
+        <div><div style="font-size:13px;font-weight:600;color:#16234A;">radius-lg · 24px</div><div style="font-size:12px;color:#5E6D90;line-height:1.45;margin-top:2px;">Hero surface, bottom sheets, doc panels</div></div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px;">
+        <div style="height:76px;background:#EEF2FB;border:1.5px solid #C9D3E9;border-radius:999px;"></div>
+        <div><div style="font-size:13px;font-weight:600;color:#16234A;">radius-full · 999px</div><div style="font-size:12px;color:#5E6D90;line-height:1.45;margin-top:2px;">Pills, toggles, status bars, booth meters</div></div>
+      </div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:26px 28px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Space — 4pt grid</div>
+        <div style="font-size:13px;color:#16234A;line-height:1.6;">Screen padding <strong style="font-weight:600;">20px</strong>. Card padding <strong style="font-weight:600;">16px</strong>, hero <strong style="font-weight:600;">20px</strong>. Gaps from 4 · 8 · 12 · 16 · 20 · 24 only — v1's 7 / 9 / 11 / 13 are gone.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Hit targets</div>
+        <div style="font-size:13px;color:#16234A;line-height:1.6;">Never below <strong style="font-weight:600;">44px</strong>. Buttons 48px (14px vertical padding at body size). Icon buttons 44×44 with a 24px glyph.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Borders &amp; elevation</div>
+        <div style="font-size:13px;color:#16234A;line-height:1.6;">1px <strong style="font-weight:600;">line</strong>, or 1.5px for outline buttons and focus. No shadows on anything that sits <em style="font-style:normal;font-weight:600;">in</em> the page. Sheets and menus may use one: <strong style="font-weight:600;">0 -8px 28px rgba(22,35,74,.14)</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 05 ICONS ══════════ -->
+  <div id="sec-icons" style="display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;color:#5E6D90;text-transform:uppercase;">05 — Icons · one family, locked</div>
+      <div style="height:1px;background:#DFE5F3;flex:1;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start;">
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:28px 30px;display:flex;flex-direction:column;gap:22px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">24px grid · 2px stroke · round caps and joins · currentColor</div>
+          <div style="font-size:12px;color:#5E6D90;">Optical size 22–24px in the app</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:20px 12px;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.2V12l3.6 2.1"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">now</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 6.4 9 4.2l6 2.2 5.8-2.2v13.4L15 19.8l-6-2.2-5.8 2.2Z"></path><path d="M9 4.2v13.4"></path><path d="M15 6.4v13.4"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">map</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 9.5a6 6 0 1 0-12 0c0 5.2-2.2 6.8-2.2 6.8h16.4S18 14.7 18 9.5Z"></path><path d="M10.2 19.4a2.2 2.2 0 0 0 3.6 0"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">alerts</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.2" r="3.7"></circle><path d="M4.8 20.2c0-3.9 3.2-5.9 7.2-5.9s7.2 2 7.2 5.9"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">you</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6 20 20.4l-8-3.9-8 3.9Z"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">navigate</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20.2V10.4l5-3.4 5 3.4v9.8"></path><path d="M2.6 20.2h12.8"></path><path d="M14 13h6.5"></path><circle cx="14" cy="13" r="1.4"></circle></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">crossing</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.8v14.4"></path><path d="M6.4 13.6 12 19.2l5.6-5.6"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">falling</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19.2V4.8"></path><path d="M6.4 10.4 12 4.8l5.6 5.6"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">rising</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.8" cy="10.8" r="6.6"></circle><path d="M15.6 15.6 20.4 20.4"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">search</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5 16.5 12l-7 7"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">chevron</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.4 12a8.4 8.4 0 1 1-2.5-6"></path><path d="M20.4 4.2v4.4h-4.4"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">refresh</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.6 10.4a9 9 0 0 1 4.2-2.2"></path><path d="M8.6 13.8a5 5 0 0 1 2-1.2"></path><path d="M12 17.6h0.01"></path><path d="M14.4 12.4a5 5 0 0 1 1.2 0.8"></path><path d="M18.4 10.4a9 9 0 0 0-4-2.1"></path><path d="M3.8 4.4 20.2 20.4"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">offline</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 21.5 20.5H2.5Z"></path><path d="M12 10.5v3.8"></path><path d="M12 17.4h0.01"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">warning</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.6" y="10.6" width="14.8" height="9.6" rx="2.4"></rect><path d="M8.2 10.6V7.8a3.8 3.8 0 0 1 7.6 0v2.8"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">closed</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.8 15.2V11l1.8-4a2 2 0 0 1 1.8-1.2h9.2a2 2 0 0 1 1.8 1.2l1.8 4v4.2"></path><path d="M3.8 15.2h16.4v3.2H3.8Z"></path><path d="M7.4 11h9.2"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">vehicle</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.9" r="2.1"></circle><path d="M12 8.4v5.2"></path><path d="M8.4 10.4 12 9l3.6 1.4"></path><path d="M12 13.6 9.4 20.4"></path><path d="M12 13.6 14.6 20.4"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">pedestrian</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 19.6V9.2a2 2 0 0 1 1-1.7l5.6-3.2a2 2 0 0 1 2 0l5.6 3.2a2 2 0 0 1 1 1.7v10.4"></path><path d="M2.8 19.6h18.4"></path><path d="M9.6 19.6v-5.2h4.8v5.2"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">port</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:100%;aspect-ratio:1;background:#EEF2FB;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#16234A;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 19.2v-4.4"></path><path d="M9.6 19.2V9.6"></path><path d="M14.8 19.2v-7"></path><path d="M20 19.2V5.2"></path></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;">pattern</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;background:#EEF2FB;border-radius:16px;padding:14px 16px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B45C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px;"><path d="M12 4 21.5 20.5H2.5Z"></path><path d="M12 10.5v3.8"></path><path d="M12 17.4h0.01"></path></svg>
+          <div style="font-size:13px;color:#16234A;line-height:1.5;">Outline only. No filled variants, no emoji, no second family. The logo is the only expressive mark in the product — icons stay quiet.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:24px 26px;display:flex;flex-direction:column;gap:18px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Tab bar — before / after</div>
+          <div style="border:1px solid #DFE5F3;border-radius:16px;padding:12px 20px 14px;display:flex;justify-content:space-between;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="width:22px;height:22px;border-radius:7px;background:#1B45C4;"></div><div style="font-size:10px;font-weight:600;color:#1B45C4;">Now</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="width:22px;height:22px;border-radius:7px;background:#D3DBEE;"></div><div style="font-size:10px;font-weight:600;color:#7E8DB5;">Map</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="width:22px;height:22px;border-radius:7px;background:#D3DBEE;"></div><div style="font-size:10px;font-weight:600;color:#7E8DB5;">Alerts</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;"><div style="width:22px;height:22px;border-radius:7px;background:#D3DBEE;"></div><div style="font-size:10px;font-weight:600;color:#7E8DB5;">You</div></div>
+          </div>
+          <div style="border:1px solid #16234A;border-radius:16px;padding:12px 20px 14px;display:flex;justify-content:space-between;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;color:#1B45C4;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.2V12l3.6 2.1"></path></svg><div style="font-size:11px;font-weight:600;color:#1B45C4;">Now</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;color:#5E6D90;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 6.4 9 4.2l6 2.2 5.8-2.2v13.4L15 19.8l-6-2.2-5.8 2.2Z"></path><path d="M9 4.2v13.4"></path><path d="M15 6.4v13.4"></path></svg><div style="font-size:11px;font-weight:600;color:#5E6D90;">Map</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;color:#5E6D90;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 9.5a6 6 0 1 0-12 0c0 5.2-2.2 6.8-2.2 6.8h16.4S18 14.7 18 9.5Z"></path><path d="M10.2 19.4a2.2 2.2 0 0 0 3.6 0"></path></svg><div style="font-size:11px;font-weight:600;color:#5E6D90;">Alerts</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;color:#5E6D90;"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.2" r="3.7"></circle><path d="M4.8 20.2c0-3.9 3.2-5.9 7.2-5.9s7.2 2 7.2 5.9"></path></svg><div style="font-size:11px;font-weight:600;color:#5E6D90;">You</div></div>
+          </div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.5;">Active is cobalt glyph + cobalt label. Inactive is <strong style="font-weight:600;">ink-secondary</strong> for both — not a pale fill. Label goes 10 → 11px.</div>
+        </div>
+        <div style="background:#16234A;border-radius:24px;padding:24px 26px;display:flex;flex-direction:column;gap:14px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#8FA0C6;text-transform:uppercase;">Construction</div>
+          <div style="font-size:13px;color:#EEF2FB;line-height:1.55;">Every glyph is built from the mark's vocabulary: flat pitched roof angle, 2px stroke matching the barrier arm, hinge dots at 1.4r. Strokes end on the 24px grid at whole or half pixels.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 06 CONTROL STATES ══════════ -->
+  <div id="sec-states" style="display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;color:#5E6D90;text-transform:uppercase;">06 — Control states</div>
+      <div style="height:1px;background:#DFE5F3;flex:1;"></div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:120px repeat(5,minmax(0,1fr));background:#EEF2FB;border-bottom:1px solid #DFE5F3;">
+        <div style="padding:13px 20px;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Variant</div>
+        <div style="padding:13px 14px;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Default</div>
+        <div style="padding:13px 14px;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Hover</div>
+        <div style="padding:13px 14px;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Pressed</div>
+        <div style="padding:13px 14px;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Loading</div>
+        <div style="padding:13px 14px;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Disabled</div>
+      </div>
+      <div style="display:grid;grid-template-columns:120px repeat(5,minmax(0,1fr));align-items:center;border-bottom:1px solid #EEF2FB;">
+        <div style="padding:18px 20px;font-size:13px;font-weight:600;color:#16234A;">Primary</div>
+        <div style="padding:18px 14px;"><div style="background:#1B45C4;color:#FFFFFF;font-size:14px;font-weight:600;padding:14px 18px;border-radius:16px;text-align:center;">Navigate</div></div>
+        <div style="padding:18px 14px;"><div style="background:#1638A5;color:#FFFFFF;font-size:14px;font-weight:600;padding:14px 18px;border-radius:16px;text-align:center;">Navigate</div></div>
+        <div style="padding:18px 14px;"><div style="background:#122F8C;color:#FFFFFF;font-size:14px;font-weight:600;padding:14px 18px;border-radius:16px;text-align:center;transform:scale(0.97);">Navigate</div></div>
+        <div style="padding:18px 14px;"><div style="background:#1B45C4;color:#FFFFFF;font-size:14px;font-weight:600;padding:14px 18px;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:9px;"><div style="{{ spinner }}"></div>Routing</div></div>
+        <div style="padding:18px 14px;"><div style="background:#DFE5F3;color:#7E8DB5;font-size:14px;font-weight:600;padding:14px 18px;border-radius:16px;text-align:center;">Navigate</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:120px repeat(5,minmax(0,1fr));align-items:center;border-bottom:1px solid #EEF2FB;">
+        <div style="padding:18px 20px;font-size:13px;font-weight:600;color:#16234A;">Secondary</div>
+        <div style="padding:18px 14px;"><div style="background:#FFFFFF;color:#1B45C4;border:1.5px solid #1B45C4;font-size:14px;font-weight:600;padding:12.5px 18px;border-radius:16px;text-align:center;">Set alert</div></div>
+        <div style="padding:18px 14px;"><div style="background:#EEF2FB;color:#1638A5;border:1.5px solid #1638A5;font-size:14px;font-weight:600;padding:12.5px 18px;border-radius:16px;text-align:center;">Set alert</div></div>
+        <div style="padding:18px 14px;"><div style="background:#E3EBFD;color:#122F8C;border:1.5px solid #122F8C;font-size:14px;font-weight:600;padding:12.5px 18px;border-radius:16px;text-align:center;transform:scale(0.97);">Set alert</div></div>
+        <div style="padding:18px 14px;"><div style="background:#FFFFFF;color:#1B45C4;border:1.5px solid #B9CCFF;font-size:14px;font-weight:600;padding:12.5px 18px;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:9px;"><div style="{{ spinnerBlue }}"></div>Saving</div></div>
+        <div style="padding:18px 14px;"><div style="background:#FFFFFF;color:#7E8DB5;border:1.5px solid #DFE5F3;font-size:14px;font-weight:600;padding:12.5px 18px;border-radius:16px;text-align:center;">Set alert</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:120px repeat(5,minmax(0,1fr));align-items:center;">
+        <div style="padding:18px 20px;font-size:13px;font-weight:600;color:#16234A;">Input</div>
+        <div style="padding:18px 14px;"><div style="background:#EEF2FB;border:1px solid #DFE5F3;border-radius:16px;padding:13px 14px;display:flex;align-items:center;gap:10px;color:#5E6D90;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><circle cx="10.8" cy="10.8" r="6.6"></circle><path d="M15.6 15.6 20.4 20.4"></path></svg><span style="font-size:14px;">Search</span></div></div>
+        <div style="padding:18px 14px;"><div style="background:#FFFFFF;border:1px solid #C9D3E9;border-radius:16px;padding:13px 14px;display:flex;align-items:center;gap:10px;color:#5E6D90;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><circle cx="10.8" cy="10.8" r="6.6"></circle><path d="M15.6 15.6 20.4 20.4"></path></svg><span style="font-size:14px;">Search</span></div></div>
+        <div style="padding:18px 14px;"><div style="background:#FFFFFF;border:1.5px solid #1B45C4;border-radius:16px;padding:12.5px 14px;display:flex;align-items:center;gap:8px;"><span style="font-size:14px;color:#16234A;">Otay</span><div style="width:1.5px;height:17px;background:#1B45C4;"></div></div></div>
+        <div style="padding:18px 14px;"><div style="background:#FFFFFF;border:1.5px solid #C4462F;border-radius:16px;padding:12.5px 14px;display:flex;align-items:center;gap:10px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C4462F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M12 4 21.5 20.5H2.5Z"></path><path d="M12 10.5v3.8"></path><path d="M12 17.4h0.01"></path></svg><span style="font-size:14px;color:#C4462F;font-weight:500;">No match</span></div></div>
+        <div style="padding:18px 14px;"><div style="background:#EEF2FB;border:1px solid #DFE5F3;border-radius:16px;padding:13px 14px;color:#7E8DB5;font-size:14px;">Search</div></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;">
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:24px 26px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Pressed</div>
+        <div style="font-size:13px;color:#16234A;line-height:1.55;">One step darker than hover, plus <strong style="font-weight:600;">scale(0.97)</strong> over 90ms. Cards get <strong style="font-weight:600;">mist</strong> fill instead of scaling.</div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:24px 26px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Loading</div>
+        <div style="font-size:13px;color:#16234A;line-height:1.55;">Label changes to the verb in progress and a 15px 2px ring spins at 720ms. Never a full-screen spinner — the last known number stays on screen.</div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:24px 26px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Disabled</div>
+        <div style="font-size:13px;color:#16234A;line-height:1.55;">Fill drops to <strong style="font-weight:600;">line</strong>, text to <strong style="font-weight:600;">ink-muted</strong>. Never opacity — it muddies whatever sits behind. No pointer, no hover.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 07 DATA TRUST ══════════ -->
+  <div id="sec-data" style="display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;color:#5E6D90;text-transform:uppercase;">07 — Data trust · five freshness states</div>
+      <div style="height:1px;background:#DFE5F3;flex:1;"></div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:28px 30px;display:flex;flex-direction:column;gap:22px;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <div style="font-size:13px;color:#16234A;line-height:1.55;max-width:660px;text-wrap:pretty;">A wait time is a claim about the world, and the app has to say how good the claim is. Every state carries a badge, a word, and a timestamp — color is never the only signal.</div>
+        <div style="font-size:12px;font-weight:600;color:#1B45C4;">Loading → Live → Stale → Offline → Unavailable → Closed</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;">
+        <div style="border:1px solid #DFE5F3;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;align-items:center;gap:8px;background:#E4F0EA;border-radius:999px;padding:5px 11px;align-self:flex-start;">
+            <div style="width:7px;height:7px;border-radius:50%;background:#1F8A5B;flex:none;"></div>
+            <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;color:#1E5540;text-transform:uppercase;">Live</div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:7px;"><div style="font-size:40px;font-weight:700;color:#16234A;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums;">14</div><div style="font-size:15px;font-weight:500;color:#5E6D90;padding-bottom:3px;">min</div></div>
+          <div style="font-size:12px;font-weight:500;color:#5E6D90;font-variant-numeric:tabular-nums;">Updated 2 min ago · CBP</div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.5;border-top:1px solid #EEF2FB;padding-top:12px;">Under 10 minutes old. Full contrast, actions enabled.</div>
+        </div>
+        <div style="border:1px solid #DFE5F3;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;align-items:center;gap:8px;background:#FBF1D9;border-radius:999px;padding:5px 11px;align-self:flex-start;color:#5A430A;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.2V12l3.6 2.1"></path></svg>
+            <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">Stale</div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:7px;"><div style="font-size:40px;font-weight:700;color:#5E6D90;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums;">42</div><div style="font-size:15px;font-weight:500;color:#5E6D90;padding-bottom:3px;">min</div></div>
+          <div style="font-size:12px;font-weight:500;color:#9A6408;font-variant-numeric:tabular-nums;">Updated 18 min ago</div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.5;border-top:1px solid #EEF2FB;padding-top:12px;">10–45 min old. Number steps down to <strong style="font-weight:600;">ink-secondary</strong> — still readable, visibly not current.</div>
+        </div>
+        <div style="border:1px solid #DFE5F3;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;align-items:center;gap:8px;background:#EEF2FB;border-radius:999px;padding:5px 11px;align-self:flex-start;color:#16234A;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M5.6 10.4a9 9 0 0 1 4.2-2.2"></path><path d="M12 17.6h0.01"></path><path d="M18.4 10.4a9 9 0 0 0-4-2.1"></path><path d="M3.8 4.4 20.2 20.4"></path></svg>
+            <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">Offline</div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:7px;"><div style="font-size:40px;font-weight:700;color:#5E6D90;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums;">42</div><div style="font-size:15px;font-weight:500;color:#5E6D90;padding-bottom:3px;">min</div></div>
+          <div style="font-size:12px;font-weight:500;color:#5E6D90;font-variant-numeric:tabular-nums;">Last known · 42 min ago</div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.5;border-top:1px solid #EEF2FB;padding-top:12px;">No connection. Show the cached number and say so. Alerts queue rather than fail.</div>
+        </div>
+        <div style="border:1px solid #DFE5F3;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;align-items:center;gap:8px;background:#EEF2FB;border-radius:999px;padding:5px 11px;align-self:flex-start;color:#5E6D90;">
+            <div style="width:9px;height:2px;border-radius:2px;background:#5E6D90;flex:none;"></div>
+            <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">Unavailable</div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:7px;"><div style="font-size:40px;font-weight:700;color:#7E8DB5;letter-spacing:-0.04em;line-height:1;">—</div></div>
+          <div style="font-size:12px;font-weight:500;color:#5E6D90;">Wait time unavailable</div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.5;border-top:1px solid #EEF2FB;padding-top:12px;">Feed reports no number. Em dash, never a zero. Row stays tappable for the pattern chart.</div>
+        </div>
+        <div style="border:1px solid #DFE5F3;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;align-items:center;gap:8px;background:#16234A;border-radius:999px;padding:5px 11px;align-self:flex-start;color:#EEF2FB;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><rect x="4.6" y="10.6" width="14.8" height="9.6" rx="2.4"></rect><path d="M8.2 10.6V7.8a3.8 3.8 0 0 1 7.6 0v2.8"></path></svg>
+            <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">Closed</div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:7px;"><div style="font-size:24px;font-weight:700;color:#16234A;letter-spacing:-0.02em;line-height:1.2;">Closed</div></div>
+          <div style="font-size:12px;font-weight:500;color:#5E6D90;font-variant-numeric:tabular-nums;">Reopens 6:00 am</div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.5;border-top:1px solid #EEF2FB;padding-top:12px;">Port closed. No number at all, and the crossing sorts to the bottom of the list.</div>
+        </div>
+        <div style="border:1px solid #DFE5F3;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;align-items:center;gap:8px;background:#EEF2FB;border-radius:999px;padding:5px 11px;align-self:flex-start;color:#5E6D90;">
+            <div style="{{ spinnerGrey }}"></div>
+            <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">Loading</div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:7px;"><div style="{{ skelNum }}"></div></div>
+          <div style="{{ skelLine }}"></div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.5;border-top:1px solid #EEF2FB;padding-top:12px;">First open only. Skeleton in <strong style="font-weight:600;">line</strong>, pulsing 1.4s. Once a number has been seen, refresh never blanks it.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">In the list — same states, one line high</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;">
+            <div style="width:4px;align-self:stretch;border-radius:999px;background:#1F8A5B;flex:none;"></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:16px;font-weight:600;color:#16234A;line-height:22px;">San Ysidro</div><div style="font-size:12px;font-weight:500;color:#5E6D90;line-height:17px;font-variant-numeric:tabular-nums;">Ready lane · 8 of 12 booths · 2 min ago</div></div>
+            <div style="display:flex;align-items:center;gap:6px;flex:none;color:#1A7A50;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.8v14.4"></path><path d="M6.4 13.6 12 19.2l5.6-5.6"></path></svg><div style="font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;">6</div></div>
+            <div style="font-size:26px;font-weight:700;color:#16234A;letter-spacing:-0.02em;line-height:30px;flex:none;font-variant-numeric:tabular-nums;">14<span style="font-size:13px;font-weight:500;color:#5E6D90;letter-spacing:0;">m</span></div>
+          </div>
+          <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;">
+            <div style="width:4px;align-self:stretch;border-radius:999px;background:#D9932A;flex:none;"></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:16px;font-weight:600;color:#16234A;line-height:22px;">Otay Mesa</div><div style="display:flex;align-items:center;gap:6px;color:#9A6408;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.2V12l3.6 2.1"></path></svg><div style="font-size:12px;font-weight:500;line-height:17px;font-variant-numeric:tabular-nums;">Stale · 18 min ago</div></div></div>
+            <div style="font-size:26px;font-weight:700;color:#5E6D90;letter-spacing:-0.02em;line-height:30px;flex:none;font-variant-numeric:tabular-nums;">42<span style="font-size:13px;font-weight:500;color:#5E6D90;letter-spacing:0;">m</span></div>
+          </div>
+          <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;">
+            <div style="width:4px;align-self:stretch;border-radius:999px;background:#DFE5F3;flex:none;"></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:16px;font-weight:600;color:#16234A;line-height:22px;">Tecate</div><div style="font-size:12px;font-weight:500;color:#5E6D90;line-height:17px;">Crossing closed · reopens 6:00 am</div></div>
+            <div style="display:flex;align-items:center;gap:7px;flex:none;color:#5E6D90;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.6" y="10.6" width="14.8" height="9.6" rx="2.4"></rect><path d="M8.2 10.6V7.8a3.8 3.8 0 0 1 7.6 0v2.8"></path></svg><div style="font-size:14px;font-weight:600;">Closed</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 08 CHARTS ══════════ -->
+  <div id="sec-chart" style="display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;color:#5E6D90;text-transform:uppercase;">08 — Charts · history, reading, forecast</div>
+      <div style="height:1px;background:#DFE5F3;flex:1;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;align-items:start;">
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:28px 30px;display:flex;flex-direction:column;gap:20px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Today's wait — Otay Mesa, ready lane</div>
+          <div style="font-size:12px;font-weight:600;color:#1B45C4;">Best 5–7 am</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0;">
+          <div style="display:flex;align-items:flex-end;gap:5px;height:132px;position:relative;">
+            <div style="position:absolute;left:0;right:0;bottom:33%;height:1px;background:#EEF2FB;"></div>
+            <div style="position:absolute;left:0;right:0;bottom:66%;height:1px;background:#EEF2FB;"></div>
+            <div style="flex:1;height:18%;background:#C9D3E9;border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1;height:24%;background:#C9D3E9;border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1;height:38%;background:#C9D3E9;border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1;height:52%;background:#C9D3E9;border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1;height:74%;background:#C9D3E9;border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1;height:62%;background:#C9D3E9;border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1;position:relative;height:100%;display:flex;align-items:flex-end;">
+              <div style="position:absolute;left:50%;top:0;bottom:-2px;width:1.5px;background:#1B45C4;transform:translateX(-50%);"></div>
+              <div style="position:absolute;left:50%;top:-9px;transform:translateX(-50%);background:#1B45C4;color:#FFFFFF;font-size:9px;font-weight:600;letter-spacing:0.1em;padding:3px 7px;border-radius:999px;white-space:nowrap;">NOW</div>
+              <div style="width:100%;height:88%;background:#1B45C4;border-radius:6px 6px 0 0;"></div>
+            </div>
+            <div style="flex:1;height:78%;border:1.5px solid #7EA0F0;border-bottom:none;border-radius:6px 6px 0 0;background:#F4F7FF;"></div>
+            <div style="flex:1;height:60%;border:1.5px solid #7EA0F0;border-bottom:none;border-radius:6px 6px 0 0;background:#F4F7FF;"></div>
+            <div style="flex:1;height:42%;border:1.5px solid #7EA0F0;border-bottom:none;border-radius:6px 6px 0 0;background:#F4F7FF;"></div>
+            <div style="flex:1;height:30%;border:1.5px solid #7EA0F0;border-bottom:none;border-radius:6px 6px 0 0;background:#F4F7FF;"></div>
+          </div>
+          <div style="height:1px;background:#C9D3E9;"></div>
+          <div style="display:flex;gap:5px;padding-top:8px;">
+            <div style="flex:1;font-size:11px;font-weight:500;color:#5E6D90;text-align:center;font-variant-numeric:tabular-nums;">5a</div>
+            <div style="flex:1;font-size:11px;font-weight:500;color:#5E6D90;text-align:center;font-variant-numeric:tabular-nums;">7a</div>
+            <div style="flex:1;font-size:11px;font-weight:500;color:#5E6D90;text-align:center;font-variant-numeric:tabular-nums;">9a</div>
+            <div style="flex:1;font-size:11px;font-weight:500;color:#5E6D90;text-align:center;font-variant-numeric:tabular-nums;">11a</div>
+            <div style="flex:1;font-size:11px;font-weight:500;color:#5E6D90;text-align:center;font-variant-numeric:tabular-nums;">1p</div>
+            <div style="flex:1;font-size:11px;font-weight:500;color:#5E6D90;text-align:center;font-variant-numeric:tabular-nums;">2p</div>
+            <div style="flex:1;font-size:11px;font-weight:600;color:#1B45C4;text-align:center;font-variant-numeric:tabular-nums;">3p</div>
+            <div style="flex:1;font-size:11px;font-weight:500;color:#5E6D90;text-align:center;font-variant-numeric:tabular-nums;">4p</div>
+            <div style="flex:1;font-size:11px;font-weight:500;color:#5E6D90;text-align:center;font-variant-numeric:tabular-nums;">6p</div>
+            <div style="flex:1;font-size:11px;font-weight:500;color:#5E6D90;text-align:center;font-variant-numeric:tabular-nums;">8p</div>
+            <div style="flex:1;font-size:11px;font-weight:500;color:#5E6D90;text-align:center;font-variant-numeric:tabular-nums;">10p</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:20px;border-top:1px solid #EEF2FB;padding-top:18px;">
+          <div style="display:flex;align-items:center;gap:9px;"><div style="width:14px;height:14px;border-radius:4px;background:#C9D3E9;flex:none;"></div><div style="font-size:12px;font-weight:500;color:#5E6D90;">Recorded</div></div>
+          <div style="display:flex;align-items:center;gap:9px;"><div style="width:14px;height:14px;border-radius:4px;background:#1B45C4;flex:none;"></div><div style="font-size:12px;font-weight:500;color:#16234A;">Current reading</div></div>
+          <div style="display:flex;align-items:center;gap:9px;"><div style="width:14px;height:14px;border-radius:4px;border:1.5px solid #7EA0F0;background:#F4F7FF;flex:none;box-sizing:border-box;"></div><div style="font-size:12px;font-weight:500;color:#5E6D90;">Forecast</div></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:26px 28px;display:flex;flex-direction:column;gap:14px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Rules</div>
+          <div style="display:flex;flex-direction:column;gap:11px;font-size:13px;color:#16234A;line-height:1.55;">
+            <div style="display:flex;gap:11px;"><div style="color:#1B45C4;font-weight:700;flex:none;font-variant-numeric:tabular-nums;">01</div><div>Recorded bars are solid <strong style="font-weight:600;">line-strong</strong>, not <strong style="font-weight:600;">line</strong> — they carry data and must be visible on mist.</div></div>
+            <div style="display:flex;gap:11px;"><div style="color:#1B45C4;font-weight:700;flex:none;font-variant-numeric:tabular-nums;">02</div><div>The current reading is the one cobalt bar and carries the <strong style="font-weight:600;">NOW</strong> marker with a 1.5px rule to the axis.</div></div>
+            <div style="display:flex;gap:11px;"><div style="color:#1B45C4;font-weight:700;flex:none;font-variant-numeric:tabular-nums;">03</div><div>Forecast is outlined, never filled. Prediction must never look like measurement.</div></div>
+            <div style="display:flex;gap:11px;"><div style="color:#1B45C4;font-weight:700;flex:none;font-variant-numeric:tabular-nums;">04</div><div>One axis hairline at the baseline, two gridlines in <strong style="font-weight:600;">mist</strong>. No y labels — the number above the chart is the scale.</div></div>
+            <div style="display:flex;gap:11px;"><div style="color:#1B45C4;font-weight:700;flex:none;font-variant-numeric:tabular-nums;">05</div><div>Bars 6px top radius, square feet. Tabular hour labels so the row never shifts.</div></div>
+          </div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:26px 28px;display:flex;flex-direction:column;gap:16px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Booth meter</div>
+          <div style="display:flex;gap:4px;">
+            <div style="flex:1;height:8px;border-radius:999px;background:#1B45C4;"></div>
+            <div style="flex:1;height:8px;border-radius:999px;background:#1B45C4;"></div>
+            <div style="flex:1;height:8px;border-radius:999px;background:#1B45C4;"></div>
+            <div style="flex:1;height:8px;border-radius:999px;background:#1B45C4;"></div>
+            <div style="flex:1;height:8px;border-radius:999px;background:#1B45C4;"></div>
+            <div style="flex:1;height:8px;border-radius:999px;background:#DFE5F3;"></div>
+            <div style="flex:1;height:8px;border-radius:999px;background:#DFE5F3;"></div>
+            <div style="flex:1;height:8px;border-radius:999px;background:#DFE5F3;"></div>
+            <div style="flex:1;height:8px;border-radius:999px;background:#DFE5F3;"></div>
+            <div style="flex:1;height:8px;border-radius:999px;background:#DFE5F3;"></div>
+          </div>
+          <div style="font-size:12px;font-weight:500;color:#5E6D90;font-variant-numeric:tabular-nums;">5 of 10 booths open · 3 fewer than usual at 3 pm</div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.5;">One pill per booth, never a percentage bar. The count is the honest unit — drivers can see it themselves at the gate.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 09 BRAND ══════════ -->
+  <div id="sec-brand" style="display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;color:#5E6D90;text-transform:uppercase;">09 — Micro-mark &amp; launch motion</div>
+      <div style="height:1px;background:#DFE5F3;flex:1;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;align-items:start;">
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:28px 30px;display:flex;flex-direction:column;gap:22px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Micro-mark · below 24px</div>
+        <div style="display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:64px;height:64px;border-radius:18px;background:#1B45C4;display:flex;align-items:center;justify-content:center;"><svg width="40" height="40" viewBox="0 0 20 20" fill="#FFFFFF"><path d="M1.8 8.6 8 3.4l6.2 5.2H12.2V17.4H3.8V8.6Z"></path><rect x="13.4" y="9.8" width="5.6" height="2.4" rx="1.2"></rect></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;font-variant-numeric:tabular-nums;">64px</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;border-radius:9px;background:#1B45C4;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 20 20" fill="#FFFFFF"><path d="M1.8 8.6 8 3.4l6.2 5.2H12.2V17.4H3.8V8.6Z"></path><rect x="13.4" y="9.8" width="5.6" height="2.4" rx="1.2"></rect></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;font-variant-numeric:tabular-nums;">32px</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:20px;height:20px;border-radius:6px;background:#1B45C4;display:flex;align-items:center;justify-content:center;"><svg width="13" height="13" viewBox="0 0 20 20" fill="#FFFFFF"><path d="M1.8 8.6 8 3.4l6.2 5.2H12.2V17.4H3.8V8.6Z"></path><rect x="13.4" y="9.8" width="5.6" height="2.4" rx="1.2"></rect></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;font-variant-numeric:tabular-nums;">20px</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:16px;height:16px;border-radius:5px;background:#16234A;display:flex;align-items:center;justify-content:center;"><svg width="11" height="11" viewBox="0 0 20 20" fill="#FFFFFF"><path d="M1.8 8.6 8 3.4l6.2 5.2H12.2V17.4H3.8V8.6Z"></path><rect x="13.4" y="9.8" width="5.6" height="2.4" rx="1.2"></rect></svg></div>
+            <div style="font-size:11px;font-weight:600;color:#16234A;font-variant-numeric:tabular-nums;">16px</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;border-top:1px solid #EEF2FB;padding-top:18px;">
+          <div style="font-size:13px;color:#16234A;line-height:1.55;">Three changes from the full mark: the barrier stripes drop out, the window and plinth go, and the arm shortens to 28% of the width so it survives a 16px notification badge and a watch complication.</div>
+          <div style="font-size:12px;color:#5E6D90;line-height:1.5;">Single path, one color, no counterforms below 20px. Use the full mark at 24px and up.</div>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:10px;background:#EEF2FB;border-radius:999px;padding:7px 14px 7px 8px;">
+            <div style="width:22px;height:22px;border-radius:7px;background:#1B45C4;display:flex;align-items:center;justify-content:center;flex:none;"><svg width="14" height="14" viewBox="0 0 20 20" fill="#FFFFFF"><path d="M1.8 8.6 8 3.4l6.2 5.2H12.2V17.4H3.8V8.6Z"></path><rect x="13.4" y="9.8" width="5.6" height="2.4" rx="1.2"></rect></svg></div>
+            <div style="font-size:12px;font-weight:500;color:#16234A;font-variant-numeric:tabular-nums;">San Ysidro · 14 min</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;background:#16234A;border-radius:999px;padding:7px 14px 7px 8px;">
+            <div style="width:22px;height:22px;border-radius:999px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;flex:none;"><svg width="14" height="14" viewBox="0 0 20 20" fill="#16234A"><path d="M1.8 8.6 8 3.4l6.2 5.2H12.2V17.4H3.8V8.6Z"></path><rect x="13.4" y="9.8" width="5.6" height="2.4" rx="1.2"></rect></svg></div>
+            <div style="font-size:12px;font-weight:500;color:#EEF2FB;">Map annotation</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#16234A;border-radius:24px;padding:28px 30px;display:flex;flex-direction:column;gap:22px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#8FA0C6;text-transform:uppercase;">Launch — 1.2s, down from 2.2s</div>
+          <div style="font-size:12px;font-weight:600;color:#B9CCFF;">A reward, not loading theater</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0;">
+          <div style="display:flex;gap:16px;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid #24345C;">
+            <div style="font-size:13px;font-weight:700;color:#B9CCFF;width:64px;flex:none;font-variant-numeric:tabular-nums;">0.00s</div>
+            <div style="font-size:13px;color:#EEF2FB;line-height:1.5;">Cobalt field, booth in place, arm down.</div>
+          </div>
+          <div style="display:flex;gap:16px;align-items:flex-start;padding:14px 0;border-bottom:1px solid #24345C;">
+            <div style="font-size:13px;font-weight:700;color:#B9CCFF;width:64px;flex:none;font-variant-numeric:tabular-nums;">0.25s</div>
+            <div style="font-size:13px;color:#EEF2FB;line-height:1.5;">Arm starts lifting. 450ms, <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#B9CCFF;">cubic-bezier(.3,.9,.3,1)</span>.</div>
+          </div>
+          <div style="display:flex;gap:16px;align-items:flex-start;padding:14px 0;border-bottom:1px solid #24345C;">
+            <div style="font-size:13px;font-weight:700;color:#B9CCFF;width:64px;flex:none;font-variant-numeric:tabular-nums;">0.70s</div>
+            <div style="font-size:13px;color:#EEF2FB;line-height:1.5;">Arm lands vertical. Wordmark fades up over 200ms.</div>
+          </div>
+          <div style="display:flex;gap:16px;align-items:flex-start;padding:14px 0;border-bottom:1px solid #24345C;">
+            <div style="font-size:13px;font-weight:700;color:#B9CCFF;width:64px;flex:none;font-variant-numeric:tabular-nums;">1.05s</div>
+            <div style="font-size:13px;color:#EEF2FB;line-height:1.5;">Splash dissolves, 150ms, revealing Now underneath.</div>
+          </div>
+          <div style="display:flex;gap:16px;align-items:flex-start;padding-top:14px;">
+            <div style="font-size:13px;font-weight:700;color:#B9CCFF;width:64px;flex:none;font-variant-numeric:tabular-nums;">1.20s</div>
+            <div style="font-size:13px;color:#EEF2FB;line-height:1.5;">Interface live and interactive.</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;background:#24345C;border-radius:16px;padding:18px 20px;">
+          <div style="display:flex;gap:11px;align-items:flex-start;">
+            <div style="width:6px;height:6px;border-radius:50%;background:#B9CCFF;margin-top:7px;flex:none;"></div>
+            <div style="font-size:13px;color:#EEF2FB;line-height:1.5;"><strong style="font-weight:600;">Warm start skips it.</strong> If cached data is under 10 min old, go straight to Now — no animation.</div>
+          </div>
+          <div style="display:flex;gap:11px;align-items:flex-start;">
+            <div style="width:6px;height:6px;border-radius:50%;background:#B9CCFF;margin-top:7px;flex:none;"></div>
+            <div style="font-size:13px;color:#EEF2FB;line-height:1.5;"><strong style="font-weight:600;">Reduce Motion.</strong> Arm holds open, whole splash cross-fades in 200ms. Nothing rotates, nothing scales.</div>
+          </div>
+          <div style="display:flex;gap:11px;align-items:flex-start;">
+            <div style="width:6px;height:6px;border-radius:50%;background:#B9CCFF;margin-top:7px;flex:none;"></div>
+            <div style="font-size:13px;color:#EEF2FB;line-height:1.5;"><strong style="font-weight:600;">Slow network.</strong> Splash still exits at 1.2s. Now appears with skeletons — the brand moment never gates the data.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 10 HERO PROPOSAL ══════════ -->
+  <div id="sec-hero" style="display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;color:#5E6D90;text-transform:uppercase;">10 — Total-time hero</div>
+      <div style="background:#FBF1D9;color:#5A430A;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;border-radius:999px;">Proposal · not in v2</div>
+      <div style="height:1px;background:#DFE5F3;flex:1;"></div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:28px 30px;display:grid;grid-template-columns:352px minmax(0,1fr);gap:32px;align-items:start;">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="background:#1B45C4;border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#B9CCFF;text-transform:uppercase;">McAllen — Hidalgo</div>
+            <div style="display:flex;align-items:center;gap:6px;"><div style="width:6px;height:6px;border-radius:50%;background:#B9CCFF;"></div><div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#B9CCFF;text-transform:uppercase;">Live</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px;">
+            <div style="font-size:48px;font-weight:700;color:#FFFFFF;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums;">34</div>
+            <div style="font-size:16px;font-weight:500;color:#B9CCFF;padding-bottom:5px;">min total</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;gap:3px;height:8px;">
+              <div style="width:35%;background:#B9CCFF;border-radius:999px;"></div>
+              <div style="flex:1;background:#FFFFFF;border-radius:999px;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;">
+              <div style="display:flex;align-items:center;gap:7px;color:#B9CCFF;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M3.8 15.2V11l1.8-4a2 2 0 0 1 1.8-1.2h9.2a2 2 0 0 1 1.8 1.2l1.8 4v4.2"></path><path d="M3.8 15.2h16.4v3.2H3.8Z"></path></svg><div style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;">12 min drive</div></div>
+              <div style="display:flex;align-items:center;gap:7px;color:#FFFFFF;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M4 20.2V10.4l5-3.4 5 3.4v9.8"></path><path d="M2.6 20.2h12.8"></path><path d="M14 13h6.5"></path></svg><div style="font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;">22 min border</div></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;padding-top:2px;">
+            <div style="flex:1;background:#FFFFFF;color:#16234A;font-size:14px;font-weight:600;padding:14px;border-radius:16px;text-align:center;">Navigate</div>
+            <div style="flex:1;border:1.5px solid #5878DB;color:#FFFFFF;font-size:14px;font-weight:600;padding:12.5px;border-radius:16px;text-align:center;">Set alert</div>
+          </div>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;">
+          <div style="width:4px;align-self:stretch;border-radius:999px;background:#D9932A;flex:none;"></div>
+          <div style="flex:1;min-width:0;"><div style="font-size:16px;font-weight:600;color:#16234A;line-height:22px;">Pharr — Reynosa</div><div style="font-size:12px;font-weight:500;color:#5E6D90;line-height:17px;font-variant-numeric:tabular-nums;">26 min drive + 15 min border</div></div>
+          <div style="font-size:26px;font-weight:700;color:#16234A;letter-spacing:-0.02em;line-height:30px;flex:none;font-variant-numeric:tabular-nums;">41<span style="font-size:13px;font-weight:500;color:#5E6D90;letter-spacing:0;">m</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:18px;">
+        <div style="font-size:14px;color:#16234A;line-height:1.6;text-wrap:pretty;">Otrolado's real question is <strong style="font-weight:600;">"which crossing gets me across fastest?"</strong> — and that answer is drive time plus border time, not the CBP queue alone. A closer port with a 60-minute line loses to one 25 minutes away with a 15-minute line, and today's hero can't express that.</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:12px;"><div style="color:#1B45C4;font-weight:700;flex:none;font-size:13px;font-variant-numeric:tabular-nums;">01</div><div style="font-size:13px;color:#16234A;line-height:1.55;">The 48px number becomes <strong style="font-weight:600;">total minutes</strong>. The split lives under it at metadata size — two numbers, never three.</div></div>
+          <div style="display:flex;gap:12px;"><div style="color:#1B45C4;font-weight:700;flex:none;font-size:13px;font-variant-numeric:tabular-nums;">02</div><div style="font-size:13px;color:#16234A;line-height:1.55;">The proportion bar is the only new component: <strong style="font-weight:600;">cobalt-light</strong> for drive, <strong style="font-weight:600;">white</strong> for border. It reads at a glance which half is the problem.</div></div>
+          <div style="display:flex;gap:12px;"><div style="color:#1B45C4;font-weight:700;flex:none;font-size:13px;font-variant-numeric:tabular-nums;">03</div><div style="font-size:13px;color:#16234A;line-height:1.55;">List rows sort by total too, so the ranking and the hero always agree.</div></div>
+          <div style="display:flex;gap:12px;"><div style="color:#1B45C4;font-weight:700;flex:none;font-size:13px;font-variant-numeric:tabular-nums;">04</div><div style="font-size:13px;color:#16234A;line-height:1.55;">Needs a routing source and a location permission. Until both exist, the hero stays the border number and this section stays a proposal.</div></div>
+        </div>
+        <div style="background:#EEF2FB;border-radius:16px;padding:16px 18px;font-size:13px;color:#16234A;line-height:1.55;">Voice stays the same: <strong style="font-weight:600;">"34 min total to Hidalgo. Leave now."</strong> The number still comes first.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 11 TOKENS ══════════ -->
+  <div id="sec-tokens" style="display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:baseline;gap:14px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;color:#5E6D90;text-transform:uppercase;">11 — Engineering tokens</div>
+      <div style="height:1px;background:#DFE5F3;flex:1;"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px;">
+      <div style="background:#16234A;border-radius:24px;padding:26px 28px;display:flex;flex-direction:column;gap:16px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#8FA0C6;text-transform:uppercase;">tokens.css</div>
+          <div style="font-size:11px;color:#8FA0C6;">CSS custom properties</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:12px 32px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.75;color:#EEF2FB;">
+          <div style="white-space:pre;overflow-x:auto;">{{ cssTokensA }}</div>
+          <div style="white-space:pre;overflow-x:auto;">{{ cssTokensB }}</div>
+        </div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:26px 28px;display:flex;flex-direction:column;gap:16px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;">
+          <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">tokens.json</div>
+          <div style="font-size:11px;color:#5E6D90;">Same names, for native &amp; Figma</div>
+        </div>
+        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.75;color:#16234A;white-space:pre;overflow-x:auto;">{{ jsonTokens }}</div>
+      </div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:26px 28px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Naming</div>
+        <div style="font-size:13px;color:#16234A;line-height:1.6;"><span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;">category-role-modifier</span>. Never a value in a name — no <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;">blue-500</span>, no <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;">gray-2</span>.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">One source</div>
+        <div style="font-size:13px;color:#16234A;line-height:1.6;">JSON is authored, CSS is generated from it. If a hex appears in a component file, that's a bug.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;">Deprecated in v2</div>
+        <div style="font-size:13px;color:#16234A;line-height:1.6;"><span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;">radius-13/14/18/20/22</span>, <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;">muted</span> as a text color, and status dots used as text.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:16px;padding-top:12px;border-top:1px solid #DFE5F3;flex-wrap:wrap;">
+    <div style="width:34px;height:34px;border-radius:10px;background:#1B45C4;display:flex;align-items:center;justify-content:center;flex:none;"><svg width="21" height="21" viewBox="0 0 20 20" fill="#FFFFFF"><path d="M1.8 8.6 8 3.4l6.2 5.2H12.2V17.4H3.8V8.6Z"></path><rect x="13.4" y="9.8" width="5.6" height="2.4" rx="1.2"></rect></svg></div>
+    <div style="font-size:12px;font-weight:500;color:#5E6D90;flex:1;min-width:220px;">Otrolado design system v2.0 · applied in <a href="Otrolado Prototype v2.dc.html">Prototype v2</a> and <a href="Otrolado Brand v2.dc.html">Brand v2</a>. v1 kept at <a href="Otrolado Design System.dc.html">Design System v1</a>.</div>
+  </div>
+
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  componentDidMount() {
+    if (document.getElementById('otrolado-v2-kf')) return;
+    const s = document.createElement('style');
+    s.id = 'otrolado-v2-kf';
+    s.textContent = '@keyframes otr-spin{to{transform:rotate(360deg)}}@keyframes otr-pulse{0%,100%{opacity:1}50%{opacity:.45}}';
+    document.head.appendChild(s);
+  }
+
+  renderVals() {
+    const spin = (size, ring, head) => 'width:' + size + 'px;height:' + size + 'px;border-radius:50%;border:2px solid ' + ring
+      + ';border-top-color:' + head + ';animation:otr-spin .72s linear infinite;flex:none;box-sizing:border-box;';
+    return {
+      spinner: spin(15, 'rgba(255,255,255,0.35)', '#FFFFFF'),
+      spinnerBlue: spin(15, '#B9CCFF', '#1B45C4'),
+      spinnerGrey: spin(11, '#C9D3E9', '#5E6D90'),
+      skelNum: 'width:82px;height:34px;border-radius:8px;background:#DFE5F3;animation:otr-pulse 1.4s ease-in-out infinite;',
+      skelLine: 'width:130px;height:11px;border-radius:6px;background:#DFE5F3;animation:otr-pulse 1.4s ease-in-out infinite;',
+      cssTokensA: [
+        ':root {',
+        '  /* ink */',
+        '  --otr-ink:              #16234A;',
+        '  --otr-ink-secondary:    #5E6D90;',
+        '  --otr-ink-muted:        #7E8DB5;',
+        '  --otr-ink-on-dark:      #EEF2FB;',
+        '  --otr-ink-sec-on-dark:  #8FA0C6;',
+        '',
+        '  /* brand */',
+        '  --otr-cobalt:           #1B45C4;',
+        '  --otr-cobalt-deep:      #1638A5;',
+        '  --otr-cobalt-press:     #122F8C;',
+        '  --otr-cobalt-light:     #B9CCFF;',
+        '  --otr-cobalt-outline:   #5878DB;',
+        '  --otr-navy-tint:        #24345C;',
+        '',
+        '  /* surface */',
+        '  --otr-surface:          #FFFFFF;',
+        '  --otr-mist:             #EEF2FB;',
+        '  --otr-line:             #DFE5F3;',
+        '  --otr-line-strong:      #C9D3E9;',
+        '  --otr-forecast-line:    #7EA0F0;',
+        '  --otr-forecast-fill:    #F4F7FF;',
+        '',
+        '  /* status — dot vs text are separate */',
+        '  --otr-clear:            #1F8A5B;',
+        '  --otr-clear-text:       #1A7A50;',
+        '  --otr-clear-tint:       #E4F0EA;',
+        '  --otr-clear-ink:        #1E5540;',
+        '  --otr-moderate:         #D9932A;',
+        '  --otr-moderate-text:    #9A6408;',
+        '  --otr-moderate-tint:    #FBF1D9;',
+        '  --otr-moderate-ink:     #5A430A;',
+        '  --otr-heavy:            #C4462F;',
+        '  --otr-heavy-text:       #C4462F;',
+        '  --otr-heavy-tint:       #F8E5E1;',
+        '  --otr-heavy-ink:        #8A4433;',
+        '  --otr-info-tint:        #E3EBFD;',
+        '  --otr-info-ink:         #15307A;'
+      ].join('\n'),
+      cssTokensB: [
+        '  /* radius */',
+        '  --otr-radius-sm:        12px;',
+        '  --otr-radius-md:        16px;',
+        '  --otr-radius-lg:        24px;',
+        '  --otr-radius-full:      999px;',
+        '',
+        '  /* space */',
+        '  --otr-space-1:          4px;',
+        '  --otr-space-2:          8px;',
+        '  --otr-space-3:          12px;',
+        '  --otr-space-4:          16px;',
+        '  --otr-space-5:          20px;',
+        '  --otr-space-6:          24px;',
+        '  --otr-screen-pad:       20px;',
+        '  --otr-hit-min:          44px;',
+        '',
+        '  /* type */',
+        '  --otr-font:             "Poppins", system-ui, sans-serif;',
+        '  --otr-num:              tabular-nums;',
+        '  --otr-wait-hero:        700 48px/48px var(--otr-font);',
+        '  --otr-metric:           700 26px/30px var(--otr-font);',
+        '  --otr-screen-title:     700 24px/29px var(--otr-font);',
+        '  --otr-card-title:       600 16px/22px var(--otr-font);',
+        '  --otr-body:             400 14px/21px var(--otr-font);',
+        '  --otr-metadata:         500 12px/17px var(--otr-font);',
+        '  --otr-eyebrow:          600 11px/16px var(--otr-font);',
+        '',
+        '  /* motion */',
+        '  --otr-press:            90ms ease-out;',
+        '  --otr-toggle:           180ms ease;',
+        '  --otr-gate:             450ms cubic-bezier(.3,.9,.3,1);',
+        '  --otr-elevation-sheet:  0 -8px 28px rgba(22,35,74,.14);',
+        '}'
+      ].join('\n'),
+      jsonTokens: [
+        '{',
+        '  "ink":        { "base":"#16234A", "secondary":"#5E6D90",',
+        '                  "muted":"#7E8DB5", "onDark":"#EEF2FB",',
+        '                  "secondaryOnDark":"#8FA0C6" },',
+        '',
+        '  "brand":      { "cobalt":"#1B45C4", "cobaltDeep":"#1638A5",',
+        '                  "cobaltPress":"#122F8C", "cobaltLight":"#B9CCFF",',
+        '                  "cobaltOutline":"#5878DB", "navyTint":"#24345C" },',
+        '',
+        '  "surface":    { "base":"#FFFFFF", "mist":"#EEF2FB",',
+        '                  "line":"#DFE5F3", "lineStrong":"#C9D3E9",',
+        '                  "forecastLine":"#7EA0F0", "forecastFill":"#F4F7FF" },',
+        '',
+        '  "status": {',
+        '    "clear":    { "dot":"#1F8A5B", "text":"#1A7A50",',
+        '                  "tint":"#E4F0EA", "ink":"#1E5540", "max":20 },',
+        '    "moderate": { "dot":"#D9932A", "text":"#9A6408",',
+        '                  "tint":"#FBF1D9", "ink":"#5A430A", "max":60 },',
+        '    "heavy":    { "dot":"#C4462F", "text":"#C4462F",',
+        '                  "tint":"#F8E5E1", "ink":"#8A4433", "max":null },',
+        '    "info":     { "tint":"#E3EBFD", "ink":"#15307A" }',
+        '  },',
+        '',
+        '  "freshness": {',
+        '    "live":        { "maxAgeMin":10,  "number":"ink" },',
+        '    "stale":       { "maxAgeMin":45,  "number":"ink.secondary" },',
+        '    "offline":     { "number":"ink.secondary", "label":"Last known" },',
+        '    "unavailable": { "number":null,  "glyph":"—" },',
+        '    "closed":      { "number":null,  "sort":"last" }',
+        '  },',
+        '',
+        '  "radius":     { "sm":12, "md":16, "lg":24, "full":999 },',
+        '  "space":      { "1":4, "2":8, "3":12, "4":16, "5":20, "6":24,',
+        '                  "screenPad":20, "hitMin":44 },',
+        '',
+        '  "type": {',
+        '    "family":"Poppins",',
+        '    "numerals":"tabular-nums",',
+        '    "waitHero":    { "size":48, "line":48, "weight":700, "track":-0.04 },',
+        '    "metric":      { "size":26, "line":30, "weight":700, "track":-0.02 },',
+        '    "screenTitle": { "size":24, "line":29, "weight":700, "track":-0.02 },',
+        '    "cardTitle":   { "size":16, "line":22, "weight":600 },',
+        '    "body":        { "size":14, "line":21, "weight":400 },',
+        '    "metadata":    { "size":12, "line":17, "weight":500 },',
+        '    "eyebrow":     { "size":11, "line":16, "weight":600, "track":0.1 }',
+        '  },',
+        '',
+        '  "icon":       { "grid":24, "stroke":2, "cap":"round",',
+        '                  "opticalSize":[22,24], "style":"outline" },',
+        '',
+        '  "motion":     { "press":90, "toggle":180, "gate":450,',
+        '                  "launchTotal":1200, "reducedMotion":"fade" }',
+        '}'
+      ].join('\n')
+    };
+  }
+}
+</script>
+</body>
+</html>

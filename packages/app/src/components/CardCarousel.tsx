@@ -109,11 +109,11 @@ export function CardCarousel({
           // No rubber-band: on a nested scroller the bounce reads as the page
           // failing to move rather than as the list ending.
           bounces={false}
-          accessibilityLabel={`${total} ${unit}, scrollable list`}
+          aria-label={`${total} ${unit}, scrollable list`}
         >
           {items}
         </ScrollView>
-        <View style={styles.rail} pointerEvents="none">
+        <View style={styles.rail}>
           <View
             style={[styles.thumb, { height: thumbHeight, transform: [{ translateY: thumbTop }] }]}
           />
@@ -127,10 +127,12 @@ export function CardCarousel({
 }
 
 const styles = StyleSheet.create({
-  // Sits in the 22px gutter, clear of the cards themselves.
+  // Sits in the 20px gutter, clear of the cards themselves.
   rail: {
     position: 'absolute',
-    right: 7,
+    // In style, not as a prop: react-native-web 0.21 deprecates the prop form.
+    pointerEvents: 'none',
+    right: 6,
     top: 0,
     bottom: 0,
     width: RAIL_WIDTH,
@@ -148,7 +150,8 @@ const styles = StyleSheet.create({
   caption: {
     marginTop: 8,
     textAlign: 'center',
-    fontSize: 11,
+    fontSize: 12,
+    lineHeight: 17,
     fontFamily: font.regular,
     color: color.muted,
   },

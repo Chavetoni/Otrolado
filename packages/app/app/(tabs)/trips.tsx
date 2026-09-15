@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 import {
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,15 +17,26 @@ import { useAgedWaits } from '../../src/useFreshness';
 import { prefs } from '../../src/prefs';
 import { useSavedTrip, type SavedTripView } from '../../src/useSavedTrip';
 import { LEAVE_LEAD_MINUTES } from '../../src/alerts';
-import { formatAge, freshnessBadge } from '../../src/freshness-ui';
-import { Badge, SegmentedControl } from '../../src/components/ui';
+import { formatAge, spokenFreshness } from '../../src/freshness-ui';
+import {
+  Button,
+  FreshnessBadge,
+  Notice,
+  pressedScale,
+  SectionLabel,
+  SegmentedControl,
+  Skeleton,
+} from '../../src/components/ui';
+import { AppIcon } from '../../src/components/AppIcon';
 import { OriginChip } from '../../src/components/OriginChip';
 import {
   BellGlyph,
   CalendarGlyph,
   CarGlyph,
   ClockGlyph,
+  MinusGlyph,
   NavigateGlyph,
+  PlusGlyph,
   StarGlyph,
   WalkGlyph,
 } from '../../src/components/glyphs';
@@ -45,7 +55,18 @@ import {
   type TripOption,
 } from '../../src/trip';
 import { useOrigin } from '../../src/useOrigin';
-import { color, font, radius, space, status, tabular, waitColor } from '../../src/theme';
+import { DIRECTIONS } from '../../src/modes';
+import {
+  color,
+  DISPLAY_MAX_FONT_SCALE,
+  font,
+  radius,
+  space,
+  status,
+  tabular,
+  waitColor,
+} from '../../src/theme';
+import { caption, type } from '../../src/typography';
 
 /**
  * Plan: "I need to be across by X — when do I leave, and which bridge."
@@ -89,18 +110,8 @@ import { color, font, radius, space, status, tabular, waitColor } from '../../sr
  */
 
 const STEP_MINUTES = 15;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const MARK = require('../../assets/mark.png');
-
-/**
- * Direction, with northbound first and default — same reasoning as Crossings:
- * there is no southbound feed, so a southbound plan would be arithmetic on
- * invented waits. Offered, and answered with the no-data notice.
- */
-const DIRECTIONS = [
-  { value: 'northbound', label: 'To U.S.' },
-  { value: 'southbound', label: 'To Mexico' },
-] as const satisfies readonly { value: Direction; label: string }[];
+/** Extra touch height above and below the 32pt time picks — see `picks`. */
+const PICK_PAD = 6;
 
 /** Travel mode. Cargo is out of scope (see `modes.ts`). */
 type PlanMode = 'vehicle' | 'walking';
@@ -191,6 +202,8 @@ function unplannableState(r: RankedPort, lane: TripLane): RowState {
 export default function Plan() {
   const insets = useSafeAreaInsets();
   const [target, setTarget] = useState<number>(defaultTarget);
+  // Northbound first and default — see DIRECTIONS in modes.ts. There is no
+  // southbound feed, so a southbound plan would be arithmetic on invented waits.
   const [direction, setDirection] = useState<Direction>('northbound');
   const [planMode, setPlanMode] = useState<PlanMode>('vehicle');
   const [laneType, setLaneType] = useState<PlanLaneType>('standard');
@@ -293,20 +306,23 @@ export default function Plan() {
         paddingBottom: space.tabBarClearance,
       }}
     >
+      {/* Wraps the chip under the lockup when the two cannot share the line — see Home. */}
       <View style={styles.header}>
         <View style={styles.lockup}>
-          <View style={styles.logoTile} accessible accessibilityLabel="Otrolado">
-            <Image source={MARK} style={styles.logoMark} resizeMode="contain" />
-          </View>
-          <View style={{ flexShrink: 1 }}>
+          {/* The official icon, a step smaller than Crossings' — Plan's
+              lockup is secondary to the screen title under it. */}
+          <AppIcon size={36} />
+          <View>
             <Text style={styles.wordmark}>otrolado</Text>
-            <Text style={styles.tagline}>A faster way across</Text>
+            <Text style={styles.tagline} numberOfLines={1}>
+              A faster way across
+            </Text>
           </View>
         </View>
         <OriginChip origin={origin} />
       </View>
 
-      <View style={{ paddingHorizontal: space.gutter, marginTop: 14 }}>
+      <View style={{ paddingHorizontal: space.gutter, marginTop: space.sectionGap, gap: 2 }}>
         <Text style={styles.title}>Plan a trip</Text>
         <Text style={styles.subtitle}>Know when to leave. Arrive on time.</Text>
       </View>
@@ -316,7 +332,11 @@ export default function Plan() {
       </View>
 
       {direction === 'southbound' ? (
-        <SouthboundNotice />
+        <Notice title="No official data heading south" style={styles.block}>
+          Mexico publishes no federal wait-time feed, so there is no wait to subtract from
+          your arrival time. A leave-by for a southbound trip would be arithmetic on a
+          number we invented.
+        </Notice>
       ) : (
         <>
           {/*
@@ -328,13 +348,13 @@ export default function Plan() {
             exist.
           */}
           <Pressable
-            style={styles.dayCard}
+            style={({ pressed }) => [styles.dayCard, pressed && styles.cardPressed]}
             onPress={() => setDayNote((o) => !o)}
-            accessibilityRole="button"
-            accessibilityState={{ expanded: dayNote }}
+            role="button"
+            aria-expanded={dayNote}
             accessibilityHint="Why only today is available"
           >
-            <CalendarGlyph size={17} color={color.cobalt} />
+            <CalendarGlyph size={20} color={color.cobalt} />
             <Text style={styles.dayText}>Today</Text>
             <Text style={styles.dayNoteInline}>only day available</Text>
           </Pressable>
@@ -349,26 +369,24 @@ export default function Plan() {
           <View style={styles.timeCard}>
             <Text style={styles.eyebrow}>I need to be across by</Text>
             <View style={styles.controlRow}>
-              <Pressable
-                style={styles.stepBtn}
+              <StepButton
                 onPress={() => setTarget((t) => clampToDay(t - STEP_MINUTES))}
-                accessibilityRole="button"
                 accessibilityLabel="15 minutes earlier"
               >
-                <Text style={styles.stepGlyph}>−</Text>
-              </Pressable>
+                <MinusGlyph size={22} color={color.navy} />
+              </StepButton>
               <View style={styles.clock}>
-                <Text style={[styles.clockTime, tabular]}>{hm}</Text>
+                <Text style={[styles.clockTime, tabular]} maxFontSizeMultiplier={DISPLAY_MAX_FONT_SCALE}>
+                  {hm}
+                </Text>
                 <Text style={styles.clockAmPm}>{ampm}</Text>
               </View>
-              <Pressable
-                style={styles.stepBtn}
+              <StepButton
                 onPress={() => setTarget((t) => clampToDay(t + STEP_MINUTES))}
-                accessibilityRole="button"
                 accessibilityLabel="15 minutes later"
               >
-                <Text style={styles.stepGlyph}>+</Text>
-              </Pressable>
+                <PlusGlyph size={22} color={color.navy} />
+              </StepButton>
             </View>
             <View style={styles.picks}>
               {picks.map((t) => {
@@ -376,10 +394,18 @@ export default function Plan() {
                 return (
                   <Pressable
                     key={t}
-                    style={[styles.pick, on && styles.pickOn]}
+                    style={({ pressed }) => [
+                      styles.pick,
+                      on && styles.pickOn,
+                      pressed && (on ? styles.pickOnPressed : styles.pickPressed),
+                    ]}
                     onPress={() => setTarget(t)}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: on }}
+                    // 32pt pills, 6pt apart: grow to 44 vertically (the row is
+                    // padded to hold it — iOS clips slop at the parent's edge),
+                    // and only half the gap sideways, so neighbours never overlap.
+                    hitSlop={{ top: PICK_PAD, bottom: PICK_PAD, left: 3, right: 3 }}
+                    role="button"
+                    aria-selected={on}
                   >
                     <Text style={[styles.pickText, on && styles.pickTextOn, tabular]}>
                       {splitClock(t).hm}
@@ -390,18 +416,23 @@ export default function Plan() {
             </View>
           </View>
 
-          {/* Travel mode and lane type, as two labelled controls. */}
+          {/* Travel mode and lane type, as two labelled controls. Selected is
+              the navy "set" fill every toggled control in the app shares. */}
           <View style={styles.field}>
             <Text style={styles.fieldLabel}>Travel mode</Text>
             <View style={styles.buttonRow}>
-              <OptionButton
+              <Button
+                variant="tertiary"
                 label="Vehicle"
+                grow
                 selected={planMode === 'vehicle'}
                 onPress={() => setPlanMode('vehicle')}
                 icon={(c) => <CarGlyph size={17} color={c} />}
               />
-              <OptionButton
+              <Button
+                variant="tertiary"
                 label="Walking"
+                grow
                 selected={planMode === 'walking'}
                 onPress={() => setPlanMode('walking')}
                 icon={(c) => <WalkGlyph size={17} color={c} />}
@@ -421,9 +452,11 @@ export default function Plan() {
             ) : (
               <View style={styles.buttonRow}>
                 {LANE_TYPES.map((l) => (
-                  <OptionButton
+                  <Button
                     key={l.value}
+                    variant="tertiary"
                     label={l.label}
+                    grow
                     selected={laneType === l.value}
                     onPress={() => setLaneType(l.value)}
                   />
@@ -433,15 +466,21 @@ export default function Plan() {
           </View>
 
           {noWaits || rows.length === 0 ? (
-            <Text style={styles.empty}>
-              {loading
-                ? 'Loading crossings…'
-                : offline
+            loading ? (
+              <View style={styles.otherList} accessible role="progressbar" aria-label="Loading crossings">
+                <Skeleton width="100%" height={168} round={radius.card} />
+                <Skeleton width="100%" height={76} round={radius.card} />
+                <Skeleton width="100%" height={76} round={radius.card} />
+              </View>
+            ) : (
+              <Text style={styles.empty}>
+                {offline
                   ? 'Offline with nothing cached — there is nothing to plan against.'
                   : loadError || noWaits
                     ? 'Can’t reach the server, so there is nothing to plan against.'
                     : 'No crossing offers this lane right now.'}
-            </Text>
+              </Text>
+            )
           ) : (
             <>
               {best ? (
@@ -462,7 +501,7 @@ export default function Plan() {
                   (options exist only when CBP says the lane is open), so the
                   copy owns that rather than blaming the crossing. */}
               {nonLiveCount > 0 && (
-                <Text style={styles.notice} accessibilityRole="alert">
+                <Text style={styles.notice} role="alert">
                   {nonLiveCount === 1
                     ? '1 leave-by time isn’t live · marked ~'
                     : `${nonLiveCount} leave-by times aren’t live · marked ~`}
@@ -470,7 +509,7 @@ export default function Plan() {
               )}
 
               {others.length > 0 && (
-                <Text style={styles.sectionLabel}>OTHER CROSSINGS</Text>
+                <SectionLabel style={styles.sectionLabel}>Other crossings</SectionLabel>
               )}
               <View style={styles.otherList}>
                 {others.map((row) => (
@@ -526,7 +565,11 @@ export default function Plan() {
               : aged.data
                 ? `Feed checked ${formatAge(aged.data.ingestAgeSeconds)}`
                 : null,
-            origin.isFallback ? 'from an unset starting point' : `from ${origin.label}`,
+            origin.isFallback
+              ? 'from an unset starting point'
+              : origin.source === 'gps' && !origin.near
+                ? 'from your location'
+                : `from ${origin.label}`,
             'drive times approx.',
           ]
             .filter((part): part is string => part !== null)
@@ -534,53 +577,38 @@ export default function Plan() {
         </Text>
         <Pressable
           onPress={() => setHowOpen((o) => !o)}
-          accessibilityRole="button"
-          accessibilityState={{ expanded: howOpen }}
+          role="button"
+          aria-expanded={howOpen}
+          hitSlop={{ left: 8, right: 8 }}
+          style={styles.inlineLink}
         >
-          <Text style={styles.footLink}>How this works</Text>
+          {({ pressed }) => (
+            <Text style={[styles.footLink, pressed && styles.footLinkPressed]}>How this works</Text>
+          )}
         </Pressable>
       </View>
     </ScrollView>
   );
 }
 
-function SouthboundNotice() {
-  return (
-    <View style={styles.southbound}>
-      <View style={styles.southboundDot} />
-      <View style={{ flex: 1, gap: 3 }}>
-        <Text style={styles.southboundTitle}>No official data heading south</Text>
-        <Text style={styles.southboundBody}>
-          Mexico publishes no federal wait-time feed, so there is no wait to subtract from
-          your arrival time. A leave-by for a southbound trip would be arithmetic on a
-          number we invented.
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-function OptionButton({
-  label,
-  selected,
+/** The ±15 min stepper: a 44pt tertiary circle. Pressed, the border goes navy. */
+function StepButton({
   onPress,
-  icon,
+  accessibilityLabel,
+  children,
 }: {
-  label: string;
-  selected: boolean;
   onPress: () => void;
-  icon?: (tint: string) => React.ReactNode;
+  accessibilityLabel: string;
+  children: React.ReactNode;
 }) {
-  const tint = selected ? color.surface : color.muted;
   return (
     <Pressable
-      style={[styles.optionBtn, selected && styles.optionBtnOn]}
+      style={({ pressed }) => [styles.stepBtn, pressed && styles.stepBtnPressed, pressedScale(pressed)]}
       onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
+      role="button"
+      aria-label={accessibilityLabel}
     >
-      {icon?.(tint)}
-      <Text style={[styles.optionText, selected && styles.optionTextOn]}>{label}</Text>
+      {children}
     </Pressable>
   );
 }
@@ -614,17 +642,19 @@ function RecommendedCard({
   return (
     <View style={styles.recCard}>
       <View style={styles.recBar} />
-      <View style={{ flex: 1, gap: 9 }}>
+      <View style={{ flex: 1, gap: 10 }}>
         <View style={styles.recHead}>
-          <StarGlyph size={15} color={status.clear.ink} filled />
-          <Text style={styles.recLabel}>RECOMMENDED</Text>
+          <StarGlyph size={15} color={status.clear.ink} strokeWidth={2.2} />
+          <Text style={[type.eyebrow, { color: status.clear.ink }]}>Recommended</Text>
         </View>
         <Text style={styles.recName}>{row.ranked.port.displayName}</Text>
 
+        {/* The answer, at metric size: the time to leave. */}
         <View style={styles.recLeaveRow}>
-          <ClockGlyph size={18} color={color.cobalt} />
-          <Text style={[styles.recLeave, tabular]}>
-            Leave by {formatMinutes(option.leaveMinutes)}
+          <ClockGlyph size={20} color={color.cobalt} />
+          <Text style={styles.recLeaveLabel}>Leave by</Text>
+          <Text style={[styles.recLeave, tabular]} maxFontSizeMultiplier={DISPLAY_MAX_FONT_SCALE}>
+            {formatMinutes(option.leaveMinutes)}
           </Text>
         </View>
         <View style={styles.recCountdown}>
@@ -636,36 +666,35 @@ function RecommendedCard({
         <View style={{ gap: 2 }}>
           <Text style={[styles.recTotal, tabular]}>About {total} min total</Text>
           <Text style={[styles.recSplit, tabular]}>
-            {option.driveMinutes} min drive · approx ·{' '}
-            <Text style={{ color: waitColor(option.waitMinutes) }}>
-              {option.waitMinutes} min border wait
+            {option.driveMinutes} min drive · approx +{' '}
+            {/* On the green card: navy, not a status text ink — those are for
+                WHITE, and moderate/heavy on this tint fall under 4.5:1. */}
+            <Text style={{ color: color.navy, fontFamily: font.semibold }}>
+              {option.waitMinutes} min border
             </Text>
           </Text>
         </View>
 
         <View style={styles.recActions}>
           {lat !== null && lng !== null && (
-            <Pressable
-              style={styles.recPrimary}
+            <Button
+              label="Navigate"
+              size="sm"
+              grow
+              icon={(c) => <NavigateGlyph size={16} color={c} />}
               onPress={() => openDirections({ lat, lng })}
-              accessibilityRole="button"
               accessibilityLabel={`Navigate to ${row.ranked.port.displayName}`}
-            >
-              <NavigateGlyph size={15} color={color.surface} />
-              <Text style={styles.recPrimaryText}>Navigate</Text>
-            </Pressable>
+            />
           )}
-          <Pressable
-            style={[styles.recSecondary, reminder && styles.recSecondaryOn]}
+          <Button
+            variant="tertiary"
+            label={reminder ? 'Reminder on' : 'Remind me'}
+            size="sm"
+            grow
+            selected={reminder}
+            icon={(c) => <BellGlyph size={16} color={c} />}
             onPress={onToggleReminder}
-            accessibilityRole="button"
-            accessibilityState={{ selected: reminder }}
-          >
-            <BellGlyph size={15} color={reminder ? color.surface : color.navy} />
-            <Text style={[styles.recSecondaryText, reminder && { color: color.surface }]}>
-              {reminder ? 'Reminder on' : 'Remind me'}
-            </Text>
-          </Pressable>
+          />
         </View>
       </View>
     </View>
@@ -685,18 +714,16 @@ function NoRecommendation({
   allStale: boolean;
 }) {
   return (
-    <View style={styles.noRec}>
-      <Text style={styles.noRecTitle}>
-        {hasPlannable ? 'No recommendation right now' : 'Nothing to plan through'}
-      </Text>
-      <Text style={styles.noRecBody}>
+    <Notice
+      title={hasPlannable ? 'No recommendation right now' : 'Nothing to plan through'}
+      style={styles.block}
+    >
         {!hasPlannable
           ? 'No crossing has this lane open with a reported wait, so there is no departure time to compute.'
           : allStale
             ? 'Every leave-by below rests on a stale reading. They are listed and marked, but none is current enough to recommend.'
             : 'Every option is either not live or already past its departure. They are listed below with what is wrong.'}
-      </Text>
-    </View>
+    </Notice>
   );
 }
 
@@ -704,6 +731,11 @@ function NoRecommendation({
  * An alternative crossing. Three states, and the late one is the point:
  * "too late" told a user their plan failed without telling them by how much,
  * and six minutes late is a different decision from ninety.
+ *
+ * A row with no answer (closed, silent, no such lane) is not pressable and
+ * says so in ink, not opacity: its name steps down to `muted` and its bar to
+ * `lineStrong`, while the verdict keeps full weight — the verdict is the
+ * information.
  */
 function AlternativeCard({
   row,
@@ -720,7 +752,6 @@ function AlternativeCard({
   const { ranked, state } = row;
   const plannable = state.kind === 'plan';
   const live = state.kind === 'plan' && state.option.freshness === 'live';
-  const badge = state.kind === 'plan' ? freshnessBadge(state.option.freshness) : null;
   const late = state.kind === 'plan' ? state.lateBy : null;
 
   const total =
@@ -750,12 +781,17 @@ function AlternativeCard({
 
   return (
     <Pressable
-      style={[styles.altCard, !plannable && { opacity: 0.62 }]}
+      // `plannable` guard: a disabled row must not look pressable.
+      style={({ pressed }) => [styles.altCard, pressed && plannable && styles.cardPressed]}
       onPress={onPress}
       disabled={!plannable}
-      accessibilityRole="button"
-      accessibilityState={{ selected: reminder, disabled: !plannable }}
-      accessibilityLabel={`${ranked.port.displayName}. ${verdict}${reminder ? '. Reminder set' : ''}`}
+      role="button"
+      aria-selected={reminder}
+      aria-disabled={!plannable}
+      // "~" is a glyph for the eye; the ear gets the word, and the verdict.
+      aria-label={`${ranked.port.displayName}. ${verdict.replace('~', 'about ')}${
+        state.kind === 'plan' && !live ? `, ${spokenFreshness(state.option.freshness)}` : ''
+      }${reminder ? '. Reminder set' : ''}`}
     >
       <View
         style={[
@@ -763,21 +799,21 @@ function AlternativeCard({
           {
             backgroundColor:
               state.kind === 'closed'
-                ? status.heavy.dot
+                ? color.line
                 : late !== null
                   ? status.moderate.dot
-                  : plannable
+                  : plannable && live
                     ? waitColor(state.option.waitMinutes)
                     : color.lineStrong,
           },
         ]}
       />
-      <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
+      <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
         <View style={styles.altNameRow}>
-          <Text style={styles.altName} numberOfLines={1}>
+          <Text style={[styles.altName, !plannable && { color: color.muted }]} numberOfLines={1}>
             {ranked.port.displayName}
           </Text>
-          {badge && <Badge label={badge.label} bg={badge.bg} fg={badge.fg} />}
+          {state.kind === 'plan' && <FreshnessBadge freshness={state.option.freshness} />}
         </View>
         {total !== null ? (
           <Text style={[styles.altTotal, tabular]}>
@@ -823,8 +859,16 @@ function ReminderStrip({ view, onClear }: { view: SavedTripView; onClear: () => 
           {verdict}
         </Text>
       </Text>
-      <Pressable onPress={onClear} accessibilityRole="button" accessibilityLabel="Clear reminder">
-        <Text style={styles.reminderClear}>Clear</Text>
+      <Pressable
+        onPress={onClear}
+        style={({ pressed }) => [styles.inlineLink, pressedScale(pressed)]}
+        role="button"
+        aria-label="Clear reminder"
+        hitSlop={{ left: 8, right: 8 }}
+      >
+        {({ pressed }) => (
+          <Text style={[styles.reminderClear, pressed && { color: color.cobaltDeep }]}>Clear</Text>
+        )}
       </Pressable>
     </View>
   );
@@ -832,178 +876,149 @@ function ReminderStrip({ view, onClear }: { view: SavedTripView; onClear: () => 
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: space.gutter, flexDirection: 'row',
-    justifyContent: 'space-between', alignItems: 'center', gap: 12,
+    paddingHorizontal: space.gutter, flexDirection: 'row', flexWrap: 'wrap',
+    justifyContent: 'space-between', alignItems: 'center', columnGap: 12, rowGap: 10,
   },
-  lockup: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
-  logoTile: {
-    width: 36, height: 36, borderRadius: 10, backgroundColor: color.cobalt,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  logoMark: { height: 21, width: 24 },
-  wordmark: { fontSize: 19, fontFamily: font.bold, color: color.navy, letterSpacing: -0.8 },
-  tagline: { fontSize: 11, fontFamily: font.regular, color: color.muted, marginTop: -1 },
+  lockup: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  wordmark: { fontSize: 19, lineHeight: 23, fontFamily: font.bold, color: color.navy, letterSpacing: -0.8 },
+  tagline: { fontSize: 12, lineHeight: 16, fontFamily: font.regular, color: color.muted },
 
-  title: { fontSize: 28, fontFamily: font.bold, color: color.navy, letterSpacing: -0.7 },
-  subtitle: { fontSize: 14, fontFamily: font.regular, color: color.muted, marginTop: 1 },
+  title: { ...type.screenTitle, color: color.navy },
+  subtitle: { ...type.body, color: color.muted },
 
-  controls: { paddingHorizontal: space.gutter, marginTop: 14 },
+  controls: { paddingHorizontal: space.gutter, marginTop: space.sectionGap },
 
   dayCard: {
     marginHorizontal: space.gutter, marginTop: 12,
-    flexDirection: 'row', alignItems: 'center', gap: 10,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
-    borderRadius: radius.card, paddingVertical: 14, paddingHorizontal: 16,
+    borderRadius: radius.card, paddingVertical: 14, paddingHorizontal: space.cardPad,
   },
-  dayText: { flex: 1, fontSize: 15, fontFamily: font.semibold, color: color.navy },
-  dayNoteInline: { fontSize: 11.5, fontFamily: font.regular, color: color.muted },
+  // Shared by the day row and the alternative cards: white card → mist.
+  cardPressed: { backgroundColor: color.mist },
+  dayText: { flex: 1, ...type.cardTitle, color: color.navy },
+  dayNoteInline: { ...type.metadata, color: color.muted },
   dayNote: {
-    fontSize: 11.5, fontFamily: font.regular, color: color.muted, lineHeight: 16,
+    fontSize: 12, lineHeight: 17, fontFamily: font.regular, color: color.muted,
     paddingHorizontal: space.gutter, marginTop: 8,
   },
 
   timeCard: {
     marginTop: 12, marginHorizontal: space.gutter,
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
-    borderRadius: 20, paddingTop: 16, paddingHorizontal: 18, paddingBottom: 14, gap: 12,
+    borderRadius: radius.card, padding: space.cardPad, gap: 12,
   },
-  eyebrow: {
-    fontSize: 11.5, fontFamily: font.semibold,
-    color: color.navy, textAlign: 'center',
-  },
+  eyebrow: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.navy, textAlign: 'center' },
   controlRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  // A tertiary circle at the 44pt hit floor.
   stepBtn: {
-    width: 46, height: 46, borderRadius: 23, borderWidth: 1.5, borderColor: color.lineStrong,
+    width: space.hitMin, height: space.hitMin, borderRadius: radius.pill,
+    borderWidth: 1.5, borderColor: color.lineStrong, backgroundColor: color.surface,
     alignItems: 'center', justifyContent: 'center',
   },
-  stepGlyph: { fontSize: 22, fontFamily: font.regular, color: color.navy, lineHeight: 26 },
-  clock: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  // Spec line-height is 0.85 × 54 ≈ 46; held at 50 because Poppins ascenders
-  // clip on Android below ~48.
-  clockTime: { fontSize: 54, fontFamily: font.bold, color: color.cobalt, letterSpacing: -2.43, lineHeight: 50 },
-  clockAmPm: { fontSize: 16, fontFamily: font.semibold, color: color.muted },
-  picks: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
-  pick: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: color.mist },
+  stepBtnPressed: { borderColor: color.navy, backgroundColor: color.mist },
+  clock: { flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
+  // The wait-hero token, in cobalt: this is the one number the user sets.
+  clockTime: { ...type.waitHero, color: color.cobalt },
+  // Unit weight: 500, one step down from its number (v2 §03).
+  clockAmPm: { fontSize: 16, lineHeight: 20, fontFamily: font.medium, color: color.muted, paddingBottom: 5 },
+  // Padded by PICK_PAD to hold the pills' 44pt touch height, pulled back by
+  // the same so the layout is unchanged.
+  picks: {
+    flexDirection: 'row', justifyContent: 'center', gap: 6,
+    paddingVertical: PICK_PAD, marginVertical: -PICK_PAD,
+  },
+  pick: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: color.mist },
   pickOn: { backgroundColor: color.navy },
-  pickText: { fontSize: 12, fontFamily: font.semibold, color: color.muted },
+  // The off pill is already mist, so it steps to line — the next shade in the
+  // same family.
+  pickPressed: { backgroundColor: color.line },
+  pickOnPressed: { backgroundColor: color.navyTint },
+  pickText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.muted },
   pickTextOn: { color: color.surface },
 
-  field: { paddingHorizontal: space.gutter, marginTop: 16, gap: 8 },
-  fieldLabel: { fontSize: 13.5, fontFamily: font.semibold, color: color.navy },
-  fieldNote: { fontSize: 12, fontFamily: font.regular, color: color.muted, lineHeight: 17 },
+  field: { paddingHorizontal: space.gutter, marginTop: space.sectionGap, gap: 8 },
+  fieldLabel: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  fieldNote: { ...type.metadata, fontFamily: font.regular, color: color.muted },
   buttonRow: { flexDirection: 'row', gap: 8 },
-  optionBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
-    height: 46, borderRadius: radius.button,
-    backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
-  },
-  optionBtnOn: { backgroundColor: color.cobalt, borderColor: color.cobalt },
-  optionText: { fontSize: 13.5, fontFamily: font.semibold, color: color.muted },
-  optionTextOn: { color: color.surface },
 
   // Recommendation: a green-tinted card with a status rail, so it reads as
   // the answer without becoming a second cobalt surface.
   recCard: {
-    marginHorizontal: space.gutter, marginTop: 18,
-    flexDirection: 'row', gap: 13,
-    backgroundColor: status.clear.tint, borderRadius: radius.cardLg,
-    paddingVertical: 16, paddingHorizontal: 16,
+    marginHorizontal: space.gutter, marginTop: space.sectionGap,
+    flexDirection: 'row', gap: 12,
+    backgroundColor: status.clear.tint, borderRadius: radius.card,
+    padding: space.cardPad,
   },
   recBar: { width: 4, alignSelf: 'stretch', borderRadius: radius.pill, backgroundColor: status.clear.dot },
   recHead: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  recLabel: { fontSize: 10.5, fontFamily: font.bold, letterSpacing: 1.1, color: status.clear.ink },
-  recName: { fontSize: 19, fontFamily: font.bold, color: color.navy, letterSpacing: -0.4 },
+  recName: { fontSize: 18, lineHeight: 24, fontFamily: font.bold, color: color.navy, letterSpacing: -0.36 },
   recLeaveRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  recLeave: { fontSize: 21, fontFamily: font.bold, color: color.cobalt, letterSpacing: -0.5 },
+  recLeaveLabel: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  recLeave: { ...type.metric, color: color.cobalt },
   recCountdown: {
     alignSelf: 'flex-start', backgroundColor: color.surface,
-    borderRadius: radius.pill, paddingHorizontal: 11, paddingVertical: 5,
+    borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 5,
   },
-  recCountdownText: { fontSize: 12.5, fontFamily: font.semibold, color: status.clear.ink },
-  recTotal: { fontSize: 15, fontFamily: font.semibold, color: color.navy },
-  recSplit: { fontSize: 12, fontFamily: font.regular, color: color.muted },
-  recActions: { flexDirection: 'row', gap: 9, marginTop: 4 },
-  recPrimary: {
-    flex: 1, height: 44, borderRadius: radius.button, flexDirection: 'row', gap: 7,
-    backgroundColor: color.cobalt, alignItems: 'center', justifyContent: 'center',
-  },
-  recPrimaryText: { fontSize: 14, fontFamily: font.semibold, color: color.surface },
-  recSecondary: {
-    flex: 1, height: 44, borderRadius: radius.button, flexDirection: 'row', gap: 7,
-    backgroundColor: color.surface, borderWidth: 1.5, borderColor: color.lineStrong,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  recSecondaryOn: { backgroundColor: color.navy, borderColor: color.navy },
-  recSecondaryText: { fontSize: 14, fontFamily: font.semibold, color: color.navy },
-
-  noRec: {
-    marginHorizontal: space.gutter, marginTop: 18,
-    backgroundColor: color.infoTint, borderRadius: radius.banner,
-    paddingVertical: 14, paddingHorizontal: 16, gap: 4,
-  },
-  noRecTitle: { fontSize: 14, fontFamily: font.semibold, color: color.infoInk },
-  noRecBody: { fontSize: 12.5, fontFamily: font.regular, color: color.infoInk, lineHeight: 18 },
+  recCountdownText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: status.clear.ink },
+  recTotal: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  // On the green tint `muted` is 4.4:1; the tint's own ink is 7.4:1.
+  recSplit: { ...type.metadata, color: status.clear.ink },
+  recActions: { flexDirection: 'row', gap: 8, marginTop: 2 },
 
   notice: {
     marginHorizontal: space.gutter, marginTop: 12,
-    fontSize: 11.5, fontFamily: font.semibold, color: status.moderate.ink,
+    fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: status.moderate.ink,
     backgroundColor: status.moderate.tint, borderRadius: radius.pill,
-    paddingVertical: 7, paddingHorizontal: 13, alignSelf: 'flex-start',
+    paddingVertical: 8, paddingHorizontal: 12, alignSelf: 'flex-start',
   },
 
-  sectionLabel: {
-    fontSize: 11, fontFamily: font.semibold, letterSpacing: 1.1, color: color.muted,
-    paddingHorizontal: space.gutter, marginTop: 18,
-  },
-  otherList: { marginTop: 8, paddingHorizontal: space.gutter, gap: 10 },
+  sectionLabel: { paddingHorizontal: space.gutter, marginTop: space.sectionGap },
+  otherList: { marginTop: 8, paddingHorizontal: space.gutter, gap: 8 },
   altCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
-    borderRadius: radius.card, paddingVertical: 13, paddingHorizontal: 15,
+    borderRadius: radius.card, paddingVertical: 12, paddingHorizontal: space.cardPad,
   },
   altBar: { width: 4, alignSelf: 'stretch', borderRadius: radius.pill },
-  altNameRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  altName: { fontSize: 14.5, fontFamily: font.semibold, color: color.navy, flexShrink: 1 },
-  altTotal: { fontSize: 12, fontFamily: font.regular, color: color.muted },
-  altVerdict: { fontSize: 13, fontFamily: font.semibold, color: color.navy },
-  altVerdictLate: { fontSize: 13, fontFamily: font.semibold, color: status.moderate.ink },
-  altVerdictBad: { fontSize: 13, fontFamily: font.semibold, color: status.heavy.ink },
-  altVerdictMuted: { fontSize: 13, fontFamily: font.semibold, color: color.muted },
+  altNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  altName: { ...type.cardTitle, color: color.navy, flexShrink: 1 },
+  altTotal: { ...type.metadata, color: color.muted },
+  altVerdict: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.navy },
+  // Status as TEXT on white takes the status `text` ink, never the dot colour.
+  altVerdictLate: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: status.moderate.text },
+  altVerdictBad: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: status.heavy.text },
+  altVerdictMuted: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.muted },
   altReminder: { fontFamily: font.semibold, color: color.cobalt },
 
   empty: {
-    fontSize: 13, fontFamily: font.semibold, color: color.muted,
+    fontSize: 13, lineHeight: 19, fontFamily: font.semibold, color: color.muted,
     paddingHorizontal: space.gutter, paddingVertical: 24, textAlign: 'center',
   },
 
-  southbound: {
-    marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    flexDirection: 'row', gap: 10,
-    backgroundColor: color.infoTint, borderRadius: radius.banner,
-    paddingVertical: 13, paddingHorizontal: 15,
-  },
-  southboundDot: {
-    width: 7, height: 7, borderRadius: 3.5, marginTop: 6, backgroundColor: color.cobalt,
-  },
-  southboundTitle: { fontSize: 13, fontFamily: font.semibold, color: color.infoInk },
-  southboundBody: { fontSize: 13, fontFamily: font.regular, color: color.infoInk, lineHeight: 19 },
+  block: { marginHorizontal: space.gutter, marginTop: space.sectionGap },
 
   reminder: {
-    paddingTop: 14, paddingHorizontal: space.gutter,
+    paddingTop: space.sectionGap, paddingHorizontal: space.gutter,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12,
   },
-  reminderText: { fontSize: 11, fontFamily: font.regular, color: color.muted, lineHeight: 15, flexShrink: 1 },
+  reminderText: { ...caption, color: color.muted, flexShrink: 1 },
   reminderStrong: { fontFamily: font.semibold, color: color.navy },
-  reminderClear: { fontSize: 11, fontFamily: font.semibold, color: color.navy },
+  reminderClear: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.cobalt },
 
-  how: { paddingHorizontal: space.gutter, paddingTop: 10, gap: 6 },
-  howText: { fontSize: 11.5, fontFamily: font.regular, color: color.muted, lineHeight: 16 },
+  how: { paddingHorizontal: space.gutter, paddingTop: 12, gap: 6 },
+  howText: { fontSize: 12, lineHeight: 17, fontFamily: font.regular, color: color.muted },
   howLead: { fontFamily: font.semibold, color: color.navy },
 
   footnote: {
     paddingTop: 12, paddingHorizontal: space.gutter,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12,
   },
-  footText: { fontSize: 11, fontFamily: font.regular, color: color.muted, flexShrink: 1 },
-  footLink: { fontSize: 11, fontFamily: font.semibold, color: color.cobalt },
+  footText: { ...caption, color: color.muted, flexShrink: 1 },
+  footLink: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.cobalt },
+  footLinkPressed: { color: color.cobaltDeep },
+  // A text link's 44pt touch height, held by its own padding and given back
+  // with a negative margin: the frame overflows the row, so iOS hit-tests it
+  // (hitSlop past the parent's bounds it would clip).
+  inlineLink: { paddingVertical: 14, marginVertical: -14, justifyContent: 'center' },
 });

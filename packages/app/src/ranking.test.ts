@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   fasterThanText,
+  laneStatusLabel,
   minutesBehindBest,
+  noTotalReason,
   rankPorts,
   readySavings,
   savingsText,
@@ -108,5 +110,32 @@ describe('minutesBehindBest', () => {
   it('gives a row with no total no chip — there is nothing to compare', () => {
     const rows = ranked({ [HIDALGO]: [open(5)], [PHARR]: [closed()] });
     expect(minutesBehindBest(row(rows, PHARR), rows)).toBeNull();
+  });
+});
+
+/**
+ * CLAUDE.md: a lane that doesn't exist, a closed lane and an overdue report
+ * are three different sentences on screen — none of them "0 min". And a lane
+ * missing from the snapshot is a fourth: silence, not CBP saying "N/A".
+ */
+describe('noTotalReason', () => {
+  it('says four different things for the four ways a row has no number', () => {
+    expect(noTotalReason(null)).toBe('Not reporting a wait');
+    expect(noTotalReason(open(0, { status: 'not_available', waitMinutes: null }))).toBe(
+      'No standard lane here',
+    );
+    expect(noTotalReason(closed())).toBe('Standard lane closed');
+    expect(noTotalReason(pending())).toBe('No update from CBP');
+    expect(noTotalReason(open(0, { waitMinutes: null }))).toBe('No update from CBP');
+  });
+});
+
+describe('laneStatusLabel', () => {
+  it('prints a number only for an open lane that has one — never "0m" for silence', () => {
+    expect(laneStatusLabel(closed())).toBe('CLOSED');
+    expect(laneStatusLabel(pending())).toBe('no update');
+    expect(laneStatusLabel(open(0))).toBe('0m');
+    expect(laneStatusLabel(open(0, { waitMinutes: null }))).toBe('no update');
+    expect(laneStatusLabel(null)).toBe('no lane');
   });
 });

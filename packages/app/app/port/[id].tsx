@@ -4,7 +4,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import type { Direction, LaneType, Port } from '@otrolado/shared';
-import { Badge, SegmentedControl } from '../../src/components/ui';
+import {
+  Button,
+  FreshnessBadge,
+  IconButton,
+  Notice,
+  Pill,
+  SectionLabel,
+  SegmentedControl,
+  SeverityTag,
+  Skeleton,
+} from '../../src/components/ui';
 import { GroundTruthCard } from '../../src/components/GroundTruthCard';
 import { TypicalCard } from '../../src/components/TypicalCard';
 import {
@@ -12,6 +22,7 @@ import {
   ArrowUpRightGlyph,
   BellGlyph,
   ClockGlyph,
+  LockGlyph,
   PinGlyph,
   StarGlyph,
   WarningGlyph,
@@ -20,27 +31,19 @@ import { compareToTypical } from '../../src/typical';
 import { useTypicalNow } from '../../src/useTypicalNow';
 import { SPIKE_THRESHOLD } from '../../src/alerts';
 import { openDirections } from '../../src/directions';
+import { DIRECTIONS } from '../../src/modes';
 import { prefs, usePrefs } from '../../src/prefs';
-import { formatAge, formatClock, freshnessBadge } from '../../src/freshness-ui';
+import { formatAge, formatClock, numberInk, spokenFreshness } from '../../src/freshness-ui';
 import { usePorts, useWaits } from '../../src/queries';
 import { reportedAgeSeconds, useAgedWaits } from '../../src/useFreshness';
-import { color, font, radius, space, status, tabular, waitColor } from '../../src/theme';
+import { color, DISPLAY_MAX_FONT_SCALE, font, radius, space, status, tabular } from '../../src/theme';
+import { caption, type } from '../../src/typography';
 
 const LANES: readonly { value: LaneType; label: string }[] = [
   { value: 'standard', label: 'Standard' },
   { value: 'ready', label: 'Ready Lane' },
   { value: 'nexus_sentri', label: 'SENTRI' },
 ];
-
-/**
- * Direction, northbound first and default — the same reasoning as every other
- * screen. CBP publishes northbound only; a southbound tab showing a wait would
- * be a number we invented, so it shows the no-data state instead.
- */
-const DIRECTIONS = [
-  { value: 'northbound', label: 'To U.S.' },
-  { value: 'southbound', label: 'To Mexico' },
-] as const satisfies readonly { value: Direction; label: string }[];
 
 /**
  * Back, with a fallback.
@@ -60,10 +63,15 @@ function backToCrossings(): void {
   else router.replace('/');
 }
 
+/** A lane's availability, as the lane picker shows it before a tap. */
+type LaneAvailability = 'open' | 'closed' | 'unknown' | 'none';
+
 export default function PortDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const [lane, setLane] = useState<LaneType>('standard');
+  // Northbound first and default — see DIRECTIONS in modes.ts. CBP publishes
+  // northbound only; southbound shows the no-data notice.
   const [direction, setDirection] = useState<Direction>('northbound');
 
   const ports = usePorts();
@@ -96,10 +104,11 @@ export default function PortDetail() {
   const typical = useTypicalNow(port, lane);
 
   /**
-   * Availability dots on the lane picker, so "which lanes can I even use" is
-   * answered before a tap, not after. The dot is usability, not severity —
-   * open is clear green however long the wait; the number below says how bad.
-   * A lane the crossing does not have gets no dot and a dimmed label, but
+   * Availability on the lane picker, so "which lanes can I even use" is
+   * answered before a tap, not after. Usability, not severity — open is a
+   * green dot however long the wait; the number below says how bad. Closed
+   * is the lock glyph (v2 §07), not a red dot: availability must not be
+   * carried by colour alone. A lane the crossing does not have is dimmed but
    * stays tappable so UnavailableState can say why. No reading at all (first
    * load, server down) is unknown-grey, never dimmed — absence of data must
    * not render as absence of the lane.
@@ -110,21 +119,18 @@ export default function PortDetail() {
         const r = lanes.find(
           (x) => x.mode === 'passenger' && x.lane === l.value && x.direction === direction,
         );
-        if (r?.status === 'not_available') return { ...l, dimmed: true };
-
-        return {
-          ...l,
-          dot:
-            r?.status === 'open'
-              ? status.clear.dot
+        const availability: LaneAvailability =
+          r?.status === 'not_available'
+            ? 'none'
+            : r?.status === 'open'
+              ? 'open'
               : r?.status === 'closed'
-                ? status.heavy.dot
-                : color.lineStrong,
-        };
+                ? 'closed'
+                : 'unknown';
+        return { ...l, availability };
       }),
     [lanes, direction],
   );
-  const badge = reading ? freshnessBadge(reading.freshness) : null;
   // Non-pilot ports carry no coordinates; no coordinates, no button.
   const dest = port && port.lat !== null && port.lng !== null
     ? { lat: port.lat, lng: port.lng }
@@ -138,6 +144,16 @@ export default function PortDetail() {
    * flight; a failed fetch keeps the placeholder and falls to the error copy.
    */
   const portsLoading = ports.isPlaceholderData && ports.fetchStatus === 'fetching';
+  /** First open with nothing fetched or restored yet: skeleton, not "No data". */
+  const waitsLoading =
+    aged.data === undefined && waits.isPending && waits.fetchStatus !== 'paused';
+  const live = reading?.freshness === 'live';
+  /**
+   * The current reading, for the chart's one cobalt bar — only while it is
+   * LIVE and open. The same gate as the comparison banner: an aged figure
+   * drawn as "right now" would be a verdict on a number nobody stands behind.
+   */
+  const liveMinutes = reading?.status === 'open' && live ? reading.waitMinutes : null;
 
   /**
    * Without this the screen renders a titled-but-anonymous shell: the fallback
@@ -151,25 +167,24 @@ export default function PortDetail() {
         <StatusBar style="light" />
         <DetailHeader title="Crossing" topInset={insets.top} />
         <View style={{ paddingHorizontal: space.gutter, paddingTop: space.sectionGap }}>
-          <View style={styles.errorCard}>
-            <Text style={styles.errorCardTitle}>
-              {loadError ? 'Can’t reach the server' : 'Crossing not found'}
-            </Text>
-            <Text style={styles.errorCardBody}>
-              {loadError
-                ? 'This crossing’s details could not be loaded. Check that the API is running, then try again.'
-                : 'No crossing matches this link. It may no longer be in the CBP feed.'}
-            </Text>
-            {loadError ? (
-              <Pressable
-                onPress={() => void ports.refetch()}
-                style={styles.retryButton}
-                accessibilityRole="button"
-              >
-                <Text style={styles.retryText}>Try again</Text>
-              </Pressable>
-            ) : null}
-          </View>
+          <Notice
+            tone="error"
+            title={loadError ? 'Can’t reach the server' : 'Crossing not found'}
+            action={
+              loadError ? (
+                <Button
+                  label="Try again"
+                  size="sm"
+                  onPress={() => void ports.refetch()}
+                  style={styles.retry}
+                />
+              ) : undefined
+            }
+          >
+            {loadError
+              ? 'This crossing’s details could not be loaded. Check that the API is running, then try again.'
+              : 'No crossing matches this link. It may no longer be in the CBP feed.'}
+          </Notice>
         </View>
       </View>
     );
@@ -188,36 +203,35 @@ export default function PortDetail() {
         topInset={insets.top}
         action={
           port ? (
-            <Pressable
+            // Pinning is an action ON this crossing, which is what a title-bar
+            // action is for. Pinned is the star in white on a lit tile;
+            // unpinned is the star in the header's secondary ink — never a
+            // filled star, per the icon family.
+            <IconButton
+              onDark
+              selected={isPinned}
               onPress={() => prefs.togglePin(port.id)}
-              hitSlop={10}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isPinned }}
               accessibilityLabel={
                 isPinned ? `Unpin ${port.displayName}` : `Pin ${port.displayName}`
               }
             >
-              {/* Pinning moved into the header as a star: it is an action ON
-                  this crossing, which is what a title-bar action is for, and
-                  it frees the body row below for the one thing that actually
-                  needs explaining — where to drive to. */}
-              <StarGlyph size={22} color={color.surface} filled={isPinned} />
-            </Pressable>
+              <StarGlyph size={24} color={isPinned ? color.surface : color.mutedOnDark} />
+            </IconButton>
           ) : null
         }
       >
         <View style={styles.dirWrap}>
           <SegmentedControl options={DIRECTIONS} value={direction} onChange={setDirection} />
         </View>
-        <View style={styles.subRow}>
-          {port?.hours.text ? (
-            <View style={styles.hoursBadge}>
-              <Text style={[styles.hoursText, tabular]}>
-                {port.hours.open24h ? 'OPEN 24H' : port.hours.text.toUpperCase()}
-              </Text>
-            </View>
-          ) : null}
-        </View>
+        {port?.hours.text ? (
+          <View style={styles.subRow}>
+            <Pill
+              label={port.hours.open24h ? 'Open 24h' : port.hours.text}
+              bg={status.clear.tint}
+              fg={status.clear.ink}
+            />
+          </View>
+        ) : null}
         <LaneChips options={laneOptions} value={lane} onChange={setLane} />
       </DetailHeader>
 
@@ -228,19 +242,53 @@ export default function PortDetail() {
       {port && <EntranceRow port={port} dest={dest} />}
 
       {direction === 'southbound' ? (
-        <SouthboundNotice />
+        <Notice title="No official data heading south" style={styles.block}>
+          CBP publishes northbound waits only, and Mexico has no federal feed. There is
+          nothing to show for this direction that we did not make up.
+        </Notice>
       ) : (
         <>
           <View style={styles.card}>
-            <Text style={styles.cardLabel}>WAIT RIGHT NOW</Text>
-            {reading?.status === 'open' && reading.waitMinutes !== null ? (
+            <SectionLabel>Wait right now</SectionLabel>
+            {waitsLoading ? (
+              <View
+                style={{ gap: 12, marginTop: 4 }}
+                accessible
+                role="progressbar"
+                aria-label="Loading the wait"
+              >
+                <Skeleton width={120} height={40} round={radius.sm} />
+                <Skeleton width={190} height={12} round={radius.sm} />
+              </View>
+            ) : reading?.status === 'open' && reading.waitMinutes !== null ? (
               <>
-                <View style={styles.numberRow}>
-                  <Text style={[styles.number, { color: waitColor(reading.waitMinutes) }, tabular]}>
+                {/*
+                  The number is set in ink, not in its severity colour, and
+                  the severity rides beside it as a dot AND a word — colour is
+                  never the only channel (v2 §02). Not live → the `~` every
+                  non-live number wears, the number steps down to `muted`, the
+                  clock badge says why, and the severity word is WITHHELD: a
+                  green "Clear" on an hour-old reading is a verdict on a number
+                  nobody stands behind (the map pins drop their scale colour
+                  for the same reason).
+                */}
+                <View
+                  style={styles.numberRow}
+                  accessible
+                  aria-label={`${live ? '' : 'about '}${reading.waitMinutes} minutes, ${spokenFreshness(reading.freshness)}`}
+                >
+                  <Text
+                    style={[styles.number, { color: numberInk(reading.freshness) }, tabular]}
+                    maxFontSizeMultiplier={DISPLAY_MAX_FONT_SCALE}
+                  >
+                    {live ? '' : '~'}
                     {reading.waitMinutes}
                   </Text>
                   <Text style={styles.numberUnit}>min</Text>
-                  {badge && <Badge label={badge.label} bg={badge.bg} fg={badge.fg} />}
+                  <View style={styles.numberTags}>
+                    {live && <SeverityTag minutes={reading.waitMinutes} />}
+                    <FreshnessBadge freshness={reading.freshness} />
+                  </View>
                 </View>
 
                 {/*
@@ -249,7 +297,7 @@ export default function PortDetail() {
                   aged out would be a verdict on a number nobody stands behind,
                   and the comparison is the whole point of the sentence.
                 */}
-                {reading.freshness === 'live' && typical.nowTypical !== null && (
+                {live && typical.nowTypical !== null && (
                   <UnusualBanner
                     liveMinutes={reading.waitMinutes}
                     typicalMinutes={typical.nowTypical}
@@ -259,7 +307,7 @@ export default function PortDetail() {
                 )}
 
                 {reading.lanesOpen !== null && reading.maxLanes ? (
-                  <BoothsLine open={reading.lanesOpen} max={reading.maxLanes} />
+                  <BoothMeter open={reading.lanesOpen} max={reading.maxLanes} />
                 ) : null}
                 <Text style={[styles.meta, tabular]}>
                   {reading.lanesOpen !== null && !reading.maxLanes
@@ -300,10 +348,11 @@ export default function PortDetail() {
           {/*
             Not the forecast — that still needs ~6 weeks of our own history. This
             is CBP's previous-year average for today's weekday, attributed as such
-            inside the card (see TypicalCard for why it never borrows the live
-            numbers' severity colors).
+            inside the card, with the live reading drawn beside this hour's
+            typical bar (see TypicalCard for why it never borrows the live
+            numbers' severity colours).
           */}
-          {port && <TypicalCard port={port} lane={lane} />}
+          {port && <TypicalCard port={port} lane={lane} liveMinutes={liveMinutes} />}
 
           {port && <GroundTruthCard port={port} />}
         </>
@@ -312,10 +361,12 @@ export default function PortDetail() {
       {/* Provenance for the numbers above — so it is hidden southbound, where
           there are no numbers for it to describe. */}
       {direction === 'northbound' && (
-        <View style={{ paddingHorizontal: space.gutter, marginTop: 14, gap: 4 }}>
-          <Text style={[styles.source, tabular]}>
-            {reading ? `Snapshot ${formatClock(reading.observedAt, port?.feedTz)}` : ''}
-          </Text>
+        <View style={{ paddingHorizontal: space.gutter, marginTop: space.sectionGap, gap: 4 }}>
+          {reading ? (
+            <Text style={[styles.source, tabular]}>
+              Snapshot {formatClock(reading.observedAt, port?.feedTz)}
+            </Text>
+          ) : null}
           <Text style={styles.source}>
             Waits are officer-reported and accurate to roughly ±10 min.
           </Text>
@@ -354,18 +405,12 @@ function DetailHeader({
   children?: ReactNode;
 }) {
   return (
-    <View style={[styles.headerBlock, { paddingTop: topInset + 6 }]}>
+    <View style={[styles.headerBlock, { paddingTop: topInset + 4 }]}>
       <View style={styles.headerTitleRow}>
-        <Pressable
-          onPress={backToCrossings}
-          hitSlop={10}
-          style={styles.back}
-          accessibilityRole="button"
-          accessibilityLabel="Back to crossings"
-        >
-          <ArrowLeftGlyph size={22} color={color.cobaltLight} />
-        </Pressable>
-        <Text style={styles.title} numberOfLines={1}>
+        <IconButton onDark onPress={backToCrossings} accessibilityLabel="Back to crossings" style={styles.back}>
+          <ArrowLeftGlyph size={24} color={color.cobaltLight} />
+        </IconButton>
+        <Text style={styles.title} numberOfLines={1} role="heading">
           {title}
         </Text>
         {action}
@@ -409,16 +454,18 @@ function EntranceRow({
     <View style={styles.entranceWrap}>
       <Pressable
         onPress={() => openDirections(target)}
-        style={styles.entranceButton}
-        accessibilityRole="button"
-        accessibilityLabel={
+        style={({ pressed }) => [styles.entranceButton, pressed && styles.entranceButtonPressed]}
+        role="button"
+        aria-label={
           lineStart
             ? `Directions to where the line starts: ${port.lineStartLabel}`
-            : `Directions to ${port.displayName}`
+            : `Directions to ${port.displayName}. The pin is hand-placed, not surveyed`
         }
       >
-        <PinGlyph size={16} color={color.cobalt} />
-        <View style={{ flex: 1 }}>
+        <View style={styles.entranceIcon}>
+          <PinGlyph size={20} color={color.cobalt} />
+        </View>
+        <View style={{ flex: 1, gap: 2 }}>
           <Text style={styles.entranceTitle}>
             {lineStart ? 'Directions to the line start' : 'Directions to the bridge'}
           </Text>
@@ -430,7 +477,7 @@ function EntranceRow({
                 : 'Bridge crossing point'}
           </Text>
         </View>
-        <ArrowUpRightGlyph size={15} color={color.navy} />
+        <ArrowUpRightGlyph size={16} color={color.muted} />
       </Pressable>
     </View>
   );
@@ -470,15 +517,15 @@ function UnusualBanner({
   const busy = verdict === 'busy';
   const tone = busy ? status.heavy : status.clear;
   return (
-    <View style={[styles.unusual, { backgroundColor: tone.tint }]}>
+    <View style={[styles.unusual, { backgroundColor: tone.tint }]} accessible>
       {busy ? (
-        <WarningGlyph size={17} color={tone.ink} />
+        <WarningGlyph size={18} color={tone.ink} />
       ) : (
-        <ClockGlyph size={17} color={tone.ink} />
+        <ClockGlyph size={18} color={tone.ink} />
       )}
-      <View style={{ flex: 1, gap: 1 }}>
-        <Text style={[styles.unusualTitle, { color: tone.ink }]}>
-          {busy ? 'UNUSUALLY BUSY' : 'UNUSUALLY QUIET'}
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={[type.eyebrow, { color: tone.ink }]}>
+          {busy ? 'Unusually busy' : 'Unusually quiet'}
         </Text>
         <Text style={[styles.unusualBody, { color: tone.ink }, tabular]}>
           <Text style={styles.unusualStrong}>
@@ -491,35 +538,24 @@ function UnusualBanner({
   );
 }
 
-/** No southbound feed exists — the same sentence the other screens give. */
-function SouthboundNotice() {
-  return (
-    <View style={styles.southbound}>
-      <View style={styles.southboundDot} />
-      <View style={{ flex: 1, gap: 3 }}>
-        <Text style={styles.southboundTitle}>No official data heading south</Text>
-        <Text style={styles.southboundBody}>
-          CBP publishes northbound waits only, and Mexico has no federal feed. There is
-          nothing to show for this direction that we did not make up.
-        </Text>
-      </View>
-    </View>
-  );
-}
-
 /**
  * Lane picker as chips on navy: active is a cobalt fill, inactive an outline.
- * Same availability semantics as the segmented control it replaces — a dot
- * for open/closed/unknown, a dimmed chip for a lane the crossing does not
- * have (still tappable, so UnavailableState can say why). Scrolls
+ * Availability rides before the label — a dot for open/unknown, a lock for
+ * closed — and a lane the crossing does not have takes the duller ink (never
+ * opacity) but stays tappable, so UnavailableState can say why. Scrolls
  * horizontally rather than shrinking, so labels never truncate.
+ *
+ * TOUCH TARGETS. The chips are 34pt tall; iOS only honours `hitSlop` inside
+ * the parent's bounds, and a horizontal ScrollView clips at its own edge. So
+ * the scroll content is padded to hold the full 44pt target and the
+ * ScrollView pulled back by the same amount — the chips look 34 and hit 44.
  */
 function LaneChips({
   options,
   value,
   onChange,
 }: {
-  options: readonly { value: LaneType; label: string; dot?: string; dimmed?: boolean }[];
+  options: readonly { value: LaneType; label: string; availability: LaneAvailability }[];
   value: LaneType;
   onChange: (v: LaneType) => void;
 }) {
@@ -527,38 +563,46 @@ function LaneChips({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={{ marginHorizontal: -space.gutter }}
+      style={styles.laneScroll}
       contentContainerStyle={styles.laneRow}
+      role="tablist"
     >
       {options.map((o) => {
         const active = o.value === value;
+        const ink = active ? color.surface : o.availability === 'none' ? color.muted : color.mutedOnDark;
         return (
           <Pressable
             key={o.value}
             onPress={() => onChange(o.value)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: active }}
-            style={[
+            role="tab"
+            aria-selected={active}
+            aria-label={`${o.label}, ${
+              { open: 'open', closed: 'closed', unknown: 'no report', none: 'not at this crossing' }[o.availability]
+            }`}
+            hitSlop={{ top: HIT_PAD, bottom: HIT_PAD }}
+            style={({ pressed }) => [
               styles.laneChip,
               active ? styles.laneChipOn : styles.laneChipOff,
-              !active && o.dimmed && { opacity: 0.45 },
+              pressed && (active ? styles.laneChipOnPressed : styles.laneChipOffPressed),
             ]}
           >
-            {o.dot != null && <View style={[styles.laneDot, { backgroundColor: o.dot }]} />}
-            <Text
-              style={[
-                styles.laneChipText,
-                { color: active ? color.surface : color.mutedOnDark },
-              ]}
-            >
-              {o.label}
-            </Text>
+            {o.availability === 'closed' ? (
+              <LockGlyph size={12} strokeWidth={2.4} color={ink} />
+            ) : o.availability === 'open' ? (
+              <View style={[styles.laneDot, { backgroundColor: status.clear.dot }]} />
+            ) : o.availability === 'unknown' ? (
+              <View style={[styles.laneDot, { backgroundColor: color.lineStrong }]} />
+            ) : null}
+            <Text style={[styles.laneChipText, { color: ink }]}>{o.label}</Text>
           </Pressable>
         );
       })}
     </ScrollView>
   );
 }
+
+/** Extra touch height above and below the 34pt lane chips — see LaneChips. */
+const HIT_PAD = 5;
 
 /**
  * The sticky "Alert me" bar. It toggles this crossing on the watchlist — the
@@ -580,17 +624,13 @@ function AlertBar({
 }) {
   return (
     <View style={[styles.alertBar, { paddingBottom: Math.max(bottomInset, 12) + 4 }]}>
-      <Pressable
+      {/* On = navy, the "set" treatment every toggled button shares. */}
+      <Button
+        label={watching ? 'Watching · tap to stop' : 'Watch for changes'}
+        selected={watching}
+        icon={(tint) => <BellGlyph size={17} color={tint} />}
         onPress={() => prefs.toggleWatch(portId)}
-        style={[styles.alertButton, watching && styles.alertButtonOn]}
-        accessibilityRole="button"
-        accessibilityState={{ selected: watching }}
-      >
-        <BellGlyph size={17} color={color.surface} />
-        <Text style={styles.alertButtonText}>
-          {watching ? 'Watching · tap to stop' : 'Watch for changes'}
-        </Text>
-      </Pressable>
+      />
       <Text style={[styles.alertNote, tabular]}>
         {rulesOff
           ? 'Spike and closure rules are switched off on the Alerts tab.'
@@ -601,62 +641,74 @@ function AlertBar({
 }
 
 /**
- * "{open} of {max} booths open" with a three-bar glyph.
+ * The booth meter (v2 §08): one 8px pill per booth, cobalt for open, `line`
+ * for closed, and the count in words. Never a percentage bar — the count is
+ * the honest unit; drivers can see it themselves at the gate.
  *
- * Both figures are CBP's own (lanes_open / max_lanes per reading), never
- * inferred — which is exactly why the line no longer editorialises about them.
- * It used to append "line drains slowly" / "line moves steadily" from a 0.45
- * staffing ratio; that is a claim about how a queue BEHAVES, and nothing in
- * this system has ever measured throughput per booth. The staffing fraction is
- * a real, sourced fact and is worth showing; the prediction attached to it was
- * ours, unsourced, and read as operational knowledge we do not have.
+ * Both figures are CBP's own (lanes_open / max_lanes per reading) and are
+ * printed EXACTLY as given — if CBP ever reports more open than its maximum,
+ * the sentence says so rather than quietly "correcting" CBP. The pills are
+ * drawn for `max` and fill up to it.
  *
- * The colour still tracks the ratio — under half the booths staffed is worth
- * noticing — but it now qualifies the number rather than forecasting the line.
+ * It does not editorialise. It used to append "line drains slowly" / "line
+ * moves steadily" from a staffing ratio — a claim about how a queue BEHAVES,
+ * and nothing here has ever measured throughput per booth — and to colour the
+ * count amber under half staffing, when status colours are for wait severity
+ * and a staffing fraction is not one.
  */
-const HALF_STAFFED = 0.5;
-
-function BoothsLine({ open, max }: { open: number; max: number }) {
-  const thin = open / max < HALF_STAFFED;
-  const tint = thin ? status.moderate.dot : status.clear.dot;
+function BoothMeter({ open, max }: { open: number; max: number }) {
   return (
-    <View style={styles.boothRow}>
-      <View style={styles.boothBars}>
-        <View style={[styles.boothBar, { backgroundColor: tint }]} />
-        <View style={[styles.boothBar, { backgroundColor: tint, opacity: 0.45 }]} />
-        <View style={[styles.boothBar, { backgroundColor: tint, opacity: 0.45 }]} />
+    <View style={{ gap: 8 }} accessible aria-label={`${open} of ${max} booths open`}>
+      <View style={styles.boothRow}>
+        {Array.from({ length: max }, (_, i) => (
+          <View
+            key={i}
+            style={[styles.boothPill, { backgroundColor: i < open ? color.cobalt : color.line }]}
+          />
+        ))}
       </View>
-      <Text style={[styles.boothText, { color: tint }, tabular]}>
+      <Text style={[styles.meta, tabular]}>
         {open} of {max} booths open
       </Text>
     </View>
   );
 }
 
-/** Never renders a number. The three non-open states each say what they mean. */
-function UnavailableState({ status }: { status: string | undefined }) {
-  const copy: Record<string, { title: string; body: string }> = {
+/**
+ * Never renders a number. The three non-open states each say what they mean,
+ * and each carries its own glyph: a lock for closed, a clock for a figure CBP
+ * has not posted, an em dash for a lane that is not here.
+ */
+function UnavailableState({ status: laneStatus }: { status: string | undefined }) {
+  const copy: Record<string, { title: string; body: string; glyph: ReactNode }> = {
     closed: {
       title: 'Lanes closed',
       body: 'CBP reports this lane is not currently open. Try another lane or crossing.',
+      glyph: <LockGlyph size={22} color={color.navy} />,
     },
     update_pending: {
       title: 'No current figure',
       body: 'CBP has not posted an updated wait for this lane. We won’t guess one.',
+      glyph: <ClockGlyph size={22} color={color.navy} />,
     },
     not_available: {
       title: 'No lane here',
       body: 'This crossing does not have this lane type.',
+      glyph: <Text style={styles.unavailableDash}>—</Text>,
     },
   };
-  const c = copy[status ?? ''] ?? {
+  const c = copy[laneStatus ?? ''] ?? {
     title: 'No data',
     body: 'Nothing reported for this lane right now.',
+    glyph: <Text style={styles.unavailableDash}>—</Text>,
   };
   return (
-    <View style={{ gap: 4 }}>
-      <Text style={styles.unavailableTitle}>{c.title}</Text>
-      <Text style={styles.unavailableBody}>{c.body}</Text>
+    <View style={styles.unavailable} accessible>
+      <View style={styles.unavailableIcon}>{c.glyph}</View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={styles.unavailableTitle}>{c.title}</Text>
+        <Text style={styles.unavailableBody}>{c.body}</Text>
+      </View>
     </View>
   );
 }
@@ -667,128 +719,100 @@ const styles = StyleSheet.create({
   headerBlock: {
     backgroundColor: color.navy,
     paddingHorizontal: space.gutter,
-    paddingBottom: 16,
-    gap: 10,
+    paddingBottom: space.cardPad,
+    gap: 12,
   },
-  headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  back: { paddingVertical: 4 },
-  // Screen title on navy: 24/700, -0.02em, white.
-  title: {
-    flex: 1, fontSize: 24, fontFamily: font.bold, color: color.surface, letterSpacing: -0.48,
-  },
+  headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  // The 44pt back button's glyph should sit on the gutter line, not 10pt in.
+  back: { marginLeft: -10 },
+  // Screen title on navy: 24/29/700, -0.02em, white.
+  title: { flex: 1, ...type.screenTitle, color: color.surface },
   subRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dirWrap: { marginTop: 2 },
-  approxNoteOnDark: { fontSize: 11, fontFamily: font.regular, color: color.mutedOnDark },
-  laneRow: { paddingHorizontal: space.gutter, gap: 8, marginTop: 2 },
-  // Chips on navy (§5): active cobalt fill, 8/14, no border; inactive
-  // transparent, 1px lineOnDark, 7/13 — the border makes up the 1px so both
-  // states measure the same. Text 12/600.
-  laneChip: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: radius.pill },
-  laneChipOn: { backgroundColor: color.cobalt, paddingHorizontal: 14, paddingVertical: 8 },
-  laneChipOff: {
-    backgroundColor: 'transparent', borderWidth: 1, borderColor: color.lineOnDark,
-    paddingHorizontal: 13, paddingVertical: 7,
+  dirWrap: { marginTop: 0 },
+  block: { marginHorizontal: space.gutter, marginTop: space.sectionGap },
+  retry: { alignSelf: 'flex-start', marginTop: 4 },
+
+  // See LaneChips on touch targets: the padding holds the 44pt hit area, the
+  // negative margin gives the layout its 34pt back.
+  laneScroll: { marginHorizontal: -space.gutter, marginVertical: -HIT_PAD },
+  laneRow: { paddingHorizontal: space.gutter, paddingVertical: HIT_PAD, gap: 8 },
+  // Chips on navy: active cobalt fill, inactive transparent with a 1px
+  // lineOnDark outline. Both carry the 1px border (the active one in its own
+  // fill colour) so both measure the same on the 4pt grid: 8 + 16 + 8 + 2.
+  laneChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: radius.pill,
+    borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8,
   },
-  laneChipText: { fontSize: 12, fontFamily: font.semibold },
-  laneDot: { width: 6, height: 6, borderRadius: 3 },
-  hoursBadge: {
-    backgroundColor: status.clear.tint, borderRadius: radius.pill,
-    paddingHorizontal: 8, paddingVertical: 3,
-  },
-  hoursText: { fontSize: 10, fontFamily: font.semibold, color: status.clear.ink, letterSpacing: 1.1 },
-  approxNote: { fontSize: 11, fontFamily: font.regular, color: color.muted },
+  laneChipOn: { backgroundColor: color.cobalt, borderColor: color.cobalt },
+  laneChipOff: { backgroundColor: 'transparent', borderColor: color.lineOnDark },
+  laneChipOnPressed: { backgroundColor: color.cobaltPress, borderColor: color.cobaltPress },
+  // The outline chip has no fill of its own; pressed, it takes the navy-fill
+  // hover so it lifts off the header without borrowing the active cobalt.
+  laneChipOffPressed: { backgroundColor: color.navyTint },
+  laneChipText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold },
+  laneDot: { width: 7, height: 7, borderRadius: 3.5 },
 
   // Entrance row: a full-width card, because "where do I actually drive to"
   // is the question, not a tertiary chip beside a pin button.
   entranceWrap: { paddingHorizontal: space.gutter },
   entranceButton: {
-    flexDirection: 'row', alignItems: 'center', gap: 11,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
-    borderRadius: radius.card, paddingVertical: 13, paddingHorizontal: 15,
+    borderRadius: radius.card, paddingVertical: 12, paddingHorizontal: space.cardPad,
   },
-  entranceTitle: { fontSize: 14, fontFamily: font.semibold, color: color.navy },
-  entranceSub: { fontSize: 11, fontFamily: font.regular, color: color.muted, lineHeight: 15 },
+  entranceButtonPressed: { backgroundColor: color.mist },
+  entranceIcon: {
+    width: 36, height: 36, borderRadius: radius.sm, backgroundColor: color.infoTint,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  entranceTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  entranceSub: { ...caption, color: color.muted },
 
   card: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
-    borderRadius: radius.cardLg, padding: 16, gap: 8,
+    borderRadius: radius.card, padding: space.cardPad, gap: 12,
   },
-  cardLabel: {
-    fontSize: 11, fontFamily: font.semibold, letterSpacing: 1.1,
-    color: color.muted,
-  },
-  numberRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  // Detail number (§3): 52/700, -0.045em, line-height 0.85 → 44. Safe from
-  // clipping for the same reason as the hero number: lining digits (~0.7em,
-  // no descenders) inside a centred line box leave ~4px clear on Android.
-  number: { fontSize: 52, fontFamily: font.bold, letterSpacing: -2.34, lineHeight: 44 },
-  numberUnit: { fontSize: 14, fontFamily: font.medium, color: color.muted, paddingBottom: 7 },
-  meta: { fontSize: 12, fontFamily: font.regular, color: color.muted },
-  cardDivider: { height: 1, backgroundColor: color.line, marginTop: 4 },
-  typicalLine: { fontSize: 13, fontFamily: font.regular, color: color.navy, lineHeight: 19 },
+  numberRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, flexWrap: 'wrap' },
+  // Wait hero (§3): 48/48/700, −0.04em. See tightLineHeightFor for why iOS
+  // gets a taller box with a negative margin.
+  number: { ...type.waitHero },
+  // The unit, one step down: 16/500 in muted, on the number's baseline — the
+  // same unit treatment as the hero's.
+  numberUnit: { fontSize: 16, lineHeight: 20, fontFamily: font.medium, color: color.muted, paddingBottom: 4 },
+  numberTags: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 6, marginLeft: 4 },
+  meta: { ...type.metadata, color: color.muted },
+  cardDivider: { height: 1, backgroundColor: color.line },
+  typicalLine: { fontSize: 13, lineHeight: 19, fontFamily: font.regular, color: color.navy },
   typicalStrong: { fontFamily: font.bold },
-  typicalSource: { fontSize: 11, fontFamily: font.regular, color: color.muted },
+  typicalSource: { fontSize: 12, fontFamily: font.regular, color: color.muted },
 
   // The comparison banner. Takes the STATUS palette, not a brand colour: it is
   // a verdict about severity, which is what those colours are reserved for.
   unusual: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    borderRadius: radius.banner, paddingVertical: 11, paddingHorizontal: 13,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    borderRadius: radius.banner, paddingVertical: 12, paddingHorizontal: space.cardPad,
   },
-  unusualTitle: { fontSize: 10.5, fontFamily: font.bold, letterSpacing: 1.1 },
-  unusualBody: { fontSize: 12.5, fontFamily: font.regular, lineHeight: 17 },
+  unusualBody: { fontSize: 13, lineHeight: 19, fontFamily: font.regular },
   unusualStrong: { fontFamily: font.bold },
 
-  southbound: {
-    marginHorizontal: space.gutter, marginTop: space.sectionGap,
-    flexDirection: 'row', gap: 10,
-    backgroundColor: color.infoTint, borderRadius: radius.banner,
-    paddingVertical: 13, paddingHorizontal: 15,
-  },
-  southboundDot: {
-    width: 7, height: 7, borderRadius: 3.5, marginTop: 6, backgroundColor: color.cobalt,
-  },
-  southboundTitle: { fontSize: 13, fontFamily: font.semibold, color: color.infoInk },
-  southboundBody: { fontSize: 13, fontFamily: font.regular, color: color.infoInk, lineHeight: 19 },
-  boothRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  boothBars: { flexDirection: 'row', alignItems: 'flex-end', gap: 2, height: 12 },
-  boothBar: { width: 3, height: 12, borderRadius: 1.5 },
-  boothText: { fontSize: 12, fontFamily: font.semibold },
+  boothRow: { flexDirection: 'row', gap: 4 },
+  boothPill: { flex: 1, height: 8, borderRadius: radius.pill },
 
-  unavailableTitle: { fontSize: 16, fontFamily: font.semibold, color: color.navy },
-  unavailableBody: { fontSize: 13, fontFamily: font.regular, color: color.muted, lineHeight: 19 },
-  source: { fontSize: 11, fontFamily: font.regular, color: color.muted },
+  unavailable: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4 },
+  unavailableIcon: {
+    width: 40, height: 40, borderRadius: radius.sm, backgroundColor: color.mist,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  unavailableDash: { fontSize: 22, lineHeight: 26, fontFamily: font.bold, color: color.inkMuted },
+  unavailableTitle: { ...type.cardTitle, color: color.navy },
+  unavailableBody: { fontSize: 13, lineHeight: 19, fontFamily: font.regular, color: color.muted },
+  source: { ...caption, color: color.muted },
 
   // Sticky CTA: white bar, hairline top, full-width cobalt button, 48 tall.
   alertBar: {
     backgroundColor: color.surface, borderTopWidth: 1, borderTopColor: color.line,
     paddingHorizontal: space.gutter, paddingTop: 12, gap: 8,
   },
-  alertButton: {
-    height: 48, borderRadius: radius.button, backgroundColor: color.cobalt,
-    flexDirection: 'row', gap: 9,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  // On = navy, the same "set" treatment as the pinned Pin button.
-  alertButtonOn: { backgroundColor: color.navy },
-  alertButtonText: { fontSize: 15, fontFamily: font.bold, color: color.surface },
-  alertNote: {
-    fontSize: 11, fontFamily: font.regular, color: color.muted,
-    textAlign: 'center', lineHeight: 16,
-  },
-
-  errorCard: {
-    backgroundColor: status.heavy.tint,
-    borderRadius: radius.banner, paddingVertical: 13, paddingHorizontal: 15, gap: 6,
-  },
-  errorCardTitle: { fontSize: 14, fontFamily: font.semibold, color: status.heavy.ink },
-  errorCardBody: {
-    fontSize: 13, fontFamily: font.regular, color: status.heavy.ink, lineHeight: 19,
-  },
-  retryButton: {
-    alignSelf: 'flex-start', marginTop: 4, backgroundColor: color.cobalt,
-    borderRadius: radius.button, paddingVertical: 9, paddingHorizontal: 16,
-  },
-  retryText: { fontSize: 12.5, fontFamily: font.semibold, color: color.surface },
+  alertNote: { ...caption, color: color.muted, textAlign: 'center' },
 });

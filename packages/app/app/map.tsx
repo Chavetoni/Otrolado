@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import CrossingsMap from '../src/components/CrossingsMap';
 import { ArrowLeftGlyph } from '../src/components/glyphs';
+import { pressedScale } from '../src/components/ui';
 import { formatAge } from '../src/freshness-ui';
 import {
   DEFAULT_TRAVEL_MODE,
@@ -13,9 +14,11 @@ import {
 } from '../src/modes';
 import { rankPorts } from '../src/ranking';
 import { usePorts, useWaits } from '../src/queries';
-import { useAgedWaits } from '../src/useFreshness';
+import { feedIsLive, useAgedWaits } from '../src/useFreshness';
+import { useOnline } from '../src/useOnline';
 import { useOrigin } from '../src/useOrigin';
 import { color, font, radius, space, status, tabular } from '../src/theme';
+import { caption } from '../src/typography';
 
 /**
  * The full-screen map, reached by tapping the inline card on Crossings.
@@ -40,6 +43,7 @@ export default function FullScreenMap() {
   const waits = useWaits();
   // Re-aged to now, so the footer's "updated X ago" keeps counting offline.
   const aged = useAgedWaits(waits);
+  const online = useOnline();
 
   const ranked = useMemo(
     () => rankPorts(ports.data?.ports ?? [], aged.data, origin, mode, 'northbound'),
@@ -48,6 +52,9 @@ export default function FullScreenMap() {
 
   const ingestAge = aged.data?.ingestAgeSeconds ?? null;
   const loadError = ports.error ?? waits.error;
+  // "Live" is a claim about the poll, judged by the one shared rule (the same
+  // call Home's footer makes), and never made while the link is down.
+  const feedLive = online && feedIsLive(aged.data);
 
   /*
    * The source note floats over the map, so its height is measured rather than
@@ -65,6 +72,7 @@ export default function FullScreenMap() {
         modeLabel={travelModeLabel(mode)}
         variant="full"
         insetBottom={footerHeight > 0 ? footerOffset + footerHeight : 0}
+        insetTop={insets.top}
       />
 
       <View style={[styles.backWrap, { top: insets.top + 10 }]}>
@@ -76,10 +84,11 @@ export default function FullScreenMap() {
         */}
         <Pressable
           onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-          style={styles.back}
-          accessibilityRole="button"
+          style={({ pressed }) => [styles.back, pressed && styles.backPressed, pressedScale(pressed)]}
+          role="button"
+          aria-label="Back to crossings"
         >
-          <ArrowLeftGlyph size={15} color={color.cobalt} />
+          <ArrowLeftGlyph size={18} color={color.cobalt} />
           <Text style={styles.backText}>Crossings</Text>
         </Pressable>
       </View>
@@ -93,16 +102,18 @@ export default function FullScreenMap() {
             Can’t reach the server — no crossings to show yet.
           </Text>
         ) : null}
-        {/* Same sentence, trigger and placement as Home's SourceNote: pins on
-            screen during an outage are the last saved data, and must say so. */}
-        {loadError && ranked.length > 0 ? (
+        {/* Same sentences, triggers and placement as Home's SourceNote: pins
+            on screen during an outage are the last saved data, and must say so. */}
+        {!online && waits.data !== undefined ? (
+          <Text style={styles.footerStrong}>Offline — showing the last data we saved.</Text>
+        ) : loadError && ranked.length > 0 ? (
           <Text style={styles.footerError}>
             Can’t reach the server — showing the last data we saved.
           </Text>
         ) : null}
         {waits.data !== undefined ? (
           <Text style={[styles.footerText, tabular]}>
-            Live from CBP · updated {formatAge(ingestAge)}
+            {feedLive ? 'Live from CBP' : 'From CBP'} · updated {formatAge(ingestAge)}
           </Text>
         ) : null}
         <Text style={styles.footerText}>
@@ -123,20 +134,18 @@ const styles = StyleSheet.create({
   // hairline border does the separating.
   backWrap: { position: 'absolute', left: space.gutter, zIndex: 1000 },
   back: {
-    // Drawn arrow, not a typed "‹": that is a quotation mark standing in for a
-    // chevron, and it left this back control drawn differently from the port
-    // detail's (ArrowLeftGlyph). Row + gap replaces the two literal spaces.
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    minHeight: space.hitMin,
     backgroundColor: color.surface,
     borderWidth: 1,
     borderColor: color.line,
     borderRadius: radius.button,
     paddingHorizontal: 12,
-    paddingVertical: 8,
   },
-  backText: { fontSize: 13, fontFamily: font.semibold, color: color.cobalt },
+  backPressed: { backgroundColor: color.mist },
+  backText: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.cobalt },
 
   footer: {
     position: 'absolute',
@@ -147,10 +156,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: color.line,
     borderRadius: radius.card,
-    paddingHorizontal: 15,
+    paddingHorizontal: space.cardPad,
     paddingVertical: 10,
-    gap: 3,
+    gap: 2,
   },
-  footerText: { fontSize: 10.5, fontFamily: font.regular, color: color.muted },
-  footerError: { fontSize: 11.5, fontFamily: font.semibold, color: status.heavy.ink },
+  footerText: { ...caption, color: color.muted },
+  footerStrong: { ...caption, fontFamily: font.semibold, color: color.navy },
+  footerError: { ...caption, fontFamily: font.semibold, color: status.heavy.ink },
 });

@@ -26,9 +26,10 @@ The files in this bundle are **design references created in HTML** — interacti
 
 ## Design Tokens
 The palette below is the prototype's — it is **pre-Cobalt and superseded**. The
-current system is `Otrolado Design System.md` (v1.0 Cobalt) and its
-implementation is `packages/app/src/theme.ts`; every colour, radius, spacing
-and type value in the app comes from there. Two rules carry over unchanged:
+current system is `design/Otrolado Design System v2.dc.html` (v2.0; the v1.0
+Cobalt document `Otrolado Design System.md` remains as a quick reference with a
+v2 addendum) and its implementation is `packages/app/src/theme.ts`; every
+colour, radius, spacing and type value in the app comes from there. Two rules carry over unchanged:
 **Poppins 400/500/600/700 only**, and tabular numerals
 (`font-variant-numeric: tabular-nums`) on ALL wait/time numbers. Use the
 prototype for layout, copy and behaviour (`renderVals()`), not for hex values.

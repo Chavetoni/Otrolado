@@ -79,6 +79,55 @@ export function reportedAgeSeconds(
   return lane.reportedAt === null ? null : ageSeconds(lane.reportedAt, nowMs);
 }
 
+/**
+ * How long ago OUR ingest saw this reading, at `nowMs`. The reading-age half
+ * of the freshness verdict — so an age printed beside a lane's verdict must be
+ * at least this, or "STALE · 2 min ago" can happen: a crossing CBP dropped
+ * from an otherwise-healthy feed is stale by reading age while the poll that
+ * produced `ingestAgeSeconds` is minutes old.
+ */
+export function observedAgeSeconds(
+  lane: Pick<WaitsLane, 'observedAt'> | null | undefined,
+  nowMs: number,
+): number | null {
+  return lane ? ageSeconds(lane.observedAt, nowMs) : null;
+}
+
+/**
+ * The age to print beside ONE lane's verdict: the older of the poll and the
+ * reading, which are the two inputs the verdict is the worse of. Null only
+ * when neither is known.
+ */
+export function laneAgeSeconds(
+  ingestAgeSeconds: number | null,
+  lane: Pick<WaitsLane, 'observedAt'> | null | undefined,
+  nowMs: number,
+): number | null {
+  const reading = observedAgeSeconds(lane, nowMs);
+  if (ingestAgeSeconds === null) return reading;
+  if (reading === null) return ingestAgeSeconds;
+  return Math.max(ingestAgeSeconds, reading);
+}
+
+/**
+ * Whether "Live from CBP" may be said about the POLL — the footer's claim,
+ * not any one reading's. Judged by the same policy as every badge
+ * (`freshnessOf` against the thresholds the response shipped) on its
+ * ingest-age term alone: the reading-age input mirrors the ingest age rather
+ * than picking a lane. One function, because Crossings and the full map both
+ * make the claim and a policy change must reach both.
+ */
+export function feedIsLive(data: WaitsResponse | undefined): boolean {
+  if (data === undefined) return false;
+  const age = data.ingestAgeSeconds;
+  return (
+    freshnessOf(
+      { status: 'open', ingestAgeSeconds: age, readingAgeSeconds: age, feedAgeSeconds: null },
+      data.thresholds,
+    ) === 'live'
+  );
+}
+
 function ageSeconds(iso: string, nowMs: number): number | null {
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return null;

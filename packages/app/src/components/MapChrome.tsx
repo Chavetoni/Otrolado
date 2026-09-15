@@ -1,6 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LEGEND } from './map-pin';
-import { color, font } from '../theme';
+import { ExpandGlyph } from './glyphs';
+import { pressedScale } from './ui';
+import { color, font, radius } from '../theme';
 
 /**
  * The overlays that sit on top of the inline map: the prototype's mode chip
@@ -9,11 +11,15 @@ import { color, font } from '../theme';
  * Shared by the native and web maps. Both render react-native-web/RN Views for
  * their overlays even though the basemaps underneath are completely different
  * implementations, so this is the one copy of the chrome.
+ *
+ * Overlays are the one place a translucent white is used: they float over map
+ * imagery, not the page, so the hairline-and-surface rule has nothing to
+ * separate them from. Still no shadow.
  */
 
-export function ModeChip({ label }: { label: string }) {
+export function ModeChip({ label, top = MODE_CHIP_TOP }: { label: string; top?: number }) {
   return (
-    <View style={styles.chip}>
+    <View style={[styles.chip, { top }]}>
       {/*
         "wait" states what the pin numbers ARE. Without it a pin reading "41m"
         is indistinguishable from the door-to-door total shown elsewhere in
@@ -42,6 +48,7 @@ export function Legend({ bottom = LEGEND_BOTTOM }: { bottom?: number }) {
 }
 
 export const LEGEND_BOTTOM = 8;
+export const MODE_CHIP_TOP = 10;
 
 /**
  * The card's "tap to open" affordance.
@@ -54,15 +61,20 @@ export function ExpandHint({ onPress }: { onPress: () => void }) {
   return (
     <Pressable
       onPress={onPress}
-      style={styles.expand}
-      hitSlop={6}
-      accessibilityRole="button"
-      accessibilityLabel="Open the full map"
+      // Pressed: the chip goes fully opaque and takes the 0.97 scale. A
+      // colour shift on a 10px chip over map imagery would not read.
+      style={({ pressed }) => [styles.expand, pressed && styles.expandPressed, pressedScale(pressed)]}
+      hitSlop={10}
+      role="button"
+      aria-label="Open the full map"
     >
-      <Text style={styles.expandText}>⤢  Expand</Text>
+      <ExpandGlyph size={13} color={color.cobalt} strokeWidth={2.4} />
+      <Text style={styles.expandText}>Expand</Text>
     </Pressable>
   );
 }
+
+const OVERLAY_BG = 'rgba(255,255,255,0.9)';
 
 const styles = StyleSheet.create({
   expand: {
@@ -70,27 +82,30 @@ const styles = StyleSheet.create({
     top: 10,
     left: 10,
     zIndex: 1000,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    borderRadius: 7,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: OVERLAY_BG,
+    borderRadius: radius.sm,
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 5,
   },
-  expandText: { fontSize: 10, fontFamily: font.semibold, color: color.cobalt },
+  expandPressed: { backgroundColor: color.surface },
+  expandText: { fontSize: 10, fontFamily: font.semibold, color: color.cobalt, letterSpacing: 0.3 },
 
   chip: {
     position: 'absolute',
-    top: 10,
     right: 10,
     // In style, not as a prop: react-native-web 0.21 deprecates the prop form.
     pointerEvents: 'none',
     // Clears Leaflet's panes on web, which top out at 800.
     zIndex: 1000,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    borderRadius: 7,
+    backgroundColor: OVERLAY_BG,
+    borderRadius: radius.sm,
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 5,
   },
-  chipText: { fontSize: 10, fontFamily: font.semibold, color: color.navy },
+  chipText: { fontSize: 10, fontFamily: font.semibold, color: color.navy, letterSpacing: 0.3 },
 
   legend: {
     position: 'absolute',
@@ -98,11 +113,11 @@ const styles = StyleSheet.create({
     pointerEvents: 'none',
     zIndex: 1000,
     flexDirection: 'row',
-    gap: 9,
-    backgroundColor: 'rgba(255,255,255,0.88)',
-    borderRadius: 7,
+    gap: 8,
+    backgroundColor: OVERLAY_BG,
+    borderRadius: radius.sm,
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 5,
   },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   // Hairline keeps the pale non-live tints (est./stale) visible on the
@@ -111,5 +126,5 @@ const styles = StyleSheet.create({
     width: 8, height: 8, borderRadius: 4,
     borderWidth: StyleSheet.hairlineWidth, borderColor: color.line,
   },
-  legendText: { fontSize: 9.5, fontFamily: font.semibold, color: color.muted },
+  legendText: { fontSize: 10, fontFamily: font.semibold, color: color.muted },
 });

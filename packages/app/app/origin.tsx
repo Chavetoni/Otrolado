@@ -3,9 +3,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeftGlyph, PinGlyph } from '../src/components/glyphs';
-import { PLACES } from '../src/places';
+import { IconButton, SectionLabel } from '../src/components/ui';
+import { NEAR_MAX_MILES, PLACES } from '../src/places';
 import { setOriginPlace, useOrigin } from '../src/useOrigin';
 import { color, font, radius, space } from '../src/theme';
+import { caption, type } from '../src/typography';
 
 /**
  * The starting-point picker.
@@ -42,17 +44,11 @@ export default function OriginPicker() {
   return (
     <View style={styles.screen}>
       <StatusBar style="light" />
-      <View style={[styles.header, { paddingTop: insets.top + 6 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 4 }]}>
         <View style={styles.headerRow}>
-          <Pressable
-            onPress={close}
-            hitSlop={10}
-            style={{ paddingVertical: 4 }}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-          >
-            <ArrowLeftGlyph size={22} color={color.cobaltLight} />
-          </Pressable>
+          <IconButton onDark onPress={close} accessibilityLabel="Back" style={styles.back}>
+            <ArrowLeftGlyph size={24} color={color.cobaltLight} />
+          </IconButton>
           <Text style={styles.title}>Starting point</Text>
         </View>
         <Text style={styles.headerNote}>
@@ -71,7 +67,9 @@ export default function OriginPicker() {
             label="Use my location"
             sub={
               origin.source === 'gps'
-                ? `In use · nearest town ${origin.label}`
+                ? origin.near
+                  ? `In use · nearest town ${origin.label}`
+                  : `In use · no town below is within ${NEAR_MAX_MILES} mi`
                 : 'Asks for location permission'
             }
             selected={origin.source === 'gps'}
@@ -80,7 +78,7 @@ export default function OriginPicker() {
           />
         </View>
 
-        <Text style={styles.sectionLabel}>OR PICK A TOWN</Text>
+        <SectionLabel style={styles.sectionLabel}>Or pick a town</SectionLabel>
         <View style={styles.card}>
           {PLACES.map((p, i) => (
             <Row
@@ -125,13 +123,13 @@ function Row({
 }) {
   return (
     <Pressable
-      style={[styles.row, divider && styles.rowDivider]}
+      style={({ pressed }) => [styles.row, divider && styles.rowDivider, pressed && styles.rowPressed]}
       onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: selected }}
+      role="radio"
+      aria-checked={selected}
     >
-      {showPin && <PinGlyph size={16} color={selected ? color.cobalt : color.muted} />}
-      <View style={{ flex: 1, gap: 2 }}>
+      {showPin && <PinGlyph size={20} color={selected ? color.cobalt : color.muted} />}
+      <View style={{ flex: 1, gap: 1 }}>
         <Text style={[styles.rowLabel, selected && { color: color.cobalt }]}>{label}</Text>
         {sub && <Text style={styles.rowSub}>{sub}</Text>}
       </View>
@@ -147,22 +145,15 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: color.navy,
     paddingHorizontal: space.gutter,
-    paddingBottom: 16,
-    gap: 8,
+    paddingBottom: space.cardPad,
+    gap: 6,
   },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  title: { flex: 1, fontSize: 24, fontFamily: font.bold, color: color.surface, letterSpacing: -0.48 },
-  headerNote: { fontSize: 12.5, fontFamily: font.regular, color: color.mutedOnDark, lineHeight: 18 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  back: { marginLeft: -10 },
+  title: { flex: 1, ...type.screenTitle, color: color.surface },
+  headerNote: { fontSize: 13, lineHeight: 19, fontFamily: font.regular, color: color.mutedOnDark },
 
-  sectionLabel: {
-    fontSize: 11,
-    fontFamily: font.semibold,
-    letterSpacing: 1.1,
-    color: color.muted,
-    paddingHorizontal: space.gutter,
-    marginTop: 18,
-    marginBottom: 8,
-  },
+  sectionLabel: { paddingHorizontal: space.gutter, marginTop: space.sectionGap, marginBottom: 8 },
   card: {
     marginHorizontal: space.gutter,
     backgroundColor: color.surface,
@@ -174,30 +165,31 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 11,
-    paddingHorizontal: 15,
+    gap: 12,
+    paddingHorizontal: space.cardPad,
     paddingVertical: 14,
+    minHeight: 56,
   },
   rowDivider: { borderBottomWidth: 1, borderBottomColor: color.line },
-  rowLabel: { fontSize: 14.5, fontFamily: font.semibold, color: color.navy },
-  rowSub: { fontSize: 11.5, fontFamily: font.regular, color: color.muted },
+  rowPressed: { backgroundColor: color.mist },
+  rowLabel: { ...type.cardTitle, color: color.navy },
+  rowSub: { ...type.metadata, fontFamily: font.regular, color: color.muted },
+  // The radio: 22px, 1.5px line-strong ring; cobalt ring and dot when chosen.
   check: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 1.5,
     borderColor: color.lineStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkOn: { borderColor: color.cobalt },
-  checkDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: color.cobalt },
+  checkDot: { width: 11, height: 11, borderRadius: 5.5, backgroundColor: color.cobalt },
   footnote: {
-    fontSize: 11,
-    fontFamily: font.regular,
+    ...caption,
     color: color.muted,
-    lineHeight: 16,
     paddingHorizontal: space.gutter,
-    marginTop: 16,
+    marginTop: space.sectionGap,
   },
 });

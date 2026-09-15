@@ -182,13 +182,16 @@ export function laneStatusLabel(lane: WaitsLane | null): string {
 }
 
 /**
- * Sentence explaining a row with no total, for the flat "no data" capsule
- * that replaces the drive/wait bar when there is no split to draw. `closed`
- * is a definitive fact worth naming distinctly from a transient feed gap —
- * see `noTotalTone` for the color that pairs with this text.
+ * Sentence explaining a row with no total, for the sub-line that replaces the
+ * drive/wait split when there is no split to state. `closed` is a definitive
+ * fact worth naming distinctly from a transient feed gap; the row pairs it
+ * with the lock glyph (a state, not a severity — it takes no status colour).
  */
 export function noTotalReason(lane: WaitsLane | null): string {
-  if (!lane) return 'No standard lane here';
+  // No lane in the snapshot at all is SILENCE — the crossing has not appeared
+  // in CBP's document for the snapshot window — not CBP saying the lane does
+  // not exist (that is `not_available`, below). Plan draws the same line.
+  if (!lane) return 'Not reporting a wait';
   switch (lane.status) {
     case 'not_available':
       return 'No standard lane here';
@@ -199,9 +202,4 @@ export function noTotalReason(lane: WaitsLane | null): string {
     case 'open':
       return 'No update from CBP';
   }
-}
-
-/** Whether the no-total capsule reads as a definitive closure or a mere gap. */
-export function noTotalTone(lane: WaitsLane | null): 'bad' | 'neutral' {
-  return lane?.status === 'closed' ? 'bad' : 'neutral';
 }

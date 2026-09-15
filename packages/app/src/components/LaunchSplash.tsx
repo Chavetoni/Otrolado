@@ -1,19 +1,34 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, Platform, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { color, font } from '../theme';
+import { color, font, motion } from '../theme';
 
 /**
- * The launch sequence, from the brand sheet ("Otrolado Brand.dc.html"):
+ * The launch sequence — 1.2s, down from the brand sheet's 2.2s (design system
+ * v2 §09: "a reward, not loading theater"):
  *
- *   0.0s  Cobalt field, booth with the gate down. Holds while the app renders.
- *   0.7s  Arm rotates 90° on the hinge, 750ms ease-out. Wordmark fades up
- *         250ms behind it.
- *   1.7s  Splash dissolves, 450ms, revealing the Crossings screen underneath.
- *   2.2s  Done. If the app is ready earlier, still finish the arm — never cut
- *         it mid-swing.
+ *   0.00s  Cobalt field, booth in place, arm down. Holds while the app renders.
+ *   0.25s  Arm starts lifting: 450ms, cubic-bezier(.3,.9,.3,1).
+ *   0.70s  Arm lands vertical. Wordmark fades up over 200ms.
+ *   1.05s  Splash dissolves, 150ms, revealing Crossings underneath.
+ *   1.20s  Interface live and interactive.
+ *
+ * Three rules ride on it:
+ *  - A WARM START SKIPS IT ENTIRELY — decided in app/_layout.tsx, which never
+ *    mounts this component when cached data is under ten minutes old.
+ *  - REDUCE MOTION: nothing rotates, nothing scales. The arm is drawn twice,
+ *    down and up, and cross-fades between them where the swing would have
+ *    been; the whole splash then cross-fades out over 200ms (§09).
+ *  - SLOW NETWORK: the splash still exits on schedule. Readiness never
+ *    shortens the timeline and slowness never extends it — Crossings appears
+ *    with skeletons if it must. The brand moment never gates the data.
+ *
+ * TIMING. Every step is its own native-driver timing with a `delay` measured
+ * from ONE start instant, run in parallel. A JS-side `Animated.sequence`
+ * waits on the JS thread between steps, and the JS thread is exactly what is
+ * busy while Crossings mounts underneath — so the 1.2s stretched.
  *
  * HOW THE HANDOFF WORKS
  *
@@ -21,13 +36,17 @@ import { color, font } from '../theme';
  * gate-down frame while JS loads. This overlay draws the identical frame —
  * the same booth image at the same 248×200 size, centred the same way, with
  * the arm at 0° — and only then asks the native splash to hide, so the swap
- * is invisible. The arm is drawn here rather than baked into the image because
- * it has to rotate; `assets/splash-icon.png` is the same composition rendered
- * flat for the native side. Change one and regenerate the other.
+ * is invisible. "Drawn" means laid out AND the booth image loaded: RN loads
+ * images asynchronously (in a dev build, over HTTP from Metro), and hiding on
+ * layout alone could flash a cobalt field with only the arm on it. A short
+ * fallback timer covers an image that never reports. The timeline starts at
+ * the same moment, so the hold is measured from the frame the user sees.
  *
- * The timeline is fixed once it starts: readiness never shortens it, per the
- * sheet. It runs on a per-launch clock, so the app can be fully interactive
- * beneath it before the dissolve begins.
+ * The arm is drawn here rather than baked into the image because it has to
+ * move; `assets/splash-icon.png` is the same composition rendered flat for
+ * the native side. Change one and regenerate the other. (On Android 12+ the
+ * system splash is a masked icon, so the swap is not pixel-identical there;
+ * its exit fade is shortened below so it doesn't cover the hold.)
  */
 
 /** The brand box the splash panel is drawn in. Units are dp. */
@@ -39,14 +58,22 @@ const PIVOT = 8.5;
 /** Gap between the mark and the wordmark. */
 const WORD_GAP = 44;
 
+/** Milliseconds from the start instant. */
 const T = {
-  hold: 700,
-  swing: 750,
-  wordDelay: 250,
-  word: 500,
-  dissolveAt: 1700,
-  dissolve: 450,
+  armAt: 250,
+  swing: motion.gate,
+  /** Reduce Motion: the down→up cross-fade that stands in for the swing. */
+  crossfade: 200,
+  wordAt: 700,
+  word: 200,
+  dissolveAt: 1050,
+  dissolve: 150,
+  /** Reduce Motion exit: "whole splash cross-fades in 200ms" (§09). */
+  dissolveReduced: 200,
 } as const;
+
+/** Give up waiting for the booth image and hide the native splash anyway. */
+const IMAGE_WAIT_MS = 500;
 
 /**
  * The sheet's `linear-gradient(112deg, …)` expressed as a user-space SVG
@@ -65,7 +92,20 @@ const BOOTH = require('../../assets/splash-booth.png');
 // react-native-web has no native animated module; same guard as ui.tsx.
 const NATIVE_DRIVER = Platform.OS !== 'web';
 
-export function LaunchSplash({ onDone }: { onDone: () => void }) {
+/** Rotate about the pin, not the arm's centre. */
+const aboutPivot = (rotate: Animated.AnimatedInterpolation<string> | string) => [
+  { translateX: -(ARM.w / 2 - PIVOT) },
+  { rotate },
+  { translateX: ARM.w / 2 - PIVOT },
+];
+
+export function LaunchSplash({
+  onDone,
+  reduceMotion = false,
+}: {
+  onDone: () => void;
+  reduceMotion?: boolean;
+}) {
   const arm = useRef(new Animated.Value(0)).current; // 0 = closed, 1 = open
   const word = useRef(new Animated.Value(0)).current;
   const veil = useRef(new Animated.Value(1)).current;
@@ -74,101 +114,149 @@ export function LaunchSplash({ onDone }: { onDone: () => void }) {
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
 
+  // The handoff gate: first layout, and the booth image loaded (or given up on).
+  const [laidOut, setLaidOut] = useState(false);
+  const [imageReady, setImageReady] = useState(false);
+  const markImageReady = useCallback(() => setImageReady(true), []);
   useEffect(() => {
-    const seq = Animated.sequence([
-      Animated.delay(T.hold),
-      Animated.parallel([
-        Animated.timing(arm, {
-          toValue: 1,
-          duration: T.swing,
-          easing: Easing.bezier(0.3, 0.9, 0.3, 1),
-          useNativeDriver: NATIVE_DRIVER,
-        }),
-        Animated.sequence([
-          Animated.delay(T.wordDelay),
-          Animated.timing(word, {
-            toValue: 1,
-            duration: T.word,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: NATIVE_DRIVER,
-          }),
-        ]),
-      ]),
-      Animated.delay(T.dissolveAt - T.hold - T.swing),
+    const id = setTimeout(markImageReady, IMAGE_WAIT_MS);
+    return () => clearTimeout(id);
+  }, [markImageReady]);
+  const drawn = laidOut && imageReady;
+
+  useEffect(() => {
+    if (!drawn) return;
+
+    // Our frame is on screen: drop the native one showing the same picture.
+    // Android always fades its splash out (400ms by default, `fade` ignored),
+    // which would sit over the hold and half the swing; keep it short. No-op
+    // on web.
+    if (Platform.OS === 'android') {
+      try {
+        SplashScreen.setOptions({ duration: 150 });
+      } catch {
+        // Older runtime: accept the default fade.
+      }
+    }
+    void SplashScreen.hideAsync().catch(() => {});
+
+    const dissolveFor = reduceMotion ? T.dissolveReduced : T.dissolve;
+
+    const timeline = Animated.parallel([
+      // With motion: the swing. Without: the same value drives the opacity
+      // cross-fade between the two arm drawings — linear, since a fade with
+      // an easing curve reads as a stutter.
+      Animated.timing(arm, {
+        toValue: 1,
+        delay: T.armAt,
+        duration: reduceMotion ? T.crossfade : T.swing,
+        easing: reduceMotion ? Easing.linear : Easing.bezier(0.3, 0.9, 0.3, 1),
+        useNativeDriver: NATIVE_DRIVER,
+      }),
+      Animated.timing(word, {
+        toValue: 1,
+        delay: T.wordAt,
+        duration: T.word,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: NATIVE_DRIVER,
+      }),
       Animated.timing(veil, {
         toValue: 0,
-        duration: T.dissolve,
-        easing: Easing.out(Easing.quad),
+        delay: T.dissolveAt,
+        duration: dissolveFor,
+        easing: reduceMotion ? Easing.linear : Easing.out(Easing.quad),
         useNativeDriver: NATIVE_DRIVER,
       }),
     ]);
+
     const release = setTimeout(() => setDissolving(true), T.dissolveAt);
-    seq.start(({ finished }) => {
+    timeline.start(({ finished }) => {
       if (finished) onDoneRef.current();
     });
     return () => {
       clearTimeout(release);
-      seq.stop();
+      timeline.stop();
     };
-  }, [arm, word, veil]);
+  }, [drawn, arm, word, veil, reduceMotion]);
+
+  const armSvg = (
+    <Svg width={ARM.w} height={ARM.h} viewBox={`0 0 ${ARM.w} ${ARM.h}`}>
+      <Defs>
+        <LinearGradient
+          id="stripes"
+          gradientUnits="userSpaceOnUse"
+          x1={G0.x}
+          y1={G0.y}
+          x2={G1.x}
+          y2={G1.y}
+        >
+          <Stop offset={0} stopColor={color.surface} />
+          <Stop offset={0.4} stopColor={color.surface} />
+          <Stop offset={0.4} stopColor={color.cobalt} />
+          <Stop offset={0.52} stopColor={color.cobalt} />
+          <Stop offset={0.52} stopColor={color.surface} />
+          <Stop offset={0.64} stopColor={color.surface} />
+          <Stop offset={0.64} stopColor={color.cobalt} />
+          <Stop offset={0.76} stopColor={color.cobalt} />
+          <Stop offset={0.76} stopColor={color.surface} />
+          <Stop offset={1} stopColor={color.surface} />
+        </LinearGradient>
+      </Defs>
+      <Rect x={0} y={0} width={ARM.w} height={ARM.h} rx={ARM.r} fill="url(#stripes)" />
+      <Circle cx={PIVOT} cy={ARM.h / 2} r={3.5} fill={color.cobalt} />
+    </Svg>
+  );
 
   return (
     <Animated.View
       style={[styles.veil, { opacity: veil, pointerEvents: dissolving ? 'none' : 'auto' }]}
-      // First layout means this frame is painted: safe to drop the native
-      // splash showing the same picture. No-op on web.
-      onLayout={() => {
-        void SplashScreen.hideAsync().catch(() => {});
-      }}
+      onLayout={() => setLaidOut(true)}
+      // Decorative: the brand moment has nothing a screen reader needs, and
+      // the screen beneath is what it should reach.
+      aria-hidden
     >
       <StatusBar style="light" />
       <View style={styles.box}>
-        <Image source={BOOTH} style={styles.booth} resizeMode="contain" />
-        <Animated.View
-          style={[
-            styles.arm,
-            {
-              transform: [
-                // Rotate about the pin, not the arm's centre.
-                { translateX: -(ARM.w / 2 - PIVOT) },
-                { rotate: arm.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '-90deg'] }) },
-                { translateX: ARM.w / 2 - PIVOT },
-              ],
-            },
-          ]}
-        >
-          <Svg width={ARM.w} height={ARM.h} viewBox={`0 0 ${ARM.w} ${ARM.h}`}>
-            <Defs>
-              <LinearGradient
-                id="stripes"
-                gradientUnits="userSpaceOnUse"
-                x1={G0.x}
-                y1={G0.y}
-                x2={G1.x}
-                y2={G1.y}
-              >
-                <Stop offset={0} stopColor={color.surface} />
-                <Stop offset={0.4} stopColor={color.surface} />
-                <Stop offset={0.4} stopColor={color.cobalt} />
-                <Stop offset={0.52} stopColor={color.cobalt} />
-                <Stop offset={0.52} stopColor={color.surface} />
-                <Stop offset={0.64} stopColor={color.surface} />
-                <Stop offset={0.64} stopColor={color.cobalt} />
-                <Stop offset={0.76} stopColor={color.cobalt} />
-                <Stop offset={0.76} stopColor={color.surface} />
-                <Stop offset={1} stopColor={color.surface} />
-              </LinearGradient>
-            </Defs>
-            <Rect x={0} y={0} width={ARM.w} height={ARM.h} rx={ARM.r} fill="url(#stripes)" />
-            <Circle cx={PIVOT} cy={ARM.h / 2} r={3.5} fill={color.cobalt} />
-          </Svg>
-        </Animated.View>
+        <Image
+          source={BOOTH}
+          style={styles.booth}
+          resizeMode="contain"
+          onLoadEnd={markImageReady}
+        />
+        {reduceMotion ? (
+          <>
+            <Animated.View
+              style={[styles.arm, { opacity: Animated.subtract(1, arm), transform: aboutPivot('0deg') }]}
+            >
+              {armSvg}
+            </Animated.View>
+            <Animated.View style={[styles.arm, { opacity: arm, transform: aboutPivot('-90deg') }]}>
+              {armSvg}
+            </Animated.View>
+          </>
+        ) : (
+          <Animated.View
+            style={[
+              styles.arm,
+              {
+                transform: aboutPivot(
+                  arm.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '-90deg'] }),
+                ),
+              },
+            ]}
+          >
+            {armSvg}
+          </Animated.View>
+        )}
         <Animated.View
           style={[
             styles.wordmark,
             {
               opacity: word,
-              transform: [{ translateY: word.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }],
+              // The 8px rise is motion too; under Reduce Motion the wordmark only fades.
+              transform: reduceMotion
+                ? []
+                : [{ translateY: word.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }],
             },
           ]}
         >

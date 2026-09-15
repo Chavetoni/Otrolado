@@ -1,6 +1,7 @@
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Port } from '@otrolado/shared';
 import { color, font, radius, space } from '../theme';
+import { caption } from '../typography';
 import { ArrowUpRightGlyph, CameraGlyph, PinGlyph } from './glyphs';
 
 /**
@@ -37,31 +38,31 @@ export function GroundTruthCard({ port }: { port: Port }) {
     <View style={styles.card}>
       {hasCam && (
         <Pressable
-          style={styles.row}
+          style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
           onPress={() => {
             // A failed open (no browser) is not worth crashing over.
             Linking.openURL(port.webcamUrl!).catch(() => {});
           }}
-          accessibilityRole="link"
-          accessibilityLabel={`Watch the line live: ${port.webcamLabel ?? 'webcam'}`}
+          role="link"
+          aria-label={`Watch the line live: ${port.webcamLabel ?? 'webcam'}. Opens the operator's page`}
         >
           <View style={styles.iconTile}>
-            <CameraGlyph size={18} color={color.navy} />
+            <CameraGlyph size={20} color={color.navy} />
           </View>
           <View style={styles.rowBody}>
             <Text style={styles.rowTitle}>Watch the line live</Text>
             {port.webcamLabel && <Text style={styles.rowSub}>{port.webcamLabel}</Text>}
           </View>
-          <ArrowUpRightGlyph size={14} color={color.muted} />
+          <ArrowUpRightGlyph size={16} color={color.muted} />
         </Pressable>
       )}
 
       {hasCam && hasLineStart && <View style={styles.divider} />}
 
       {hasLineStart && (
-        <View style={styles.row}>
+        <View style={styles.row} accessible>
           <View style={styles.iconTile}>
-            <PinGlyph size={18} color={color.navy} />
+            <PinGlyph size={20} color={color.navy} />
           </View>
           <View style={styles.rowBody}>
             <Text style={styles.rowTitle}>Line usually starts at</Text>
@@ -73,6 +74,8 @@ export function GroundTruthCard({ port }: { port: Port }) {
   );
 }
 
+const TILE = 36;
+
 const styles = StyleSheet.create({
   card: {
     marginHorizontal: space.gutter,
@@ -81,24 +84,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: color.line,
     borderRadius: radius.card,
+    // Clips the pressed row's mist fill to the card's rounded corners.
+    overflow: 'hidden',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingHorizontal: 15,
+    paddingHorizontal: space.cardPad,
     paddingVertical: 12,
+    minHeight: 60,
   },
-  divider: { height: 1, backgroundColor: color.line, marginLeft: 60 },
+  rowPressed: { backgroundColor: color.mist },
+  divider: { height: 1, backgroundColor: color.line, marginLeft: space.cardPad + TILE + 12 },
   iconTile: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
+    width: TILE,
+    height: TILE,
+    borderRadius: radius.sm,
     backgroundColor: color.infoTint,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rowBody: { flex: 1, gap: 2 },
-  rowTitle: { fontSize: 13.5, fontFamily: font.semibold, color: color.navy },
-  rowSub: { fontSize: 11, fontFamily: font.regular, color: color.muted, lineHeight: 15 },
+  rowBody: { flex: 1, gap: 1 },
+  rowTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  rowSub: { ...caption, color: color.muted },
 });
