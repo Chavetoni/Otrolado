@@ -53,9 +53,10 @@ export function findPlace(id: string | null): Place | null {
  * How far a GPS fix may sit from a town before "Near <town>" stops being a
  * fair description of where you are. The valley's towns are 5–20 miles apart,
  * so 25 miles reaches the next one without ever claiming a place you can't
- * see; past it the header says the region instead of guessing a city.
+ * see. Past it the fix names no place at all — not a city, and not the region
+ * either: a phone in San Antonio is not "near Rio Grande Valley, TX".
  */
-const NEAR_MAX_MILES = 25;
+export const NEAR_MAX_MILES = 25;
 
 /**
  * The nearest named place to a fix, or null when nothing is close enough.

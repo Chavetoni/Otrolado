@@ -12,6 +12,17 @@
       "expo-router",
       "expo-font",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Otrolado uses your location to estimate the drive to each border crossing, so it can rank them by total time.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false,
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
@@ -23,7 +34,10 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.otrolado.app"
+      "bundleIdentifier": "com.otrolado.app",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["comgooglemaps", "waze"]
+      }
     },
     "android": {
       "package": "com.otrolado.app",

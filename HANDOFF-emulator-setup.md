@@ -1,7 +1,7 @@
 # Handoff: iOS simulator setup + VS Code debug config
 
 Context for a fresh Claude session asked to review this work.
-Repo: `/Users/danny/Desktop/Workspace/Projects/work/Otrolado` (Otrolado / CrossQ).
+Repo: `~/Developer/Projects/work/Otrolado` (Otrolado / CrossQ). Moved off the Desktop on 2026-09-14 — see CLAUDE.md, "Keep the repo out of iCloud-synced folders".
 **Not a git repo** — there is no diff to read. The changed files are listed explicitly below.
 
 ## Original request
