@@ -95,3 +95,25 @@ jobs:
       # history is being written into the wrong hour.
       - name: Poll CBP
         run: pnpm ingest
+
+      # Dead-man's switch. A failed run emails you; a run that never STARTS
+      # (expired PAT, dead Worker, workflow disabled by GitHub) is silent, and
+      # the hours it misses cannot be backfilled. healthchecks.io alerts when
+      # these check-ins stop arriving. HC_PING_URL is a repo secret; until it
+      # is set, both steps skip. Neither can fail the job — a monitoring
+      # outage must not mark a good ingest as failed.
+      - name: Check in (success)
+        if: success()
+        env:
+          HC_PING_URL: ${{ secrets.HC_PING_URL }}
+        run: |
+          [ -n "$HC_PING_URL" ] || { echo 'HC_PING_URL not set; skipping'; exit 0; }
+          curl -fsS -m 10 --retry 3 -o /dev/null "$HC_PING_URL" || echo '::warning::check-in failed'
+
+      - name: Check in (failure)
+        if: failure()
+        env:
+          HC_PING_URL: ${{ secrets.HC_PING_URL }}
+        run: |
+          [ -n "$HC_PING_URL" ] || exit 0
+          curl -fsS -m 10 --retry 3 -o /dev/null "$HC_PING_URL/fail" || echo '::warning::check-in failed'

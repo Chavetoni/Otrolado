@@ -311,6 +311,8 @@ A laptop cannot poll CBP around the clock — `launchd` doesn't run through slee
 
 GitHub's own `schedule:` cron proved unreliable on this repo (measured: 3 of 22 possible hourly windows fired in one 12-hour stretch), while `workflow_dispatch` has fired every time it was tried. `workers/ingest-cron` is a Cloudflare Worker with no `fetch` handler — just a cron trigger that calls `workflow_dispatch` on `ingest.yml` every 15 minutes. It holds a fine-grained GitHub PAT (`Actions: Read and write` only) as a Wrangler secret, never in this repo. The workflow's own `schedule:` stays in place as free redundancy — ingest is idempotent, so a doubled run just writes 0 rows.
 
+Two guards against the archive stopping silently. The Worker re-enables `ingest.yml` before every dispatch, because GitHub disables scheduled workflows after 60 days without a commit on a public repo, and a disabled workflow rejects `workflow_dispatch` as well. And the workflow's last step checks in with healthchecks.io (repo secret `HC_PING_URL`; both check-in steps skip while it is unset and can never fail the job), which alerts when check-ins stop — the only thing that catches a run that never starts, since GitHub only emails about runs that start and fail.
+
 ## Working with `design/`
 
 `.dc.html` files are rendered client-side by `support.js` (vendored `dc-runtime`). Serve over HTTP — the runtime fetches page source and `x-import`ed modules, both of which fail on `file://`:

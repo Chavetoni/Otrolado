@@ -38,3 +38,12 @@ gh run list --workflow=ingest.yml       # runs should now say workflow_dispatch
 
 A dispatch that fails throws, so a broken token shows up as an errored
 invocation rather than as silence.
+
+Each tick also re-enables `ingest.yml` first (best-effort), because GitHub
+disables scheduled workflows after 60 days without a commit and a disabled
+workflow rejects dispatches too. A failed enable logs `enable failed:` in
+`wrangler tail` and the dispatch still goes ahead.
+
+Neither of these catches a Worker that has stopped running altogether — that is
+what the healthchecks.io check-in at the end of `ingest.yml` is for (repo
+secret `HC_PING_URL`).

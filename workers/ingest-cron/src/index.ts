@@ -7,6 +7,13 @@
  * look exactly like a working one until someone noticed a hole in the archive
  * weeks later, and holes cannot be backfilled. Throwing marks the invocation
  * as errored in Cloudflare's dashboard and in `wrangler tail`.
+ *
+ * Each tick re-enables the workflow before dispatching it. GitHub disables
+ * workflows that carry a `schedule:` trigger after 60 days without a commit
+ * on a public repo, and a disabled workflow rejects `workflow_dispatch` too —
+ * so a quiet stretch waiting on the archive to mature would stop the archive.
+ * Enabling an enabled workflow is a no-op (204). The PAT's Actions: write
+ * already covers it.
  */
 
 interface Env {
@@ -19,20 +26,33 @@ interface Env {
 
 export default {
   async scheduled(_event: unknown, env: Env): Promise<void> {
-    const url =
+    const workflowUrl =
       `https://api.github.com/repos/${env.REPO}` +
-      `/actions/workflows/${env.WORKFLOW}/dispatches`;
+      `/actions/workflows/${env.WORKFLOW}`;
+    const headers = {
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      // GitHub rejects API requests without one.
+      'User-Agent': 'otrolado-ingest-cron',
+    };
 
-    const res = await fetch(url, {
+    // Best-effort: a failed enable must not skip the dispatch. If the workflow
+    // really is disabled, the dispatch below fails and throws anyway.
+    const enable = await fetch(`${workflowUrl}/enable`, {
+      method: 'PUT',
+      headers,
+    }).catch((err: unknown) => err);
+    if (!(enable instanceof Response) || enable.status !== 204) {
+      console.warn(
+        'enable failed:',
+        enable instanceof Response ? `HTTP ${enable.status}` : enable,
+      );
+    }
+
+    const res = await fetch(`${workflowUrl}/dispatches`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-        // GitHub rejects API requests without one.
-        'User-Agent': 'otrolado-ingest-cron',
-        'Content-Type': 'application/json',
-      },
+      headers: { ...headers, 'Content-Type': 'application/json' },
       body: JSON.stringify({ ref: env.REF }),
     });
 
