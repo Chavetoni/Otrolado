@@ -7,31 +7,46 @@ import {
   numberInkOnCobalt,
   spokenFreshness,
 } from './freshness-ui';
-import { color, status } from './theme';
+import { themes } from './theme';
 import { AA, contrastRatio } from './contrast.test-helpers';
 
-describe('freshnessBadge', () => {
+describe.each(['light', 'dark'] as const)('freshnessBadge — %s', (scheme) => {
+  const t = themes[scheme];
   it('shows nothing while live, and distinct verdicts once not', () => {
-    expect(freshnessBadge('live')).toBeNull();
-    expect(freshnessBadge('estimated')).toMatchObject({ label: 'ESTIMATED', bg: status.moderate.tint });
+    expect(freshnessBadge('live', t)).toBeNull();
+    expect(freshnessBadge('estimated', t)).toMatchObject({ label: 'ESTIMATED', bg: t.status.moderate.tint });
     // Red, not amber: a stale figure must never read as merely approximate.
-    expect(freshnessBadge('stale')).toMatchObject({ label: 'STALE', bg: status.heavy.tint });
+    expect(freshnessBadge('stale', t)).toMatchObject({ label: 'STALE', bg: t.status.heavy.tint });
+    expect(freshnessBadge('stale', t)!.bg).not.toBe(freshnessBadge('estimated', t)!.bg);
+  });
+
+  it('the badge reads on its own tint', () => {
+    for (const f of ['estimated', 'stale'] as const) {
+      const b = freshnessBadge(f, t)!;
+      expect(contrastRatio(b.fg, b.bg)).toBeGreaterThanOrEqual(AA);
+    }
   });
 });
 
-describe('number inks', () => {
-  it('steps a non-live number down on light surfaces', () => {
-    expect(numberInk('live')).toBe(color.navy);
-    expect(numberInk('estimated')).toBe(color.muted);
-    expect(numberInk('stale')).toBe(color.muted);
+describe.each(['light', 'dark'] as const)('number inks — %s', (scheme) => {
+  const t = themes[scheme];
+  const { color } = t;
+
+  it('steps a non-live number down on the page and cards', () => {
+    expect(numberInk('live', t)).toBe(color.inkHero);
+    expect(numberInk('estimated', t)).toBe(color.muted);
+    expect(numberInk('stale', t)).toBe(color.muted);
+    // Both inks must read on a card; the step-down is a change, not a fade.
+    expect(contrastRatio(numberInk('stale', t), color.surface)).toBeGreaterThanOrEqual(AA);
+    expect(numberInk('stale', t)).not.toBe(numberInk('live', t));
   });
 
   it('steps down on cobalt to an ink that still reads there', () => {
-    expect(numberInkOnCobalt('live')).toBe(color.surface);
-    expect(numberInkOnCobalt('stale')).toBe(color.cobaltLight);
+    expect(numberInkOnCobalt('live', t)).toBe(color.onCobalt);
+    expect(numberInkOnCobalt('stale', t)).toBe(color.cobaltLight);
     // The trap this guards: `muted` is 1.5:1 on the hero.
-    expect(contrastRatio(numberInkOnCobalt('stale'), color.cobalt)).toBeGreaterThanOrEqual(AA);
-    expect(contrastRatio(color.muted, color.cobalt)).toBeLessThan(2);
+    expect(contrastRatio(numberInkOnCobalt('stale', t), color.cobalt)).toBeGreaterThanOrEqual(AA);
+    expect(contrastRatio(color.muted, color.cobalt)).toBeLessThan(3);
   });
 });
 

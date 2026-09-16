@@ -6,6 +6,7 @@ import type {
   WaitsLane,
   WaitsResponse,
 } from '@otrolado/shared';
+import { boothBreakdown, type BoothBreakdown } from './booths';
 import { estimateDrive, type DriveEstimate } from './drive';
 
 export interface RankedPort {
@@ -22,6 +23,12 @@ export interface RankedPort {
    * the standard lane so the headline number means the same thing on every row.
    */
   readonly ready: WaitsLane | null;
+  /**
+   * Booth staffing for this crossing's group, split around `primary`. Null
+   * when CBP publishes no `maximum_lanes` for the group — see `booths.ts` for
+   * why the count cannot simply be paired with the primary lane's own.
+   */
+  readonly booths: BoothBreakdown | null;
   /** drive + wait. Null when the standard lane has no usable number. */
   readonly totalMinutes: number | null;
   readonly freshness: Freshness;
@@ -81,6 +88,9 @@ export function rankPorts(
         primary,
         trusted,
         ready,
+        // `forMode`, not `lanes`: `maxLanes` counts one mode's booths, so the
+        // pedestrian plaza must never be split against the vehicle one.
+        booths: boothBreakdown(forMode, primary),
         totalMinutes: usable ? drive.minutes + primary!.waitMinutes! : null,
         freshness: primary?.freshness ?? 'stale',
       } satisfies RankedPort;

@@ -1,17 +1,19 @@
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 import { TabList, TabSlot, TabTrigger, Tabs, type TabTriggerSlotProps } from 'expo-router/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BellGlyph, ClockGlyph, CrossingGlyph } from '../../src/components/glyphs';
 import { pressedScale } from '../../src/components/ui';
 import { useAlertWatch } from '../../src/useAlertWatch';
-import { color, font, space } from '../../src/theme';
+import { font, space } from '../../src/theme';
+import { makeStyles, useTheme } from '../../src/useTheme';
 
 /**
- * The design-system tab bar (v2 §05), built on `expo-router/ui`: white
- * surface, 1px `line` border-top, no shadow, no pill. Active is a cobalt
- * glyph and a cobalt label; inactive is `muted` for BOTH — v1's pale
- * `#D3DBEE` icon square is gone, because a pale fill read as disabled rather
- * than as "the other tabs". Labels went 10 → 11px.
+ * The design-system tab bar (v2 §05), built on `expo-router/ui`: `surface`
+ * ground, 1px `line` border-top, no shadow, no pill. Active is an `accent`
+ * glyph and an `accent` label (cobalt in light; the lifted cobalt-light
+ * `accent` in dark, where plain cobalt is 2.3:1); inactive is `muted` for
+ * BOTH — v1's pale `line`-coloured icon square is gone, because a pale fill
+ * read as disabled rather than as "the other tabs". Labels went 10 → 11px.
  *
  * SDK 57's router dropped @react-navigation/bottom-tabs, so the older
  * `<Tabs tabBar={...}>` pattern does not exist here — the headless
@@ -68,7 +70,9 @@ function TabButton({
   icon,
   ...props
 }: TabTriggerSlotProps & { label: string; icon: IconKey }) {
-  const tint = isFocused ? color.cobalt : color.muted;
+  const { color } = useTheme();
+  const styles = useStyles();
+  const tint = isFocused ? color.accent : color.muted;
   return (
     <Pressable
       {...props}
@@ -87,6 +91,7 @@ function TabButton({
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const styles = useStyles();
 
   /**
    * Alert rules are evaluated here, above the screens, so they keep running on
@@ -130,8 +135,9 @@ export default function TabLayout() {
       {/*
         The status bar is transparent on iOS, and every tab screen pads its
         inset INSIDE its ScrollView — so anything scrolled up slid under the
-        clock and the Dynamic Island (dark clock over the cobalt hero). A mist
-        band the height of the inset gives the bar a ground on all three tabs.
+        clock and the Dynamic Island (dark clock over the cobalt hero). A page-
+        coloured band the height of the inset gives the bar a ground on all
+        three tabs.
         Web has no status bar: the inset is 0 there and this renders nothing.
       */}
       <View style={[styles.statusBand, { height: insets.top }]} />
@@ -139,8 +145,8 @@ export default function TabLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  // White, border-top 1px line, padding 12 20 20. The bottom padding is
+const useStyles = makeStyles(({ color }) => ({
+  // Surface, border-top 1px line, padding 12 20 20. The bottom padding is
   // applied inline so the safe-area inset can widen it.
   bar: {
     flexDirection: 'row',
@@ -164,7 +170,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: color.mist,
+    backgroundColor: color.page,
     pointerEvents: 'none',
   },
-});
+}));

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ThemeToggle } from '../../src/components/ThemeToggle';
 import { pressedScale, SectionLabel, Toggle } from '../../src/components/ui';
 import {
   ArrowDownGlyph,
@@ -18,7 +19,8 @@ import { usePorts, useWaits } from '../../src/queries';
 import { formatMinutes, tripLaneLabel } from '../../src/trip';
 import { useAgedWaits } from '../../src/useFreshness';
 import { useSavedTrip, type SavedTripView } from '../../src/useSavedTrip';
-import { color, font, radius, space, status, tabular } from '../../src/theme';
+import { font, radius, space, tabular } from '../../src/theme';
+import { makeStyles, useTheme } from '../../src/useTheme';
 import { caption, type } from '../../src/typography';
 
 /**
@@ -56,7 +58,9 @@ function eventClock(at: string): string {
  * leave, a lock for closure, rising for a spike.
  */
 function RuleIcon({ id }: { id: AlertRuleId }) {
-  const tint = color.cobalt;
+  const { color } = useTheme();
+  const styles = useStyles();
+  const tint = color.infoAccent;
   return (
     <View style={styles.ruleIcon}>
       {id === 'faster' ? (
@@ -74,6 +78,8 @@ function RuleIcon({ id }: { id: AlertRuleId }) {
 
 /** Activity icons follow the event's tone, not its rule. */
 function EventIcon({ tone }: { tone: 'good' | 'bad' | 'warn' }) {
+  const { status } = useTheme();
+  const styles = useStyles();
   const tint =
     tone === 'good' ? status.clear.ink : tone === 'bad' ? status.heavy.ink : status.moderate.ink;
   const bg =
@@ -92,6 +98,8 @@ function EventIcon({ tone }: { tone: 'good' | 'bad' | 'warn' }) {
 }
 
 export default function Alerts() {
+  const { color, status } = useTheme();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { rules, watchlist, activity } = usePrefs();
   const ports = usePorts();
@@ -118,15 +126,18 @@ export default function Alerts() {
 
   return (
     <ScrollView
-      style={{ backgroundColor: color.mist }}
+      style={{ backgroundColor: color.page }}
       contentContainerStyle={{
         paddingTop: insets.top + 12,
         paddingBottom: space.tabBarClearance,
       }}
     >
-      <View style={{ paddingHorizontal: space.gutter, gap: 2 }}>
-        <Text style={styles.title}>Alerts</Text>
-        <Text style={styles.subtitle}>Get notified when it matters.</Text>
+      <View style={styles.titleRow}>
+        <View style={styles.titleText}>
+          <Text style={styles.title}>Alerts</Text>
+          <Text style={styles.subtitle}>Get notified when it matters.</Text>
+        </View>
+        <ThemeToggle />
       </View>
 
       {/*
@@ -207,7 +218,7 @@ export default function Alerts() {
                       <Text
                         style={[
                           styles.watchChipText,
-                          { color: on ? color.surface : color.muted },
+                          { color: on ? color.onSelected : color.muted },
                         ]}
                       >
                         {p.displayName}
@@ -336,6 +347,7 @@ export default function Alerts() {
  * exists to prevent. Every state names what is (or is not) being watched.
  */
 function TripRuleLine({ view }: { view: SavedTripView | null }) {
+  const styles = useStyles();
   if (!view) {
     return <Text style={styles.ruleBlocked}>Tap a crossing on Plan to set a trip</Text>;
   }
@@ -379,8 +391,12 @@ function TripRuleLine({ view }: { view: SavedTripView | null }) {
 
 const TILE = 36;
 
-const styles = StyleSheet.create({
-  title: { ...type.screenTitle, color: color.navy },
+const useStyles = makeStyles(({ color, status }) => ({
+  titleRow: {
+    paddingHorizontal: space.gutter, flexDirection: 'row', alignItems: 'center', gap: 12,
+  },
+  titleText: { flex: 1, gap: 2 },
+  title: { ...type.screenTitle, color: color.ink },
   subtitle: { ...type.body, color: color.muted },
 
   // Capability limit: amber, one row, expandable. See the module comment for
@@ -404,40 +420,47 @@ const styles = StyleSheet.create({
     padding: space.cardPad, gap: 12,
   },
   watchHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  watchCount: { ...type.metric, color: color.navy },
+  watchCount: { ...type.metric, color: color.inkHero },
   // 44pt tall inside the card's own padding, so the whole target is real
   // (iOS only hit-tests slop that lands inside the parent's bounds).
   manageBtn: {
-    backgroundColor: color.surface, borderRadius: radius.pill,
+    backgroundColor: color.surface,
+    // On a tint: the edge only draws in dark — see `surfaceEdge`.
+    borderWidth: 1, borderColor: color.surfaceEdge, borderRadius: radius.pill,
     paddingHorizontal: 16, minHeight: space.hitMin, justifyContent: 'center',
   },
-  manageBtnPressed: { backgroundColor: color.mist },
-  manageText: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.cobalt },
+  manageBtnPressed: { backgroundColor: color.inset },
+  manageText: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.accent },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  // Filter chips: active navy fill, inactive white with a 1px line border.
+  // Filter chips: active `selectedFill`, inactive `surface` with a 1px line border.
   // Both carry the 1px border (the active one in its own fill) so both sit on
   // the 4pt grid at the same height — v1's 7/13-plus-border trick is gone.
   // 12 + 16 + 12 + 2 = 42pt, and the 2pt of row gap reaches the 44 floor.
   watchChipOn: {
     paddingHorizontal: 12, paddingVertical: 12,
-    borderRadius: radius.pill, backgroundColor: color.navy,
-    borderWidth: 1, borderColor: color.navy,
+    borderRadius: radius.pill, backgroundColor: color.selectedFill,
+    borderWidth: 1, borderColor: color.selectedFill,
   },
   watchChipOff: {
     paddingHorizontal: 12, paddingVertical: 12,
     borderRadius: radius.pill, backgroundColor: color.surface,
     borderWidth: 1, borderColor: color.line,
   },
-  watchChipOnPressed: { backgroundColor: color.navyTint, borderColor: color.navyTint },
-  watchChipOffPressed: { backgroundColor: color.mist },
+  watchChipOnPressed: { backgroundColor: color.selectedFillPressed, borderColor: color.selectedFillPressed },
+  watchChipOffPressed: { backgroundColor: color.inset },
   watchChipText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold },
   // Summary chips are not controls — they read as labels so nobody taps one
-  // expecting it to toggle. Managing happens behind the button.
+  // expecting it to toggle. Managing happens behind the button. They never
+  // share the screen with the toggle chips (Manage swaps one set for the
+  // other) and are 10pt shorter, so the dark-mode edge below cannot make one
+  // pass for a checkbox.
   watchChipQuiet: {
     paddingHorizontal: 12, paddingVertical: 8,
     borderRadius: radius.pill, backgroundColor: color.surface,
+    // On a tint: the edge only draws in dark — see `surfaceEdge`.
+    borderWidth: 1, borderColor: color.surfaceEdge,
   },
-  watchChipQuietText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.cobalt },
+  watchChipQuietText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.accent },
 
   sectionLabel: { paddingHorizontal: space.gutter, marginTop: space.sectionGap, marginBottom: 8 },
   rulesCard: {
@@ -450,29 +473,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.cardPad, paddingVertical: 14,
   },
   ruleIcon: {
-    width: TILE, height: TILE, borderRadius: radius.sm, backgroundColor: color.infoTint,
+    width: TILE, height: TILE, borderRadius: radius.sm, backgroundColor: color.iconTile,
     alignItems: 'center', justifyContent: 'center',
   },
   ruleDivider: { borderBottomWidth: 1, borderBottomColor: color.line },
-  ruleName: { ...type.cardTitle, color: color.navy },
+  ruleName: { ...type.cardTitle, color: color.ink },
   ruleDesc: { ...type.metadata, fontFamily: font.regular, color: color.muted },
   ruleBlocked: { ...type.metadata, color: color.muted },
 
   helpText: { fontSize: 12, lineHeight: 17, fontFamily: font.regular, color: color.infoInk },
 
   activityHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  clearText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.cobalt },
+  clearText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.accent },
   // A text link's 44pt touch height, held by its own padding and given back
   // with a negative margin, so the frame overflows the row and iOS hit-tests
   // it (hitSlop past the parent's bounds it clips).
   inlineLink: { paddingVertical: 14, marginVertical: -14, justifyContent: 'center' },
-  linkPressed: { color: color.cobaltDeep },
+  linkPressed: { color: color.accentPressed },
 
   emptyCard: {
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
     borderRadius: radius.card, padding: space.cardPad, gap: 4,
   },
-  emptyTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  emptyTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.ink },
   emptyBody: { ...type.metadata, fontFamily: font.regular, color: color.muted },
 
   eventRow: {
@@ -484,7 +507,7 @@ const styles = StyleSheet.create({
     width: TILE, height: TILE, borderRadius: radius.sm,
     alignItems: 'center', justifyContent: 'center',
   },
-  eventTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  eventTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.ink },
   eventBody: { ...type.metadata, fontFamily: font.regular, color: color.muted },
   eventTime: { ...type.metadata, color: color.muted },
 
@@ -492,4 +515,4 @@ const styles = StyleSheet.create({
     ...caption, color: color.muted,
     paddingHorizontal: space.gutter, marginTop: space.sectionGap,
   },
-});
+}));

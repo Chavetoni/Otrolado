@@ -7,7 +7,8 @@ import { PIN, pinAnchorY, pinCenterOffsetY, pinColor, pinLabel, pinName, pinShow
 import { boundsOf, boundsToRegion } from '../map-bounds';
 import type { RankedPort } from '../ranking';
 import type { Origin } from '../useOrigin';
-import { color, font, radius, space, tabular } from '../theme';
+import { font, radius, space, tabular } from '../theme';
+import { makeStyles, useTheme } from '../useTheme';
 
 /**
  * The crossings map, in two variants.
@@ -71,6 +72,8 @@ export default function CrossingsMap({
   insetBottom = 0,
   insetTop = 0,
 }: CrossingsMapProps) {
+  const t = useTheme();
+  const styles = useStyles();
   const region = useMemo(() => {
     const bounds = boundsOf(rows, origin);
     return bounds ? boundsToRegion(bounds) : null;
@@ -83,7 +86,24 @@ export default function CrossingsMap({
   return (
     <View style={isCard ? styles.card : styles.full}>
       <MapView
+        /*
+         * The basemap is told the app's scheme explicitly, and the view is
+         * keyed on it. Both are needed:
+         *
+         * - Explicit, not "follow system": `useTheme` has an in-app override
+         *   (Auto / Light / Dark). It is pushed to native too, but that call
+         *   can be unavailable, so the map must not be the one surface that
+         *   follows the phone while the chrome follows the app — dark chrome
+         *   over a light map is exactly the failure this prevents.
+         * - Keyed: iOS applies a changed `userInterfaceStyle`, but Android's
+         *   react-native-maps reads it only at creation (`setUserInterfaceStyle`
+         *   is a no-op stub), so without a remount a scheme change would leave
+         *   the old basemap for the life of the mount. The cost is the full
+         *   screen's pan position on a scheme change, which is rare.
+         */
+        key={t.scheme}
         style={StyleSheet.absoluteFill}
+        userInterfaceStyle={t.scheme}
         /*
          * The card's framing is controlled, so it re-fits when the ranking
          * changes. The full screen seeds the region once and then leaves it
@@ -107,7 +127,10 @@ export default function CrossingsMap({
           const showName = pinShowsName(row);
           return (
             <Marker
-              key={row.port.id}
+              // `tracksViewChanges={false}` snapshots the pin view once, so a
+              // scheme change would leave the old palette on screen; keying on
+              // the scheme remounts the eleven markers instead, which is cheap.
+              key={`${row.port.id}:${t.scheme}`}
               coordinate={{ latitude: lat, longitude: lng }}
               // The caret tip marks the crossing, not the bubble's centre.
               // `anchor` places it on Google Maps, `centerOffset` on Apple Maps.
@@ -118,12 +141,12 @@ export default function CrossingsMap({
               onPress={() => router.push(`/port/${row.port.id}`)}
             >
               <View style={styles.pin}>
-                <View style={[styles.pinBubble, { backgroundColor: pinColor(row) }]}>
-                  <Text style={[styles.pinText, { color: pinTextColor(row) }, tabular]}>
+                <View style={[styles.pinBubble, { backgroundColor: pinColor(row, t) }]}>
+                  <Text style={[styles.pinText, { color: pinTextColor(row, t) }, tabular]}>
                     {pinLabel(row)}
                   </Text>
                 </View>
-                <View style={[styles.pinCaret, { borderTopColor: pinColor(row) }]} />
+                <View style={[styles.pinCaret, { borderTopColor: pinColor(row, t) }]} />
                 {showName && (
                   <Text style={styles.pinName} numberOfLines={1}>
                     {pinName(row)}
@@ -140,6 +163,7 @@ export default function CrossingsMap({
           pretends to be GPS.
         */}
         <Marker
+          key={`origin:${t.scheme}`}
           coordinate={{ latitude: origin.lat, longitude: origin.lng }}
           anchor={{ x: 0.5, y: 0.5 }}
           tracksViewChanges={false}
@@ -156,63 +180,70 @@ export default function CrossingsMap({
   );
 }
 
-const surface = {
-  borderRadius: radius.card,
-  overflow: 'hidden' as const,
-  borderWidth: 1,
-  borderColor: color.line,
-  backgroundColor: color.line,
-};
-
-const styles = StyleSheet.create({
-  card: {
-    ...surface,
-    marginHorizontal: space.gutter,
-    marginTop: space.sectionGap,
-    height: MAP_HEIGHT,
-  },
-  full: { ...surface, flex: 1, borderRadius: 0, borderWidth: 0 },
-
-  pin: { alignItems: 'center' },
-  // No shadow — a white hairline separates the bubble from the basemap. A
-  // pill, like every other capsule in the system.
-  pinBubble: {
-    height: PIN.bubbleH,
-    justifyContent: 'center',
-    borderRadius: radius.pill,
-    paddingHorizontal: 8,
+const useStyles = makeStyles(({ color }) => {
+  const frame = {
+    borderRadius: radius.card,
+    overflow: 'hidden' as const,
     borderWidth: 1,
-    borderColor: color.surface,
-  },
-  pinText: { fontSize: 13, fontFamily: font.bold, color: color.surface },
-  pinCaret: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: PIN.caretW / 2,
-    borderRightWidth: PIN.caretW / 2,
-    borderTopWidth: PIN.caretH,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-  },
-  pinName: {
-    marginTop: PIN.nameGap,
-    height: PIN.nameH,
-    fontSize: 9,
-    lineHeight: PIN.nameH,
-    fontFamily: font.semibold,
-    color: color.navy,
-    backgroundColor: 'rgba(255,255,255,0.85)',
-    borderRadius: radius.sm,
-    paddingHorizontal: 6,
-    overflow: 'hidden',
-  },
+    borderColor: color.line,
+    backgroundColor: color.line,
+  };
+  return {
+    card: {
+      ...frame,
+      marginHorizontal: space.gutter,
+      marginTop: space.sectionGap,
+      height: MAP_HEIGHT,
+    },
+    full: { ...frame, flex: 1, borderRadius: 0, borderWidth: 0 },
 
-  originDot: {
-    width: 14, height: 14, borderRadius: 7,
-    backgroundColor: color.cobalt, borderWidth: 2.5, borderColor: color.surface,
-  },
-  originFallbackDot: {
-    width: 14, height: 14, borderRadius: 7,
-    backgroundColor: 'transparent', borderWidth: 2, borderColor: color.muted,
-  },
+    pin: { alignItems: 'center' },
+    // No shadow — a `surface` hairline separates the bubble from the basemap.
+    // A pill, like every other capsule in the system.
+    pinBubble: {
+      height: PIN.bubbleH,
+      justifyContent: 'center',
+      borderRadius: radius.pill,
+      paddingHorizontal: 8,
+      borderWidth: 1,
+      borderColor: color.surface,
+    },
+    // The colour is always overridden inline by `pinTextColor`; this is the
+    // white-on-dot default it resolves to for the live scale.
+    pinText: { fontSize: 13, fontFamily: font.bold, color: color.onCobalt },
+    pinCaret: {
+      width: 0,
+      height: 0,
+      borderLeftWidth: PIN.caretW / 2,
+      borderRightWidth: PIN.caretW / 2,
+      borderTopWidth: PIN.caretH,
+      borderLeftColor: 'transparent',
+      borderRightColor: 'transparent',
+    },
+    pinName: {
+      marginTop: PIN.nameGap,
+      height: PIN.nameH,
+      fontSize: 9,
+      lineHeight: PIN.nameH,
+      fontFamily: font.semibold,
+      color: color.ink,
+      backgroundColor: color.overlay,
+      borderRadius: radius.sm,
+      paddingHorizontal: 6,
+      overflow: 'hidden',
+    },
+
+    // A mark with nothing on top of it, so `accent` (cobalt in light; lifted
+    // in dark, where bare cobalt is ~2:1 on the dark basemap). The halo is
+    // `onAccent` — what sits on a small accent fill — so it stays white in
+    // light (the basemap's ground) and inverts to navy on the lifted dot.
+    originDot: {
+      width: 14, height: 14, borderRadius: 7,
+      backgroundColor: color.accent, borderWidth: 2.5, borderColor: color.onAccent,
+    },
+    originFallbackDot: {
+      width: 14, height: 14, borderRadius: 7,
+      backgroundColor: 'transparent', borderWidth: 2, borderColor: color.muted,
+    },
+  };
 });

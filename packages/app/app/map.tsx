@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import CrossingsMap from '../src/components/CrossingsMap';
@@ -17,7 +17,8 @@ import { usePorts, useWaits } from '../src/queries';
 import { feedIsLive, useAgedWaits } from '../src/useFreshness';
 import { useOnline } from '../src/useOnline';
 import { useOrigin } from '../src/useOrigin';
-import { color, font, radius, space, status, tabular } from '../src/theme';
+import { font, radius, space, tabular } from '../src/theme';
+import { makeStyles, useTheme } from '../src/useTheme';
 import { caption } from '../src/typography';
 
 /**
@@ -32,6 +33,8 @@ import { caption } from '../src/typography';
  */
 
 export default function FullScreenMap() {
+  const { color } = useTheme();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { mode: modeParam } = useLocalSearchParams<{ mode?: string }>();
   // A hand-edited or stale URL must not crash the screen or silently rank a
@@ -88,7 +91,7 @@ export default function FullScreenMap() {
           role="button"
           aria-label="Back to crossings"
         >
-          <ArrowLeftGlyph size={18} color={color.cobalt} />
+          <ArrowLeftGlyph size={18} color={color.accent} />
           <Text style={styles.backText}>Crossings</Text>
         </Pressable>
       </View>
@@ -126,8 +129,8 @@ export default function FullScreenMap() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.mist },
+const useStyles = makeStyles(({ color, status }) => ({
+  screen: { flex: 1, backgroundColor: color.page },
 
   // The map fills the screen, so the back control floats over it rather than
   // sitting in a header bar that would eat 56px of map. No shadow — the
@@ -144,8 +147,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.button,
     paddingHorizontal: 12,
   },
-  backPressed: { backgroundColor: color.mist },
-  backText: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.cobalt },
+  backPressed: { backgroundColor: color.inset },
+  backText: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.accent },
 
   footer: {
     position: 'absolute',
@@ -161,6 +164,6 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   footerText: { ...caption, color: color.muted },
-  footerStrong: { ...caption, fontFamily: font.semibold, color: color.navy },
+  footerStrong: { ...caption, fontFamily: font.semibold, color: color.ink },
   footerError: { ...caption, fontFamily: font.semibold, color: status.heavy.ink },
-});
+}));

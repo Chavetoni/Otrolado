@@ -29,7 +29,9 @@ The palette below is the prototype's — it is **pre-Cobalt and superseded**. Th
 current system is `design/Otrolado Design System v2.dc.html` (v2.0; the v1.0
 Cobalt document `Otrolado Design System.md` remains as a quick reference with a
 v2 addendum) and its implementation is `packages/app/src/theme.ts`; every
-colour, radius, spacing and type value in the app comes from there. Two rules carry over unchanged:
+colour, radius, spacing and type value in the app comes from there — in two
+palettes, since `design/Otrolado Dark Mode.dc.html` (direction 1a, "Deep navy")
+was adopted on 2026-09-16 and the app follows the system appearance. Two rules carry over unchanged:
 **Poppins 400/500/600/700 only**, and tabular numerals
 (`font-variant-numeric: tabular-nums`) on ALL wait/time numbers. Use the
 prototype for layout, copy and behaviour (`renderVals()`), not for hex values.

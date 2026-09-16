@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Freshness } from '@otrolado/shared';
 import {
-  LEGEND,
+  legend,
   PIN_H_NAMED,
   PIN_TIP,
   pinAnchorY,
@@ -10,7 +10,7 @@ import {
   pinLabel,
   pinTextColor,
 } from './map-pin';
-import { color, status, waitColor } from '../theme';
+import { themes, waitColor } from '../theme';
 import { closed, HIDALGO, open, pending, ranked, row } from '../__fixtures__/waits';
 import { contrastRatio } from '../contrast.test-helpers';
 
@@ -31,43 +31,56 @@ describe('pinLabel', () => {
   });
 });
 
-describe('pinColor', () => {
+describe.each(['light', 'dark'] as const)('pinColor — %s', (scheme) => {
+  const t = themes[scheme];
+  const { color, status } = t;
+
   it('a non-live wait never wears the live scale', () => {
-    expect(pinColor(openAt(10, 'estimated'))).toBe(status.moderate.tint);
-    expect(pinColor(openAt(10, 'stale'))).toBe(status.heavy.tint);
-    expect(pinTextColor(openAt(10, 'estimated'))).toBe(status.moderate.ink);
-    expect(pinTextColor(openAt(10, 'stale'))).toBe(status.heavy.ink);
+    expect(pinColor(openAt(10, 'estimated'), t)).toBe(status.moderate.tint);
+    expect(pinColor(openAt(10, 'stale'), t)).toBe(status.heavy.tint);
+    expect(pinTextColor(openAt(10, 'estimated'), t)).toBe(status.moderate.ink);
+    expect(pinTextColor(openAt(10, 'stale'), t)).toBe(status.heavy.ink);
   });
 
   it('no wait is the neutral grey, never a scale colour', () => {
-    const c = pinColor(pin(closed()));
+    const c = pinColor(pin(closed()), t);
     expect(c).toBe(color.lineStrong);
     expect(Object.values(status).map((s) => s.dot)).not.toContain(c);
   });
 
-  it('LEGEND covers every colour a pin can take', () => {
+  it('the legend covers every colour a pin can take', () => {
     const colours = [
-      ...[19, 20, 60, 61].map((m) => pinColor(openAt(m))),
-      pinColor(openAt(30, 'estimated')),
-      pinColor(openAt(30, 'stale')),
-      pinColor(pin(closed())),
+      ...[19, 20, 60, 61].map((m) => pinColor(openAt(m), t)),
+      pinColor(openAt(30, 'estimated'), t),
+      pinColor(openAt(30, 'stale'), t),
+      pinColor(pin(closed()), t),
     ];
-    const legend = LEGEND.map((l) => l.color);
-    for (const c of colours) expect(legend).toContain(c);
+    const swatches = legend(t).map((l) => l.color);
+    for (const c of colours) expect(swatches).toContain(c);
   });
 
   it('the legend bands sit on the waitStatus boundaries', () => {
-    expect(LEGEND[0]!.color).toBe(waitColor(19));
-    expect(LEGEND[1]!.color).toBe(waitColor(20));
-    expect(LEGEND[1]!.color).toBe(waitColor(60));
-    expect(LEGEND[2]!.color).toBe(waitColor(61));
+    const l = legend(t);
+    expect(l[0]!.color).toBe(waitColor(19));
+    expect(l[1]!.color).toBe(waitColor(20));
+    expect(l[1]!.color).toBe(waitColor(60));
+    expect(l[2]!.color).toBe(waitColor(61));
+  });
+
+  it('a live pin is the same colour in both modes — the dots do not flip', () => {
+    for (const m of [10, 40, 90]) {
+      expect(pinColor(openAt(m), t)).toBe(pinColor(openAt(m), themes.light));
+      expect(pinTextColor(openAt(m), t)).toBe(pinTextColor(openAt(m), themes.light));
+    }
   });
 });
 
-describe('pin text contrast', () => {
+describe.each(['light', 'dark'] as const)('pin text contrast — %s', (scheme) => {
+  const t = themes[scheme];
+
   it('amber takes navy — white on the amber dot is 2.6:1', () => {
-    expect(pinTextColor(openAt(40))).toBe(color.navy);
-    expect(contrastRatio(pinTextColor(openAt(40)), pinColor(openAt(40)))).toBeGreaterThan(5.5);
+    expect(pinTextColor(openAt(40), t)).toBe(t.color.navy);
+    expect(contrastRatio(pinTextColor(openAt(40), t), pinColor(openAt(40), t))).toBeGreaterThan(5.5);
   });
 
   it('every pin text clears 4.3:1 (white on the green dot is the floor, 4.33)', () => {
@@ -80,7 +93,7 @@ describe('pin text contrast', () => {
       pin(closed()),
     ];
     for (const p of pins) {
-      expect(contrastRatio(pinTextColor(p), pinColor(p))).toBeGreaterThanOrEqual(4.3);
+      expect(contrastRatio(pinTextColor(p, t), pinColor(p, t))).toBeGreaterThanOrEqual(4.3);
     }
   });
 });

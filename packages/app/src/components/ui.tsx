@@ -4,7 +4,6 @@ import {
   Easing,
   Platform,
   Pressable,
-  StyleSheet,
   Text,
   View,
   type Insets,
@@ -16,17 +15,17 @@ import type { Freshness } from '@otrolado/shared';
 import { freshnessBadge } from '../freshness-ui';
 import { isReduceMotion, useReduceMotion } from '../useReduceMotion';
 import {
-  color,
   font,
   motion,
   radius,
   space,
-  status,
   tabular,
   waitColor,
   waitSeverityWord,
   waitTextColor,
+  type Theme,
 } from '../theme';
+import { makeStyles, useTheme } from '../useTheme';
 import { type } from '../typography';
 import { ClockGlyph } from './glyphs';
 
@@ -47,7 +46,7 @@ const NATIVE_DRIVER = Platform.OS !== 'web';
 
 /**
  * Pressed, for a control with no fill to darken (v2 §06): scale(0.97). Cards
- * take a `mist` fill instead of scaling, and status-tinted surfaces take
+ * take an `inset` fill instead of scaling, and status-tinted surfaces take
  * neither a darker tint nor opacity — a status colour must never double as
  * touch feedback, so they scale too. Nothing scales under Reduce Motion.
  *
@@ -86,16 +85,20 @@ export function usePressScale() {
 /* ── Buttons ────────────────────────────────────────────────────────── */
 
 /**
- * `primary`       cobalt fill, white label — the one most tappable thing.
- * `tertiary`      white, navy label, 1.5px line-strong border.
+ * `primary`       cobalt fill, `onCobalt` (white) label — the one most
+ *                 tappable thing. Mode-independent: cobalt stays a fill with
+ *                 white on top in both palettes.
+ * `tertiary`      `surface` fill, `ink` label, 1.5px line-strong border.
  * `inverse`       white fill, NAVY label — the primary when it sits ON cobalt,
- *                 inverted so the hero keeps a single focal point.
- * `ghostOnCobalt` no fill, white label, 1.5px cobalt-outline border — the
- *                 secondary on cobalt.
+ *                 inverted so the hero keeps a single focal point. Also
+ *                 mode-independent, because its ground is the cobalt hero.
+ * `ghostOnCobalt` no fill, `onCobalt` label, 1.5px cobalt-outline border —
+ *                 the secondary on cobalt.
  *
  * `selected` is the toggled state of an action that stays on screen (Watching,
- * Reminder on): light-surface variants take a navy fill; on cobalt, the
- * translucent white fill from the brand sheet's Replay chip.
+ * Reminder on): card variants take the `selectedFill` (navy in light, the
+ * lifted accent in dark) with `onSelected` text; on cobalt, the translucent
+ * white fill from the brand sheet's Replay chip.
  *
  * v2 also specifies a cobalt-outline `secondary` and a loading state (15px
  * ring + the verb in progress). Neither has a caller — every action in the
@@ -115,12 +118,13 @@ function buttonLook(
   pressed: boolean,
   selected: boolean,
   disabled: boolean,
+  { color }: Theme,
 ): ButtonLook {
   if (disabled) {
     // v2: fill drops to `line`, text to `ink-muted` — never opacity, which
-    // muddies whatever sits behind. Outline variants keep their white ground
-    // and take a `line` border. On cobalt, the same idea in that surface's
-    // own inks.
+    // muddies whatever sits behind. Outline variants keep their `surface`
+    // ground and take a `line` border. On cobalt, the same idea in that
+    // surface's own inks.
     switch (variant) {
       case 'primary':
         return { bg: color.line, fg: color.inkMuted, border: color.line };
@@ -134,30 +138,32 @@ function buttonLook(
   }
   if (selected) {
     if (variant === 'ghostOnCobalt' || variant === 'inverse') {
-      return { bg: pressed ? color.cobaltPress : color.surfaceOnCobalt, fg: color.surface, border: color.surface };
+      return { bg: pressed ? color.cobaltPress : color.surfaceOnCobalt, fg: color.onCobalt, border: color.onCobalt };
     }
-    const bg = pressed ? color.navyTint : color.navy;
-    return { bg, fg: color.surface, border: bg };
+    const bg = pressed ? color.selectedFillPressed : color.selectedFill;
+    return { bg, fg: color.onSelected, border: bg };
   }
   switch (variant) {
     case 'primary': {
       const bg = pressed ? color.cobaltPress : color.cobalt;
-      return { bg, fg: color.surface, border: bg };
+      return { bg, fg: color.onCobalt, border: bg };
     }
     case 'tertiary':
       return {
-        bg: pressed ? color.mist : color.surface,
-        fg: color.navy,
-        border: pressed ? color.navy : color.lineStrong,
+        bg: pressed ? color.inset : color.surface,
+        fg: color.ink,
+        border: pressed ? color.ink : color.lineStrong,
       };
     case 'inverse': {
-      const bg = pressed ? color.mist : color.surface;
+      // White on the cobalt hero in both modes — `onCobalt`, not `surface`,
+      // which is navy in dark and would vanish into nothing on cobalt.
+      const bg = pressed ? color.inverseFillPressed : color.onCobalt;
       return { bg, fg: color.navy, border: bg };
     }
     case 'ghostOnCobalt':
       return {
         bg: pressed ? color.cobaltPress : 'transparent',
-        fg: color.surface,
+        fg: color.onCobalt,
         border: color.cobaltOutline,
       };
   }
@@ -189,6 +195,8 @@ export function Button({
   style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
 }) {
+  const t = useTheme();
+  const styles = useStyles();
   const press = usePressScale();
   return (
     <Pressable
@@ -203,7 +211,7 @@ export function Button({
       style={[grow && { flex: 1 }, style]}
     >
       {({ pressed }) => {
-        const look = buttonLook(variant, pressed && !disabled, selected, disabled);
+        const look = buttonLook(variant, pressed && !disabled, selected, disabled, t);
         return (
           <Animated.View
             style={[
@@ -229,7 +237,7 @@ export function Button({
 }
 
 /**
- * A 44×44 hit target around a 22–24px glyph. Pressed, it takes a `mist`
+ * A 44×44 hit target around a 22–24px glyph. Pressed, it takes an `inset`
  * circle (or `navyTint` on a dark surface) and the 0.97 scale; `selected`
  * keeps that circle as the toggled state, since glyphs are never filled in.
  */
@@ -251,9 +259,11 @@ export function IconButton({
   hitSlop?: number | Insets;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   const press = usePressScale();
-  const restingBg = selected ? (onDark ? color.surfaceOnCobalt : color.mist) : 'transparent';
-  const pressedBg = onDark ? color.navyTint : color.mist;
+  const restingBg = selected ? (onDark ? color.surfaceOnCobalt : color.inset) : 'transparent';
+  const pressedBg = onDark ? color.navyTint : color.inset;
   return (
     <Pressable
       onPress={onPress}
@@ -285,7 +295,7 @@ export function IconButton({
 /**
  * The notice banner: a tinted panel, a 14/20 semibold title over 13/19 body,
  * radius 16, padding 14/16. `info` (the no-southbound-feed notices, "no
- * recommendation") carries the 7px cobalt dot; `error` is the heavy tint for
+ * recommendation") carries the 7px `infoAccent` dot; `error` is the heavy tint for
  * a failed fetch. Copy stays at each call site — the three southbound notices
  * say different things on purpose.
  */
@@ -302,6 +312,8 @@ export function Notice({
   action?: ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { color, status } = useTheme();
+  const styles = useStyles();
   const t =
     tone === 'error'
       ? { bg: status.heavy.tint, ink: status.heavy.ink }
@@ -337,6 +349,7 @@ export function Skeleton({
   round?: number;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { color } = useTheme();
   const pulse = useRef(new Animated.Value(1)).current;
   const reduceMotion = useReduceMotion();
   useEffect(() => {
@@ -393,6 +406,7 @@ export function Pill({
   dot?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
+  const styles = useStyles();
   return (
     <View style={[styles.pill, { backgroundColor: bg }, style]}>
       {dot && <View style={[styles.pillDot, { backgroundColor: fg }]} />}
@@ -411,7 +425,8 @@ export function Pill({
  * disagree about what estimated looks like.
  */
 export function FreshnessBadge({ freshness }: { freshness: Freshness }) {
-  const badge = freshnessBadge(freshness);
+  const t = useTheme();
+  const badge = freshnessBadge(freshness, t);
   if (!badge) return null;
   return (
     <Pill
@@ -426,15 +441,17 @@ export function FreshnessBadge({ freshness }: { freshness: Freshness }) {
 /**
  * The word beside a severity colour: a vivid dot and "Clear" / "Moderate" /
  * "Heavy" in that status's AA-safe text ink. Sits next to a wait number on a
- * WHITE card so the number itself can stay in full ink. Live readings only —
+ * card (never a tint) so the number itself can stay in full ink. Live readings only —
  * the caller gates it, because a severity verdict on a reading nobody stands
  * behind is exactly what the non-live treatment exists to withhold.
  */
 export function SeverityTag({ minutes }: { minutes: number }) {
+  const { status } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.severity} accessible aria-label={`${waitSeverityWord(minutes)} wait`}>
       <View style={[styles.severityDot, { backgroundColor: waitColor(minutes) }]} />
-      <Text style={[styles.severityText, { color: waitTextColor(minutes) }]}>
+      <Text style={[styles.severityText, { color: waitTextColor(minutes, status) }]}>
         {waitSeverityWord(minutes)}
       </Text>
     </View>
@@ -442,6 +459,8 @@ export function SeverityTag({ minutes }: { minutes: number }) {
 }
 
 export function Chip({ label, tone }: { label: string; tone: 'good' | 'bad' }) {
+  const { status } = useTheme();
+  const styles = useStyles();
   const t = tone === 'good' ? status.clear : status.heavy;
   return (
     <View style={[styles.chip, { backgroundColor: t.tint }]}>
@@ -468,6 +487,8 @@ export function SegmentedControl<T extends string>({
   value: T;
   onChange: (v: T) => void;
 }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   const index = Math.max(0, options.findIndex((o) => o.value === value));
   const anim = useRef(new Animated.Value(index)).current;
   const reduceMotion = useReduceMotion();
@@ -527,7 +548,7 @@ export function SegmentedControl<T extends string>({
                 style={[
                   styles.segmentLabel,
                   {
-                    color: active || pressed ? color.navy : color.muted,
+                    color: active || pressed ? color.ink : color.muted,
                     fontFamily: active ? font.bold : font.semibold,
                   },
                 ]}
@@ -544,14 +565,17 @@ export function SegmentedControl<T extends string>({
 
 /**
  * Toggle per the design system: 48x28 track, 22px white knob, 3px padding,
- * on = cobalt, off = line. Track colour transitions over 180ms `ease`.
+ * on = `switchOn` (cobalt in light; the mid blue in dark, where cobalt would
+ * vanish into the surface), off = line. Track colour transitions over 180ms
+ * `ease`. The knob is `onCobalt` in both modes: white on cobalt in light,
+ * white on the mid blue or `line` in dark — both read.
  *
  * The knob's x-position animates rather than the row re-rendering in two
  * states, so a flip reads as one object sliding — the same treatment as the
  * segmented control's pill.
  *
  * `disabled` refuses the press and drops to the disabled palette (track
- * `line`, knob `mist` with a hairline) — never opacity. It exists because
+ * `line`, knob `inset` with a hairline) — never opacity. It exists because
  * some rules cannot be evaluated yet, and a switch that moves but changes
  * nothing is exactly the kind of quiet lie this app avoids.
  */
@@ -566,6 +590,8 @@ export function Toggle({
   disabled?: boolean;
   label: string;
 }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   const anim = useRef(new Animated.Value(value ? 1 : 0)).current;
   const reduceMotion = useReduceMotion();
 
@@ -594,8 +620,10 @@ export function Toggle({
       // bounds (iOS only hit-tests slop that does).
       hitSlop={8}
     >
-      {/* Pressed: on → cobaltPress (pressed on cobalt), off → lineStrong (the
-          heavier inactive control). Released, the animated track takes over. */}
+      {/* Pressed: on → switchOnPressed (one shade darker), off → lineStrong
+          (the heavier inactive control). Released, the animated track takes
+          over. The interpolation's output colours are the theme's, so it is
+          built here, per render, not at module scope. */}
       {({ pressed }) => (
         <Animated.View
           style={[
@@ -604,10 +632,10 @@ export function Toggle({
               backgroundColor: disabled
                 ? color.line
                 : pressed
-                  ? (value ? color.cobaltPress : color.lineStrong)
+                  ? (value ? color.switchOnPressed : color.lineStrong)
                   : anim.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [color.line, color.cobalt],
+                      outputRange: [color.line, color.switchOn],
                     }),
             },
           ]}
@@ -640,12 +668,13 @@ export function SectionLabel({
   tone?: 'light' | 'dark' | 'cobalt';
   style?: StyleProp<TextStyle>;
 }) {
+  const { color } = useTheme();
   const ink =
     tone === 'dark' ? color.mutedOnDark : tone === 'cobalt' ? color.cobaltLight : color.muted;
   return <Text style={[type.eyebrow, { color: ink }, style]}>{children}</Text>;
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ color }) => ({
   // Buttons: 48 tall (14px vertical padding at body size), radius 16, 14/600,
   // 1.5px border on every variant so filled and outlined buttons measure the
   // same — the filled ones just paint the border in their own colour.
@@ -677,7 +706,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: space.cardPad,
   },
-  noticeDot: { width: 7, height: 7, borderRadius: 3.5, marginTop: 7, backgroundColor: color.cobalt },
+  noticeDot: { width: 7, height: 7, borderRadius: 3.5, marginTop: 7, backgroundColor: color.infoAccent },
   noticeBody: { flex: 1, gap: 4 },
   noticeTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold },
   noticeText: { fontSize: 13, lineHeight: 19, fontFamily: font.regular },
@@ -704,7 +733,7 @@ const styles = StyleSheet.create({
   segment: {
     position: 'relative',
     flexDirection: 'row',
-    backgroundColor: color.line,
+    backgroundColor: color.segmentTrack,
     borderRadius: radius.pill,
     padding: 3,
   },
@@ -714,7 +743,7 @@ const styles = StyleSheet.create({
     top: 3,
     bottom: 3,
     left: 3,
-    backgroundColor: color.surface,
+    backgroundColor: color.segmentPill,
     borderRadius: radius.pill,
   },
   // 38pt of item + 3pt of track padding each side = the 44pt floor, inside the
@@ -726,7 +755,7 @@ const styles = StyleSheet.create({
   knob: {
     position: 'absolute',
     width: 22, height: 22, borderRadius: 11,
-    backgroundColor: color.surface,
+    backgroundColor: color.onCobalt,
   },
-  knobDisabled: { backgroundColor: color.mist, borderWidth: 1, borderColor: color.lineStrong },
-});
+  knobDisabled: { backgroundColor: color.inset, borderWidth: 1, borderColor: color.lineStrong },
+}));

@@ -24,8 +24,9 @@ CBP attribution, the reason a row has no total) at 11px on a screen used in a
 car in Rio Grande Valley sun. The app darkened it to `#5B6B95` on its own; v2
 made `#5E6D90` (`ink-secondary`, 5.2:1 / 4.6:1) the spec value and demoted
 `#7E8DB5` to `ink-muted` — **disabled text and decoration only, never
-information**. `theme.ts` names them `color.muted` and `color.inkMuted`; a
-future re-sync must keep `inkMuted` off anything a user has to read. The same
+information**. `theme.ts` names them `muted` and `inkMuted` (on both
+palettes); a future re-sync must keep `inkMuted` off anything a user has to
+read. The same
 logic split every status colour into a `dot` (vivid, for bars and pins) and a
 `text` ink (darkened, for a coloured number or word on white): v1 reused the
 amber dot as 11px text at 2.6:1.
@@ -96,6 +97,79 @@ The home-screen icon only changes on a device after a native rebuild
   (Fast Refresh re-running the layout built a fresh, empty cache). Reduce
   Motion is one module store (`useReduceMotion`).
 
+**Dark mode (adopted 2026-09-16) follows the system and is direction 1a of
+`design/Otrolado Dark Mode.dc.html` ("Deep navy", the proposal's own
+recommendation): the brand navy drops one step to become the page, and every
+navy card in the product is already the raised surface. 1b ("Night drive") was
+not taken; it is a values swap in `theme.ts` if it ever is.** The mechanics:
+- **Every colour is a ROLE with a light and a dark value**, and components
+  never see the light palette. `theme.ts` exports `themes.light` / `themes.dark`
+  and no longer exports `color` or `status`; `src/useTheme.ts` is the one
+  scheme store (`useTheme()`, `getTheme()` for non-component code, and
+  `makeStyles((t) => ({...}))`, a themed `StyleSheet.create` cached per
+  scheme). A module-scope stylesheet with a colour in it cannot see the theme,
+  so it is always a `makeStyles` factory read with `const styles = useStyles()`
+  at the top of the component. Pure helpers take `t: Theme` (`freshnessBadge`,
+  `numberInk`, `pinColor`, `legend`, `waitTextColor(minutes, t.status)`).
+- **The old names were hues; the new ones are roles, and two of them split.**
+  `navy` was both ink and a dark surface: text on a page or card is `ink`
+  (`inkHero` for a 26px+ number), and `navy` now means ONLY the dark surface
+  (the detail and origin headers, unchanged in both modes — text on it is
+  `inkOnDark`). `surface` was both the white card and white text: a card is
+  `surface`, white text on cobalt is `onCobalt`. `mist` is gone — it was the
+  page (`page`) AND a well inside a card (`inset`), and they diverge in dark.
+- **Cobalt cannot be text on dark (2.3:1), so it is two roles.** `cobalt` is
+  the FILL with white on top — the hero, the primary button, the ON lane chip
+  — and is identical in both modes. `accent` is cobalt with nothing on top of
+  it — a link, a glyph, the active tab, a chart bar, an open booth pill, the
+  Plan clock — and lifts to `#B9CCFF` in dark. A toggled-on fill on a card is
+  `selectedFill`/`onSelected` (navy/white in light; the lifted accent with
+  navy text in dark, because navy on the navy card is invisible). The toggle
+  track is `switchOn`. Get the split wrong and the element disappears in one
+  mode; `theme.test.ts` pins every text/ground pair at AA in BOTH palettes.
+- **What does not flip:** status `dot`s (a pin means the same thing in either
+  screenshot — `waitColor` takes no theme), the cobalt family, the navy
+  header and its inks, the launch splash (a brand surface, cobalt in both).
+  Status `text` lifts (`#4FC48C` / amber unchanged / `#F08571`); tints get
+  their dark twins with the proposal's pill inks. Values marked DERIVED in
+  `theme.ts` fill roles the proposal did not draw and should be replaced by
+  the spec's own when it is folded into tokens.json.
+- **`inkMuted` on the navy header is the token for "a lane this crossing does
+  not have"** — `muted` is the wrong one there because in dark it equals
+  `mutedOnDark` and the disabled look vanishes.
+- The scheme store ignores `Appearance` changes while the app is not active:
+  iOS renders app-switcher snapshots in both appearances and reports each as a
+  change, which `useColorScheme` would follow. `userInterfaceStyle` is
+  `automatic` in `app.json` (an Info.plist key — a native rebuild, not a Metro
+  reload, and the generated `ios/Otrolado/Info.plist` was patched by hand to
+  match until the next `prebuild`). Web reads `prefers-color-scheme`;
+  `public/index.html` carries the `color-scheme` meta and a per-scheme body
+  background so the first paint is not a white flash.
+- **The appearance button (`ThemeToggle`, added 2026-09-16 on request)** sits
+  at the end of the brand header on Crossings and of the title row on Alerts.
+  There is no settings screen to hold it. It has **two answers, light or
+  dark** — an Auto third state was removed on request (2026-09-16); the glyph
+  is a sun or a moon for the current appearance. Until the first tap the app
+  draws in the phone's appearance as a starting value; the tap stores the
+  choice in `useTheme.ts` (a persisted device preference, separate from
+  `prefs` because it is not trip or alert state), and the phone's setting
+  never overrides it again. A stored `'system'` from the old three-state build
+  reads as "not chosen yet". The choice is pushed to native with
+  `Appearance.setColorScheme`, so keyboards, alerts and Apple Maps match;
+  while forced, `Appearance` change events echo the override and are ignored.
+- **Crossings' trip inputs live behind one card (`TripSetupCard`, 2026-09-16).**
+  Starting point, direction and travel mode are summarised on a card under
+  the header; a tap opens a bottom sheet with the starting-point row (pushes
+  `/origin`) and the two segmented controls, which apply live behind the
+  sheet. Mode stays one tap deeper but on this screen, because it decides
+  which crossings are rankable at all. Verified on the iOS simulator with AXe
+  (`axe describe-ui` / `axe tap`), which drives taps by accessibility label.
+- The native map follows the app: `userInterfaceStyle` on `MapView`, and the
+  MapView is keyed by scheme because react-native-maps reads that prop only
+  at mount on Android. The markers are keyed too, because
+  `tracksViewChanges={false}` would otherwise keep the old pin snapshot. The web map has only light OSM tiles, so dark
+  inverts the tile pane with a CSS filter — tiles only, never the markers.
+
 ## Commands
 
 ```bash
@@ -154,7 +228,7 @@ CBP feed ──poll──▶ parse ──▶ wait_observations (partitioned) ─
 ```
 
 - `packages/shared` — domain vocabulary, port directory, freshness policy. Imported by both API and app.
-- `packages/app` — Expo + expo-router. `src/ranking.ts` is the domain core (pure, testable outside React); `src/theme.ts` holds the design tokens.
+- `packages/app` — Expo + expo-router. `src/ranking.ts` is the domain core (pure, testable outside React); `src/theme.ts` holds the design tokens (both palettes) and `src/useTheme.ts` the colour scheme.
 - `packages/api/src/ingest/cbp-parse.ts` — pure feed → readings. No I/O; the place to test parsing.
 - `packages/api/src/ingest/run.ts` — one poll: fetch, parse, ensure partition, upsert, rebuild snapshot, record the run.
 - `packages/api/src/snapshot.ts` — builds/reads the Redis blob, falls back to Postgres.
@@ -356,7 +430,7 @@ bridge can never appear in a passenger ranking.
 - **Cloud hosting for the app itself.** Local Postgres for development until the schema settles. Keep everything vendor-portable. (Continuous archival ingest is the one thing that already runs against a managed remote Postgres — see below — because a laptop cannot poll around the clock; that database is not yet where `dev:api` or the eventual serving path points.)
 - **Southbound.** No federal feed exists. The prototype's `dFac = 0.35` southbound multiplier is invented mock data and must not ship as if it were fed. The app renders an explicit "no official data" state instead. See `LIMITS.southbound`.
 - **Push delivery.** Alerts fire in the foreground only. Background notifications need an account to attach rules to and a queue (BullMQ + APNs/FCM) to send from; until then the Alerts screen says so in the same weight as the feature.
-- **Forecasts.** The 12-hour chart, trend arrows and future-day trip planning need roughly six weeks of archived history that does not exist yet — continuous collection only started once CI ingest replaced the laptop (see "Continuous archival ingest" below), so the clock on that six weeks starts from then, not from project start. The detail screen says so rather than drawing a curve. Interim: `typical_waits` holds CBP's own previous-year hour-by-weekday averages (`pnpm import:typical`, from the undocumented API behind bwt.cbp.gov/historical — see migration 011 and `scripts/import-typical-waits.ts` for the feed's quirks). It is a climatology attributed to CBP, not our forecast — anything rendered from it must say so, and it gets superseded by our own status-aware medians once the archive matures. Served by `/v1/typical/:portId` and rendered by the detail screen's TypicalCard: typical bars are solid `lineStrong` ("recorded"), the ONE cobalt bar is the current reading and appears only while that reading is live, a NOW marker names the hour either way, and a forecast — when one exists — must be outlined (`forecastLine` / `forecastFill`), never filled, so prediction can never look like measurement. Never the live severity colors; attribution carries the import vintage.
+- **Forecasts.** The 12-hour chart, trend arrows and future-day trip planning need roughly six weeks of archived history that does not exist yet — continuous collection only started once CI ingest replaced the laptop (see "Continuous archival ingest" below), so the clock on that six weeks starts from then, not from project start. The detail screen says so rather than drawing a curve. Interim: `typical_waits` holds CBP's own previous-year hour-by-weekday averages (`pnpm import:typical`, from the undocumented API behind bwt.cbp.gov/historical — see migration 011 and `scripts/import-typical-waits.ts` for the feed's quirks). It is a climatology attributed to CBP, not our forecast — anything rendered from it must say so, and it gets superseded by our own status-aware medians once the archive matures. Served by `/v1/typical/:portId` and rendered by the detail screen's TypicalCard: typical bars are solid `lineStrong` ("recorded"), the ONE `accent` bar (cobalt in light, lifted in dark) is the current reading and appears only while that reading is live, a NOW marker names the hour either way, and a forecast — when one exists — must be outlined (`forecastLine` / `forecastFill`), never filled, so prediction can never look like measurement. Never the live severity colors; attribution carries the import vintage.
 - **Port coordinates.** All eleven pilot coordinates are OSM named-bridge-way
   centroids — one source, one rule — and flagged `coordsApproximate`. Routes
   measures to the point we give it, so these must be surveyed before ETAs ship.

@@ -1,5 +1,5 @@
 import type { Freshness } from '@otrolado/shared';
-import { color, status } from './theme';
+import type { Theme } from './theme';
 
 /**
  * How stale data is presented.
@@ -28,6 +28,7 @@ import { color, status } from './theme';
  */
 export function freshnessBadge(
   f: Freshness,
+  { status }: Theme,
 ): { label: string; bg: string; fg: string } | null {
   switch (f) {
     case 'live':
@@ -40,20 +41,22 @@ export function freshnessBadge(
 }
 
 /**
- * The ink a wait or total is set in on a LIGHT surface (white card, mist):
- * full ink while live, `muted` once the reading is no longer current (v2:
- * "number steps down to ink-secondary").
+ * The ink a wait or total is set in on the page or a card: the hero ink
+ * while live, `muted` once the reading is no longer current (v2: "number
+ * steps down to ink-secondary"). `inkHero` because every caller sets a
+ * display-size number (26px and up); in light it is plain ink anyway.
  */
-export function numberInk(f: Freshness): string {
-  return f === 'live' ? color.navy : color.muted;
+export function numberInk(f: Freshness, { color }: Theme): string {
+  return f === 'live' ? color.inkHero : color.muted;
 }
 
 /**
  * The same step-down ON COBALT (the hero): white while live, `cobaltLight`
- * once not. `muted` must never be used there — it is 1.5:1 on cobalt.
+ * once not. `muted` must never be used there — it is 1.5:1 on cobalt in
+ * light, and the dark `muted` is no better.
  */
-export function numberInkOnCobalt(f: Freshness): string {
-  return f === 'live' ? color.surface : color.cobaltLight;
+export function numberInkOnCobalt(f: Freshness, { color }: Theme): string {
+  return f === 'live' ? color.onCobalt : color.cobaltLight;
 }
 
 /**

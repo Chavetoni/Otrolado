@@ -345,3 +345,24 @@ export function StarGlyph(p: GlyphProps) {
     </Glyph>
   );
 }
+
+/* ── Appearance ───────────────────────────────────────────────────────── */
+
+/** Light appearance — a sun: a disc and eight short rays. */
+export function SunGlyph(p: GlyphProps) {
+  return (
+    <Glyph {...p}>
+      <Circle cx={12} cy={12} r={4} />
+      <Path d="M12 2.8v2.2M12 19v2.2M2.8 12h2.2M19 12h2.2M5.5 5.5l1.6 1.6M16.9 16.9l1.6 1.6M5.5 18.5l1.6-1.6M16.9 7.1l1.6-1.6" />
+    </Glyph>
+  );
+}
+
+/** Dark appearance — a crescent. */
+export function MoonGlyph(p: GlyphProps) {
+  return (
+    <Glyph {...p}>
+      <Path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" />
+    </Glyph>
+  );
+}

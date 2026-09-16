@@ -5,12 +5,12 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LaunchSplash } from '../src/components/LaunchSplash';
 import { WAITS_QUERY_KEY } from '../src/queries';
 import { PERSIST_MAX_AGE_MS, persister, queryClient } from '../src/queryClient';
-import { color } from '../src/theme';
+import { makeStyles, useTheme } from '../src/useTheme';
 import { allowLocationPrompt } from '../src/useOrigin';
 import { reduceMotionReady } from '../src/useReduceMotion';
 
@@ -78,6 +78,8 @@ export default function RootLayout() {
   const [phase, setPhase] = useState<LaunchPhase>('pending');
   const [reduceMotion, setReduceMotion] = useState(false);
   const decided = useRef(false);
+  const theme = useTheme();
+  const styles = useStyles();
 
   const finishLaunch = useCallback((): void => {
     setPhase('done');
@@ -137,8 +139,10 @@ export default function RootLayout() {
       onError={decide}
     >
       <SafeAreaProvider>
-        <StatusBar style="dark" />
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.mist } }}>
+        {/* Dark text on the light page, light text on the dark one. Screens
+            with a navy header (port detail, origin) set "light" themselves. */}
+        <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.color.page } }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="port/[id]" options={{ presentation: 'card' }} />
           {/* Pushed from the Crossings map card, not a tab — see app/map.tsx. */}
@@ -164,10 +168,13 @@ export default function RootLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+// Cobalt is the brand fill and the native splash's own colour (identical in
+// both palettes), read through the theme like every other colour so no
+// stylesheet in the app names a palette directly.
+const useStyles = makeStyles(({ color }) => ({
   field: { flex: 1, backgroundColor: color.cobalt },
   veil: {
     position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
     backgroundColor: color.cobalt, zIndex: 100,
   },
-});
+}));

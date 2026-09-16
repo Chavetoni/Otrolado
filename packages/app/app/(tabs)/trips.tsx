@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
   type StyleProp,
@@ -57,15 +56,14 @@ import {
 import { useOrigin } from '../../src/useOrigin';
 import { DIRECTIONS } from '../../src/modes';
 import {
-  color,
   DISPLAY_MAX_FONT_SCALE,
   font,
   radius,
   space,
-  status,
   tabular,
   waitColor,
 } from '../../src/theme';
+import { makeStyles, useTheme } from '../../src/useTheme';
 import { caption, type } from '../../src/typography';
 
 /**
@@ -201,6 +199,8 @@ function unplannableState(r: RankedPort, lane: TripLane): RowState {
 
 export default function Plan() {
   const insets = useSafeAreaInsets();
+  const { color } = useTheme();
+  const styles = useStyles();
   const [target, setTarget] = useState<number>(defaultTarget);
   // Northbound first and default — see DIRECTIONS in modes.ts. There is no
   // southbound feed, so a southbound plan would be arithmetic on invented waits.
@@ -300,7 +300,7 @@ export default function Plan() {
 
   return (
     <ScrollView
-      style={{ backgroundColor: color.mist }}
+      style={{ backgroundColor: color.page }}
       contentContainerStyle={{
         paddingTop: insets.top + 12,
         paddingBottom: space.tabBarClearance,
@@ -354,7 +354,7 @@ export default function Plan() {
             aria-expanded={dayNote}
             accessibilityHint="Why only today is available"
           >
-            <CalendarGlyph size={20} color={color.cobalt} />
+            <CalendarGlyph size={20} color={color.accent} />
             <Text style={styles.dayText}>Today</Text>
             <Text style={styles.dayNoteInline}>only day available</Text>
           </Pressable>
@@ -373,7 +373,7 @@ export default function Plan() {
                 onPress={() => setTarget((t) => clampToDay(t - STEP_MINUTES))}
                 accessibilityLabel="15 minutes earlier"
               >
-                <MinusGlyph size={22} color={color.navy} />
+                <MinusGlyph size={22} color={color.ink} />
               </StepButton>
               <View style={styles.clock}>
                 <Text style={[styles.clockTime, tabular]} maxFontSizeMultiplier={DISPLAY_MAX_FONT_SCALE}>
@@ -385,7 +385,7 @@ export default function Plan() {
                 onPress={() => setTarget((t) => clampToDay(t + STEP_MINUTES))}
                 accessibilityLabel="15 minutes later"
               >
-                <PlusGlyph size={22} color={color.navy} />
+                <PlusGlyph size={22} color={color.ink} />
               </StepButton>
             </View>
             <View style={styles.picks}>
@@ -417,7 +417,7 @@ export default function Plan() {
           </View>
 
           {/* Travel mode and lane type, as two labelled controls. Selected is
-              the navy "set" fill every toggled control in the app shares. */}
+              the `selectedFill` every toggled control in the app shares. */}
           <View style={styles.field}>
             <Text style={styles.fieldLabel}>Travel mode</Text>
             <View style={styles.buttonRow}>
@@ -591,7 +591,7 @@ export default function Plan() {
   );
 }
 
-/** The ±15 min stepper: a 44pt tertiary circle. Pressed, the border goes navy. */
+/** The ±15 min stepper: a 44pt tertiary circle. Pressed, the border goes `ink`. */
 function StepButton({
   onPress,
   accessibilityLabel,
@@ -601,6 +601,7 @@ function StepButton({
   accessibilityLabel: string;
   children: React.ReactNode;
 }) {
+  const styles = useStyles();
   return (
     <Pressable
       style={({ pressed }) => [styles.stepBtn, pressed && styles.stepBtnPressed, pressedScale(pressed)]}
@@ -633,6 +634,8 @@ function RecommendedCard({
   reminder: boolean;
   onToggleReminder: () => void;
 }) {
+  const { color, status } = useTheme();
+  const styles = useStyles();
   if (row.state.kind !== 'plan') return null;
   const { option } = row.state;
   const { lat, lng } = row.ranked.port;
@@ -651,7 +654,7 @@ function RecommendedCard({
 
         {/* The answer, at metric size: the time to leave. */}
         <View style={styles.recLeaveRow}>
-          <ClockGlyph size={20} color={color.cobalt} />
+          <ClockGlyph size={20} color={color.accent} />
           <Text style={styles.recLeaveLabel}>Leave by</Text>
           <Text style={[styles.recLeave, tabular]} maxFontSizeMultiplier={DISPLAY_MAX_FONT_SCALE}>
             {formatMinutes(option.leaveMinutes)}
@@ -667,9 +670,9 @@ function RecommendedCard({
           <Text style={[styles.recTotal, tabular]}>About {total} min total</Text>
           <Text style={[styles.recSplit, tabular]}>
             {option.driveMinutes} min drive · approx +{' '}
-            {/* On the green card: navy, not a status text ink — those are for
+            {/* On the green card: `ink`, not a status text ink — those are for
                 WHITE, and moderate/heavy on this tint fall under 4.5:1. */}
-            <Text style={{ color: color.navy, fontFamily: font.semibold }}>
+            <Text style={{ color: color.ink, fontFamily: font.semibold }}>
               {option.waitMinutes} min border
             </Text>
           </Text>
@@ -713,6 +716,7 @@ function NoRecommendation({
   hasPlannable: boolean;
   allStale: boolean;
 }) {
+  const styles = useStyles();
   return (
     <Notice
       title={hasPlannable ? 'No recommendation right now' : 'Nothing to plan through'}
@@ -749,6 +753,8 @@ function AlternativeCard({
   reminder: boolean;
   onPress: () => void;
 }) {
+  const { color, status } = useTheme();
+  const styles = useStyles();
   const { ranked, state } = row;
   const plannable = state.kind === 'plan';
   const live = state.kind === 'plan' && state.option.freshness === 'live';
@@ -837,6 +843,8 @@ function AlternativeCard({
  * passed → a leave-by (marked ~ when the figure behind it is not live).
  */
 function ReminderStrip({ view, onClear }: { view: SavedTripView; onClear: () => void }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   const { trip, status: tripStatus } = view;
   const via = tripStatus?.via ?? null;
   const laneName = tripLaneLabel(trip.lane);
@@ -867,23 +875,23 @@ function ReminderStrip({ view, onClear }: { view: SavedTripView; onClear: () => 
         hitSlop={{ left: 8, right: 8 }}
       >
         {({ pressed }) => (
-          <Text style={[styles.reminderClear, pressed && { color: color.cobaltDeep }]}>Clear</Text>
+          <Text style={[styles.reminderClear, pressed && { color: color.accentPressed }]}>Clear</Text>
         )}
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ color, status }) => ({
   header: {
     paddingHorizontal: space.gutter, flexDirection: 'row', flexWrap: 'wrap',
     justifyContent: 'space-between', alignItems: 'center', columnGap: 12, rowGap: 10,
   },
   lockup: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  wordmark: { fontSize: 19, lineHeight: 23, fontFamily: font.bold, color: color.navy, letterSpacing: -0.8 },
+  wordmark: { fontSize: 19, lineHeight: 23, fontFamily: font.bold, color: color.ink, letterSpacing: -0.8 },
   tagline: { fontSize: 12, lineHeight: 16, fontFamily: font.regular, color: color.muted },
 
-  title: { ...type.screenTitle, color: color.navy },
+  title: { ...type.screenTitle, color: color.ink },
   subtitle: { ...type.body, color: color.muted },
 
   controls: { paddingHorizontal: space.gutter, marginTop: space.sectionGap },
@@ -894,9 +902,9 @@ const styles = StyleSheet.create({
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
     borderRadius: radius.card, paddingVertical: 14, paddingHorizontal: space.cardPad,
   },
-  // Shared by the day row and the alternative cards: white card → mist.
-  cardPressed: { backgroundColor: color.mist },
-  dayText: { flex: 1, ...type.cardTitle, color: color.navy },
+  // Shared by the day row and the alternative cards: surface → inset.
+  cardPressed: { backgroundColor: color.inset },
+  dayText: { flex: 1, ...type.cardTitle, color: color.ink },
   dayNoteInline: { ...type.metadata, color: color.muted },
   dayNote: {
     fontSize: 12, lineHeight: 17, fontFamily: font.regular, color: color.muted,
@@ -908,7 +916,7 @@ const styles = StyleSheet.create({
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
     borderRadius: radius.card, padding: space.cardPad, gap: 12,
   },
-  eyebrow: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.navy, textAlign: 'center' },
+  eyebrow: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.ink, textAlign: 'center' },
   controlRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   // A tertiary circle at the 44pt hit floor.
   stepBtn: {
@@ -916,10 +924,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: color.lineStrong, backgroundColor: color.surface,
     alignItems: 'center', justifyContent: 'center',
   },
-  stepBtnPressed: { borderColor: color.navy, backgroundColor: color.mist },
+  stepBtnPressed: { borderColor: color.ink, backgroundColor: color.inset },
   clock: { flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
-  // The wait-hero token, in cobalt: this is the one number the user sets.
-  clockTime: { ...type.waitHero, color: color.cobalt },
+  // The wait-hero token, in `accent`: this is the one number the user sets.
+  clockTime: { ...type.waitHero, color: color.accent },
   // Unit weight: 500, one step down from its number (v2 §03).
   clockAmPm: { fontSize: 16, lineHeight: 20, fontFamily: font.medium, color: color.muted, paddingBottom: 5 },
   // Padded by PICK_PAD to hold the pills' 44pt touch height, pulled back by
@@ -928,17 +936,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'center', gap: 6,
     paddingVertical: PICK_PAD, marginVertical: -PICK_PAD,
   },
-  pick: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: color.mist },
-  pickOn: { backgroundColor: color.navy },
-  // The off pill is already mist, so it steps to line — the next shade in the
+  pick: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.pill, backgroundColor: color.inset },
+  pickOn: { backgroundColor: color.selectedFill },
+  // The off pill is already inset, so it steps to line — the next shade in the
   // same family.
   pickPressed: { backgroundColor: color.line },
-  pickOnPressed: { backgroundColor: color.navyTint },
+  pickOnPressed: { backgroundColor: color.selectedFillPressed },
   pickText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.muted },
-  pickTextOn: { color: color.surface },
+  pickTextOn: { color: color.onSelected },
 
   field: { paddingHorizontal: space.gutter, marginTop: space.sectionGap, gap: 8 },
-  fieldLabel: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  fieldLabel: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.ink },
   fieldNote: { ...type.metadata, fontFamily: font.regular, color: color.muted },
   buttonRow: { flexDirection: 'row', gap: 8 },
 
@@ -952,16 +960,18 @@ const styles = StyleSheet.create({
   },
   recBar: { width: 4, alignSelf: 'stretch', borderRadius: radius.pill, backgroundColor: status.clear.dot },
   recHead: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  recName: { fontSize: 18, lineHeight: 24, fontFamily: font.bold, color: color.navy, letterSpacing: -0.36 },
+  recName: { fontSize: 18, lineHeight: 24, fontFamily: font.bold, color: color.ink, letterSpacing: -0.36 },
   recLeaveRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  recLeaveLabel: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
-  recLeave: { ...type.metric, color: color.cobalt },
+  recLeaveLabel: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.ink },
+  recLeave: { ...type.metric, color: color.accent },
   recCountdown: {
     alignSelf: 'flex-start', backgroundColor: color.surface,
+    // On a tint: the edge only draws in dark — see `surfaceEdge`.
+    borderWidth: 1, borderColor: color.surfaceEdge,
     borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 5,
   },
   recCountdownText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: status.clear.ink },
-  recTotal: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  recTotal: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.ink },
   // On the green tint `muted` is 4.4:1; the tint's own ink is 7.4:1.
   recSplit: { ...type.metadata, color: status.clear.ink },
   recActions: { flexDirection: 'row', gap: 8, marginTop: 2 },
@@ -982,14 +992,14 @@ const styles = StyleSheet.create({
   },
   altBar: { width: 4, alignSelf: 'stretch', borderRadius: radius.pill },
   altNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  altName: { ...type.cardTitle, color: color.navy, flexShrink: 1 },
+  altName: { ...type.cardTitle, color: color.ink, flexShrink: 1 },
   altTotal: { ...type.metadata, color: color.muted },
-  altVerdict: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.navy },
+  altVerdict: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.ink },
   // Status as TEXT on white takes the status `text` ink, never the dot colour.
   altVerdictLate: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: status.moderate.text },
   altVerdictBad: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: status.heavy.text },
   altVerdictMuted: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.muted },
-  altReminder: { fontFamily: font.semibold, color: color.cobalt },
+  altReminder: { fontFamily: font.semibold, color: color.accent },
 
   empty: {
     fontSize: 13, lineHeight: 19, fontFamily: font.semibold, color: color.muted,
@@ -1003,22 +1013,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12,
   },
   reminderText: { ...caption, color: color.muted, flexShrink: 1 },
-  reminderStrong: { fontFamily: font.semibold, color: color.navy },
-  reminderClear: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.cobalt },
+  reminderStrong: { fontFamily: font.semibold, color: color.ink },
+  reminderClear: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.accent },
 
   how: { paddingHorizontal: space.gutter, paddingTop: 12, gap: 6 },
   howText: { fontSize: 12, lineHeight: 17, fontFamily: font.regular, color: color.muted },
-  howLead: { fontFamily: font.semibold, color: color.navy },
+  howLead: { fontFamily: font.semibold, color: color.ink },
 
   footnote: {
     paddingTop: 12, paddingHorizontal: space.gutter,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12,
   },
   footText: { ...caption, color: color.muted, flexShrink: 1 },
-  footLink: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.cobalt },
-  footLinkPressed: { color: color.cobaltDeep },
+  footLink: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.accent },
+  footLinkPressed: { color: color.accentPressed },
   // A text link's 44pt touch height, held by its own padding and given back
   // with a negative margin: the frame overflows the row, so iOS hit-tests it
   // (hitSlop past the parent's bounds it would clip).
   inlineLink: { paddingVertical: 14, marginVertical: -14, justifyContent: 'center' },
-});
+}));

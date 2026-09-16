@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import type { LaneType, Port, TypicalCell } from '@otrolado/shared';
 import { formatHour, typicalSpread } from '../typical';
 import { useTypicalNow } from '../useTypicalNow';
-import { color, font, radius, space, tabular } from '../theme';
+import { font, radius, space, tabular } from '../theme';
+import { makeStyles, useTheme } from '../useTheme';
 import { caption, type } from '../typography';
 import { SectionLabel, Skeleton } from './ui';
 
@@ -17,13 +18,14 @@ import { SectionLabel, Skeleton } from './ui';
  *   - RECORDED bars are solid `lineStrong` — they carry data and must be
  *     visible on the card — never the green/amber/red severity scale, so
  *     year-old averages cannot speak the same colour language as live waits;
- *   - the ONE cobalt bar is the current READING, and only when it is live. It
+ *   - the ONE `accent` bar (cobalt in light, lifted in dark — a mark with
+ *     nothing on top of it) is the current READING, and only when it is live. It
  *     stands at the current hour IN FRONT OF that hour's typical bar, never
  *     in place of it: replacing the typical value made a quiet morning look
  *     like the usual curve while the banner above said "unusually quiet".
  *     Layered, the grey typical bar shows as shoulders beside a busier live
  *     bar and rises above a quieter one — the comparison the banner makes in
- *     words. When the reading is not live there is no cobalt bar at all — a
+ *     words. When the reading is not live there is no accent bar at all — a
  *     NOW marker alone says which hour it is;
  *   - a forecast, when one exists, will be OUTLINED (`forecastLine` on
  *     `forecastFill`), never filled: prediction must never look like
@@ -50,11 +52,12 @@ export function TypicalCard({
   lane: LaneType;
   /**
    * The current reading for this lane, ONLY while it is live and open. The
-   * caller gates it (see port/[id].tsx): an aged figure drawn as the cobalt
+   * caller gates it (see port/[id].tsx): an aged figure drawn as the accent
    * "right now" bar would be a verdict on a number nobody stands behind.
    */
   liveMinutes?: number | null;
 }) {
+  const styles = useStyles();
   const typical = useTypicalNow(port, lane);
 
   let body: React.ReactNode;
@@ -101,9 +104,11 @@ function TypicalChart({
   nowHour: number;
   liveMinutes: number | null;
 }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   const byHour = new Map(cells.map((c) => [c.hour, c.avgWaitMinutes]));
   const peak = Math.max(...byHour.values());
-  // One scale for both series, so the cobalt bar and its grey neighbours are
+  // One scale for both series, so the accent bar and its grey neighbours are
   // comparable by eye — which is the whole point of drawing it there.
   const scaleMax = Math.max(peak, liveMinutes ?? 0, SCALE_FLOOR_MINUTES);
   const peakHour = [...byHour.entries()].reduce((a, b) => (b[1] > a[1] ? b : a))[0];
@@ -123,7 +128,7 @@ function TypicalChart({
   return (
     <View style={{ gap: 8 }}>
       <View style={styles.plot}>
-        {/* Two gridlines in mist; the number above the chart is the scale, so no y labels. */}
+        {/* Two gridlines in `inset`; the number above the chart is the scale, so no y labels. */}
         <View style={[styles.gridline, { bottom: BAR_MAX_HEIGHT / 3 }]} />
         <View style={[styles.gridline, { bottom: (BAR_MAX_HEIGHT * 2) / 3 }]} />
 
@@ -174,8 +179,8 @@ function TypicalChart({
         </View>
         {liveMinutes !== null && (
           <View style={styles.legendItem}>
-            <View style={[styles.swatch, { backgroundColor: color.cobalt }]} />
-            <Text style={[styles.legendText, { color: color.navy }]}>Right now</Text>
+            <View style={[styles.swatch, { backgroundColor: color.accent }]} />
+            <Text style={[styles.legendText, { color: color.ink }]}>Right now</Text>
           </View>
         )}
       </View>
@@ -205,7 +210,7 @@ function TypicalChart({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ color }) => ({
   card: {
     marginHorizontal: space.gutter, marginTop: space.sectionGap,
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
@@ -216,9 +221,9 @@ const styles = StyleSheet.create({
   // narrower than it, so the typical value stays visible around or above it.
   liveBar: {
     position: 'absolute', bottom: 0, left: '20%', right: '20%',
-    backgroundColor: color.cobalt,
+    backgroundColor: color.accent,
   },
-  gridline: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: color.mist },
+  gridline: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: color.inset },
   chartRow: {
     flexDirection: 'row', alignItems: 'flex-end', gap: SLOT_GAP,
     height: BAR_MAX_HEIGHT,
@@ -229,15 +234,15 @@ const styles = StyleSheet.create({
   // Runs 2px past the baseline, as the sheet draws it (bottom:-2px).
   nowRule: {
     position: 'absolute', top: NOW_PILL_H / 2, bottom: -2, width: 1.5,
-    backgroundColor: color.cobalt,
+    backgroundColor: color.accent,
   },
   nowPill: {
     position: 'absolute', top: 0, height: NOW_PILL_H,
     transform: [{ translateX: -19 }],
-    backgroundColor: color.cobalt, borderRadius: radius.pill,
+    backgroundColor: color.accent, borderRadius: radius.pill,
     paddingHorizontal: 7, justifyContent: 'center',
   },
-  nowPillText: { fontSize: 9, lineHeight: 12, fontFamily: font.semibold, color: color.surface, letterSpacing: 0.9 },
+  nowPillText: { fontSize: 9, lineHeight: 12, fontFamily: font.semibold, color: color.onAccent, letterSpacing: 0.9 },
   axis: { height: 1, backgroundColor: color.lineStrong },
   axisRow: { flexDirection: 'row', justifyContent: 'space-between' },
   axisText: { fontSize: 11, lineHeight: 14, fontFamily: font.medium, color: color.muted },
@@ -245,9 +250,9 @@ const styles = StyleSheet.create({
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   swatch: { width: 14, height: 14, borderRadius: 4 },
   legendText: { ...type.metadata, color: color.muted },
-  spreadLine: { ...type.body, color: color.navy, marginTop: 2 },
-  peakLine: { fontSize: 12, lineHeight: 18, fontFamily: font.regular, color: color.navy },
+  spreadLine: { ...type.body, color: color.ink, marginTop: 2 },
+  peakLine: { fontSize: 12, lineHeight: 18, fontFamily: font.regular, color: color.ink },
   strong: { fontFamily: font.semibold },
   note: { fontSize: 13, lineHeight: 19, fontFamily: font.regular, color: color.muted },
   attribution: { ...caption, color: color.muted },
-});
+}));

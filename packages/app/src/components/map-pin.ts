@@ -1,6 +1,6 @@
 import type { RankedPort } from '../ranking';
 import { freshnessBadge } from '../freshness-ui';
-import { color, status, waitColor, waitStatus } from '../theme';
+import { waitColor, waitStatus, type Theme } from '../theme';
 
 /**
  * What a map pin says, in one place.
@@ -40,25 +40,26 @@ export function pinLabel(row: RankedPort): string {
  * the same vocabulary the list-row badges use — so a reading nobody stands
  * behind can't wear the live green.
  */
-export function pinColor(row: RankedPort): string {
+export function pinColor(row: RankedPort, t: Theme): string {
   const wait = pinWaitMinutes(row);
-  if (wait === null) return color.lineStrong;
-  const badge = freshnessBadge(row.freshness);
+  if (wait === null) return t.color.lineStrong;
+  const badge = freshnessBadge(row.freshness, t);
   return badge ? badge.bg : waitColor(wait);
 }
 
 /**
- * Bubble text. On the saturated live scale: white on green (4.3:1) and red
- * (4.9:1), NAVY on amber — white on the amber dot is 2.6:1, under even the
- * large-text bar, and navy there is 5.9:1. Badge ink on the pale non-live
- * tints; navy on the neutral no-wait grey.
+ * Bubble text. The live scale's dots are the same in both modes, so their
+ * inks are too: white on green (4.3:1) and red (4.9:1), NAVY on amber —
+ * white on the amber dot is 2.6:1, under even the large-text bar, and navy
+ * there is 5.9:1. Badge ink on the non-live tints; `ink` on the neutral
+ * no-wait grey (navy on light, the dark ink on dark).
  */
-export function pinTextColor(row: RankedPort): string {
+export function pinTextColor(row: RankedPort, t: Theme): string {
   const wait = pinWaitMinutes(row);
-  if (wait === null) return color.navy;
-  const badge = freshnessBadge(row.freshness);
+  if (wait === null) return t.color.ink;
+  const badge = freshnessBadge(row.freshness, t);
   if (badge) return badge.fg;
-  return waitStatus(wait) === 'moderate' ? color.navy : color.surface;
+  return waitStatus(wait) === 'moderate' ? t.color.navy : t.color.onCobalt;
 }
 
 /** Short label under the pin — the prototype drops the ` · …` qualifier. */
@@ -127,11 +128,13 @@ export function pinCenterOffsetY(showName: boolean): number {
 /** Mirrors what the pins can actually render: the live wait scale, the two
  * non-live badge tints, and the neutral no-wait grey. Keep in lockstep with
  * `pinColor` — map-pin.test.ts checks every colour it can return is here. */
-export const LEGEND: readonly { label: string; color: string }[] = [
-  { label: '<20m', color: status.clear.dot },
-  { label: '20–60m', color: status.moderate.dot },
-  { label: '>60m', color: status.heavy.dot },
-  { label: 'est.', color: status.moderate.tint },
-  { label: 'stale', color: status.heavy.tint },
-  { label: 'none', color: color.lineStrong },
-];
+export function legend(t: Theme): readonly { label: string; color: string }[] {
+  return [
+    { label: '<20m', color: t.status.clear.dot },
+    { label: '20–60m', color: t.status.moderate.dot },
+    { label: '>60m', color: t.status.heavy.dot },
+    { label: 'est.', color: t.status.moderate.tint },
+    { label: 'stale', color: t.status.heavy.tint },
+    { label: 'none', color: t.color.lineStrong },
+  ];
+}

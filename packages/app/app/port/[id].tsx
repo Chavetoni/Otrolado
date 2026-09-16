@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -36,7 +36,8 @@ import { prefs, usePrefs } from '../../src/prefs';
 import { formatAge, formatClock, numberInk, spokenFreshness } from '../../src/freshness-ui';
 import { usePorts, useWaits } from '../../src/queries';
 import { reportedAgeSeconds, useAgedWaits } from '../../src/useFreshness';
-import { color, DISPLAY_MAX_FONT_SCALE, font, radius, space, status, tabular } from '../../src/theme';
+import { DISPLAY_MAX_FONT_SCALE, font, radius, space, tabular } from '../../src/theme';
+import { makeStyles, useTheme } from '../../src/useTheme';
 import { caption, type } from '../../src/typography';
 
 const LANES: readonly { value: LaneType; label: string }[] = [
@@ -69,6 +70,9 @@ type LaneAvailability = 'open' | 'closed' | 'unknown' | 'none';
 export default function PortDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
+  const t = useTheme();
+  const { color, status } = t;
+  const styles = useStyles();
   const [lane, setLane] = useState<LaneType>('standard');
   // Northbound first and default — see DIRECTIONS in modes.ts. CBP publishes
   // northbound only; southbound shows the no-data notice.
@@ -204,8 +208,8 @@ export default function PortDetail() {
         action={
           port ? (
             // Pinning is an action ON this crossing, which is what a title-bar
-            // action is for. Pinned is the star in white on a lit tile;
-            // unpinned is the star in the header's secondary ink — never a
+            // action is for. Pinned is the star in the header's ink on a lit
+            // tile; unpinned is the star in its secondary ink — never a
             // filled star, per the icon family.
             <IconButton
               onDark
@@ -215,7 +219,7 @@ export default function PortDetail() {
                 isPinned ? `Unpin ${port.displayName}` : `Pin ${port.displayName}`
               }
             >
-              <StarGlyph size={24} color={isPinned ? color.surface : color.mutedOnDark} />
+              <StarGlyph size={24} color={isPinned ? color.inkOnDark : color.mutedOnDark} />
             </IconButton>
           ) : null
         }
@@ -278,7 +282,7 @@ export default function PortDetail() {
                   aria-label={`${live ? '' : 'about '}${reading.waitMinutes} minutes, ${spokenFreshness(reading.freshness)}`}
                 >
                   <Text
-                    style={[styles.number, { color: numberInk(reading.freshness) }, tabular]}
+                    style={[styles.number, { color: numberInk(reading.freshness, t) }, tabular]}
                     maxFontSizeMultiplier={DISPLAY_MAX_FONT_SCALE}
                   >
                     {live ? '' : '~'}
@@ -389,7 +393,7 @@ export default function PortDetail() {
 /**
  * The navy header block: back, title, then whatever the screen puts under it
  * (hours, the lane picker). Extends under the status bar so the dark surface
- * runs edge to edge; the mist body starts below it. This is what makes the
+ * runs edge to edge; the page body starts below it. This is what makes the
  * detail screen read as a different place from the list.
  */
 function DetailHeader({
@@ -404,6 +408,8 @@ function DetailHeader({
   action?: ReactNode;
   children?: ReactNode;
 }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   return (
     <View style={[styles.headerBlock, { paddingTop: topInset + 4 }]}>
       <View style={styles.headerTitleRow}>
@@ -443,6 +449,8 @@ function EntranceRow({
   port: Port;
   dest: { lat: number; lng: number } | null;
 }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   const lineStart =
     port.lineStartLat != null && port.lineStartLng != null
       ? { lat: port.lineStartLat, lng: port.lineStartLng }
@@ -463,7 +471,7 @@ function EntranceRow({
         }
       >
         <View style={styles.entranceIcon}>
-          <PinGlyph size={20} color={color.cobalt} />
+          <PinGlyph size={20} color={color.infoAccent} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={styles.entranceTitle}>
@@ -512,6 +520,8 @@ function UnusualBanner({
   dayName: string;
   hourLabel: string;
 }) {
+  const { status } = useTheme();
+  const styles = useStyles();
   const { verdict, deltaMinutes } = compareToTypical(liveMinutes, typicalMinutes);
   if (verdict === 'normal') return null;
   const busy = verdict === 'busy';
@@ -559,6 +569,8 @@ function LaneChips({
   value: LaneType;
   onChange: (v: LaneType) => void;
 }) {
+  const { color, status } = useTheme();
+  const styles = useStyles();
   return (
     <ScrollView
       horizontal
@@ -569,7 +581,7 @@ function LaneChips({
     >
       {options.map((o) => {
         const active = o.value === value;
-        const ink = active ? color.surface : o.availability === 'none' ? color.muted : color.mutedOnDark;
+        const ink = active ? color.onCobalt : o.availability === 'none' ? color.inkMutedOnDark : color.mutedOnDark;
         return (
           <Pressable
             key={o.value}
@@ -591,7 +603,10 @@ function LaneChips({
             ) : o.availability === 'open' ? (
               <View style={[styles.laneDot, { backgroundColor: status.clear.dot }]} />
             ) : o.availability === 'unknown' ? (
-              <View style={[styles.laneDot, { backgroundColor: color.lineStrong }]} />
+              // Grey, not green: the label's own ink (mutedOnDark on navy, onCobalt on the
+              // active chip), the lock glyph's convention — lineStrong is a card token and
+              // drops under 3:1 on navy in dark.
+              <View style={[styles.laneDot, { backgroundColor: ink }]} />
             ) : null}
             <Text style={[styles.laneChipText, { color: ink }]}>{o.label}</Text>
           </Pressable>
@@ -622,6 +637,7 @@ function AlertBar({
   rulesOff: boolean;
   bottomInset: number;
 }) {
+  const styles = useStyles();
   return (
     <View style={[styles.alertBar, { paddingBottom: Math.max(bottomInset, 12) + 4 }]}>
       {/* On = navy, the "set" treatment every toggled button shares. */}
@@ -641,7 +657,7 @@ function AlertBar({
 }
 
 /**
- * The booth meter (v2 §08): one 8px pill per booth, cobalt for open, `line`
+ * The booth meter (v2 §08): one 8px pill per booth, `accent` for open, `line`
  * for closed, and the count in words. Never a percentage bar — the count is
  * the honest unit; drivers can see it themselves at the gate.
  *
@@ -657,13 +673,15 @@ function AlertBar({
  * and a staffing fraction is not one.
  */
 function BoothMeter({ open, max }: { open: number; max: number }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   return (
     <View style={{ gap: 8 }} accessible aria-label={`${open} of ${max} booths open`}>
       <View style={styles.boothRow}>
         {Array.from({ length: max }, (_, i) => (
           <View
             key={i}
-            style={[styles.boothPill, { backgroundColor: i < open ? color.cobalt : color.line }]}
+            style={[styles.boothPill, { backgroundColor: i < open ? color.accent : color.line }]}
           />
         ))}
       </View>
@@ -680,16 +698,18 @@ function BoothMeter({ open, max }: { open: number; max: number }) {
  * has not posted, an em dash for a lane that is not here.
  */
 function UnavailableState({ status: laneStatus }: { status: string | undefined }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   const copy: Record<string, { title: string; body: string; glyph: ReactNode }> = {
     closed: {
       title: 'Lanes closed',
       body: 'CBP reports this lane is not currently open. Try another lane or crossing.',
-      glyph: <LockGlyph size={22} color={color.navy} />,
+      glyph: <LockGlyph size={22} color={color.ink} />,
     },
     update_pending: {
       title: 'No current figure',
       body: 'CBP has not posted an updated wait for this lane. We won’t guess one.',
-      glyph: <ClockGlyph size={22} color={color.navy} />,
+      glyph: <ClockGlyph size={22} color={color.ink} />,
     },
     not_available: {
       title: 'No lane here',
@@ -713,9 +733,9 @@ function UnavailableState({ status: laneStatus }: { status: string | undefined }
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.mist },
-  // Navy, edge to edge, under the status bar; the mist body starts below it.
+const useStyles = makeStyles(({ color }) => ({
+  screen: { flex: 1, backgroundColor: color.page },
+  // Navy, edge to edge, under the status bar; the page body starts below it.
   headerBlock: {
     backgroundColor: color.navy,
     paddingHorizontal: space.gutter,
@@ -725,8 +745,8 @@ const styles = StyleSheet.create({
   headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   // The 44pt back button's glyph should sit on the gutter line, not 10pt in.
   back: { marginLeft: -10 },
-  // Screen title on navy: 24/29/700, -0.02em, white.
-  title: { flex: 1, ...type.screenTitle, color: color.surface },
+  // Screen title on navy: 24/29/700, -0.02em, ink-on-dark.
+  title: { flex: 1, ...type.screenTitle, color: color.inkOnDark },
   subRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   dirWrap: { marginTop: 0 },
   block: { marginHorizontal: space.gutter, marginTop: space.sectionGap },
@@ -760,12 +780,12 @@ const styles = StyleSheet.create({
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
     borderRadius: radius.card, paddingVertical: 12, paddingHorizontal: space.cardPad,
   },
-  entranceButtonPressed: { backgroundColor: color.mist },
+  entranceButtonPressed: { backgroundColor: color.inset },
   entranceIcon: {
-    width: 36, height: 36, borderRadius: radius.sm, backgroundColor: color.infoTint,
+    width: 36, height: 36, borderRadius: radius.sm, backgroundColor: color.iconTile,
     alignItems: 'center', justifyContent: 'center',
   },
-  entranceTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  entranceTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.ink },
   entranceSub: { ...caption, color: color.muted },
 
   card: {
@@ -783,7 +803,7 @@ const styles = StyleSheet.create({
   numberTags: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 6, marginLeft: 4 },
   meta: { ...type.metadata, color: color.muted },
   cardDivider: { height: 1, backgroundColor: color.line },
-  typicalLine: { fontSize: 13, lineHeight: 19, fontFamily: font.regular, color: color.navy },
+  typicalLine: { fontSize: 13, lineHeight: 19, fontFamily: font.regular, color: color.ink },
   typicalStrong: { fontFamily: font.bold },
   typicalSource: { fontSize: 12, fontFamily: font.regular, color: color.muted },
 
@@ -801,18 +821,18 @@ const styles = StyleSheet.create({
 
   unavailable: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4 },
   unavailableIcon: {
-    width: 40, height: 40, borderRadius: radius.sm, backgroundColor: color.mist,
+    width: 40, height: 40, borderRadius: radius.sm, backgroundColor: color.inset,
     alignItems: 'center', justifyContent: 'center',
   },
   unavailableDash: { fontSize: 22, lineHeight: 26, fontFamily: font.bold, color: color.inkMuted },
-  unavailableTitle: { ...type.cardTitle, color: color.navy },
+  unavailableTitle: { ...type.cardTitle, color: color.ink },
   unavailableBody: { fontSize: 13, lineHeight: 19, fontFamily: font.regular, color: color.muted },
   source: { ...caption, color: color.muted },
 
-  // Sticky CTA: white bar, hairline top, full-width cobalt button, 48 tall.
+  // Sticky CTA: surface bar, hairline top, full-width cobalt button, 48 tall.
   alertBar: {
     backgroundColor: color.surface, borderTopWidth: 1, borderTopColor: color.line,
     paddingHorizontal: space.gutter, paddingTop: 12, gap: 8,
   },
   alertNote: { ...caption, color: color.muted, textAlign: 'center' },
-});
+}));

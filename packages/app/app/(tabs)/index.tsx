@@ -3,7 +3,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
@@ -11,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import type { Direction, Freshness } from '@otrolado/shared';
 import { SPIKE_THRESHOLD } from '../../src/alerts';
+import type { BoothBreakdown } from '../../src/booths';
 import {
   Button,
   Chip,
@@ -19,11 +19,11 @@ import {
   Notice,
   Pill,
   SectionLabel,
-  SegmentedControl,
   Skeleton,
 } from '../../src/components/ui';
 import { AppIcon } from '../../src/components/AppIcon';
-import { OriginChip } from '../../src/components/OriginChip';
+import { ThemeToggle } from '../../src/components/ThemeToggle';
+import { TripSetupCard } from '../../src/components/TripSetupCard';
 import {
   BellGlyph,
   CarGlyph,
@@ -59,8 +59,6 @@ import {
 } from '../../src/ranking';
 import {
   DEFAULT_TRAVEL_MODE,
-  DIRECTIONS,
-  TRAVEL_MODES,
   travelModeLabel,
   type UiTravelMode,
 } from '../../src/modes';
@@ -69,17 +67,17 @@ import { feedIsLive, laneAgeSeconds, useAgedWaits } from '../../src/useFreshness
 import { useOnline } from '../../src/useOnline';
 import { useOrigin } from '../../src/useOrigin';
 import {
-  color,
   DISPLAY_MAX_FONT_SCALE,
   font,
   radius,
   space,
-  status,
   tabular,
+  themes,
   waitColor,
   waitTextColor,
 } from '../../src/theme';
 import { caption, type } from '../../src/typography';
+import { makeStyles, useTheme } from '../../src/useTheme';
 
 /**
  * Cards shown in the ranking window before it starts scrolling in place.
@@ -92,6 +90,8 @@ const VISIBLE_CROSSINGS = 3;
 
 export default function Home() {
   const insets = useSafeAreaInsets();
+  const { color } = useTheme();
+  const styles = useStyles();
   const [mode, setMode] = useState<UiTravelMode>(DEFAULT_TRAVEL_MODE);
   // Northbound first and default — see DIRECTIONS in modes.ts.
   const [direction, setDirection] = useState<Direction>('northbound');
@@ -190,20 +190,13 @@ export default function Home() {
 
   return (
     <ScrollView
-      style={{ backgroundColor: color.mist }}
+      style={{ backgroundColor: color.page }}
       contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: space.tabBarClearance }}
       refreshControl={
-        <RefreshControl refreshing={pulling} onRefresh={onPull} tintColor={color.cobalt} />
+        <RefreshControl refreshing={pulling} onRefresh={onPull} tintColor={color.accent} />
       }
     >
-      {/*
-        Wordmark lockup and the origin, side by side. The origin is up here,
-        beside the brand, because it is the input every number below is
-        measured from — see OriginChip. The row wraps: when the chip's label
-        is too long to share the line (the fallback's region name at 402pt),
-        it drops under the lockup whole rather than truncating or folding the
-        tagline onto two lines.
-      */}
+      {/* Brand and the one global preference. Trip inputs are grouped below. */}
       <View style={styles.header}>
         <View style={styles.lockup}>
           {/* The official icon — the same artwork as the home screen's. */}
@@ -215,20 +208,16 @@ export default function Home() {
             </Text>
           </View>
         </View>
-        <OriginChip origin={origin} />
+        <ThemeToggle />
       </View>
 
-      <View style={styles.controls}>
-        <SegmentedControl options={DIRECTIONS} value={direction} onChange={setDirection} />
-        {/*
-          Mode stays on this screen even though the reference layout drops it:
-          it decides which crossings are RANKABLE AT ALL (`rankPorts` filters on
-          `port.modes.includes(mode)`), so a pedestrian-only bridge appearing in
-          a vehicle list — or a walker never seeing one — is a correctness
-          problem, not a preference hidden one screen deeper.
-        */}
-        <SegmentedControl options={MODE_OPTIONS} value={mode} onChange={setMode} />
-      </View>
+      <TripSetupCard
+        origin={origin}
+        direction={direction}
+        mode={mode}
+        onDirectionChange={setDirection}
+        onModeChange={setMode}
+      />
 
       {direction === 'southbound' ? (
         /*
@@ -366,18 +355,13 @@ export default function Home() {
   );
 }
 
-/** Travel modes, as the reference layout words them. */
-const MODE_OPTIONS = TRAVEL_MODES.map((m) => ({
-  ...m,
-  label: m.value === 'pedestrian' ? 'Walking' : m.label,
-})) as readonly { value: UiTravelMode; label: string }[];
-
 /**
  * The first-open loading state: the shapes of the hero and three rows, in
  * `line`, pulsing. Never a full-screen spinner. `inline` drops the hero and
  * the gutter for use inside an existing list slot.
  */
 function HomeSkeleton({ inline = false }: { inline?: boolean }) {
+  const styles = useStyles();
   return (
     <View
       style={inline ? { gap: 12 } : styles.list}
@@ -409,7 +393,18 @@ function HomeSkeleton({ inline = false }: { inline?: boolean }) {
  * reading offline keeps its ESTIMATED/STALE colours and word, with "offline"
  * added — the connection explains why the number is old, it does not excuse
  * saying so.
+ *
+ * Every pill here sits on the cobalt hero, which is the same colour in both
+ * modes — so the pills are mode-independent too, the way `onCobalt` is. The
+ * dark status tints are authored against the dark `surface` and are 1.6–1.95:1
+ * on cobalt (a near-black capsule whose green/amber/red cannot be told
+ * apart); the LIGHT tints are 6.4–6.9:1 there, and their inks keep AA on
+ * them. So the verdict pills take the light palette's `{tint, ink}` pairs
+ * regardless of scheme. Row and detail badges stay on the current theme —
+ * those sit on `surface`, where the dark twins belong.
  */
+const STATUS_ON_COBALT = themes.light;
+
 function HeroStatusPill({
   freshness,
   age,
@@ -421,8 +416,9 @@ function HeroStatusPill({
   feedLive: boolean;
   online: boolean;
 }) {
+  const { color } = useTheme();
   const ageText = formatAge(age);
-  const badge = freshnessBadge(freshness);
+  const badge = freshnessBadge(freshness, STATUS_ON_COBALT);
   if (badge) {
     return (
       <Pill
@@ -441,9 +437,12 @@ function HeroStatusPill({
   }
   if (!online) {
     return (
+      // On the cobalt hero, so the on-cobalt family: `inset` is the well
+      // inside a card and in dark it is 1.4:1 against cobalt — the pill
+      // vanished. The inverse surface (white with navy) reads in both modes.
       <Pill
         label={`Offline · last known ${ageText}`}
-        bg={color.mist}
+        bg={color.onCobalt}
         fg={color.navy}
         icon={<OfflineGlyph compact size={12} strokeWidth={2.4} color={color.navy} />}
       />
@@ -455,8 +454,8 @@ function HeroStatusPill({
   return (
     <Pill
       label={`${feedLive ? 'Live' : 'Reported'} · ${ageText}`}
-      bg={status.clear.tint}
-      fg={status.clear.ink}
+      bg={STATUS_ON_COBALT.status.clear.tint}
+      fg={STATUS_ON_COBALT.status.clear.ink}
       dot
     />
   );
@@ -476,6 +475,9 @@ function HeroCard({
   feedLive: boolean;
   online: boolean;
 }) {
+  const t = useTheme();
+  const { color } = t;
+  const styles = useStyles();
   // rankPorts only ranks ports with coordinates, but the types don't know that.
   const { lat, lng } = best.port;
   // `best` only ever comes from `ranked.find(r => r.totalMinutes !== null)`,
@@ -538,7 +540,7 @@ function HeroCard({
           <View style={styles.heroTotalRow}>
             <Text style={styles.heroUnit}>About</Text>
             <Text
-              style={[styles.heroTotalNum, { color: numberInkOnCobalt(best.freshness) }, tabular]}
+              style={[styles.heroTotalNum, { color: numberInkOnCobalt(best.freshness, t) }, tabular]}
               maxFontSizeMultiplier={DISPLAY_MAX_FONT_SCALE}
             >
               {live ? '' : '~'}
@@ -566,7 +568,7 @@ function HeroCard({
             driveMinutes={best.drive.minutes}
             waitMinutes={waitMinutes}
             driveColor={color.cobaltLight}
-            waitColor={color.surface}
+            waitColor={color.onCobalt}
           />
           <View style={styles.heroSplit}>
             <View style={styles.heroSplitItem}>
@@ -577,7 +579,7 @@ function HeroCard({
               </Text>
             </View>
             <View style={styles.heroSplitItem}>
-              <CrossingGlyph size={15} color={color.surface} strokeWidth={2.2} />
+              <CrossingGlyph size={15} color={color.onCobalt} strokeWidth={2.2} />
               <Text style={[styles.heroSplitText, styles.heroSplitStrong, tabular]}>
                 {waitMinutes} min border
               </Text>
@@ -638,6 +640,9 @@ function PortRow({
   mode: UiTravelMode;
   isPinned: boolean;
 }) {
+  const t = useTheme();
+  const { color } = t;
+  const styles = useStyles();
   const closed = row.primary?.status === 'closed';
   const live = row.freshness === 'live';
   // No standard-lane number at all — closed, an overdue report, or a lane
@@ -673,9 +678,13 @@ function PortRow({
         onPress={() => router.push(`/port/${row.port.id}`)}
         role="button"
         aria-label={
-          noTotal
+          (noTotal
             ? `${row.port.displayName}, ${noTotalReason(row.primary).toLowerCase()}`
-            : `${row.port.displayName}, about ${row.totalMinutes} minutes total, ${spokenFreshness(row.freshness)}`
+            : `${row.port.displayName}, about ${row.totalMinutes} minutes total, ${spokenFreshness(row.freshness)}`) +
+          // The strip is drawn with unlabelled Views inside this Pressable,
+          // whose label REPLACES its children — unspoken, the booth split
+          // would exist for sighted users only.
+          (row.booths ? `. ${spokenBooths(row.booths)}` : '')
         }
       >
         {/*
@@ -709,11 +718,12 @@ function PortRow({
             // of the bar's dot colour) while live, and plain `muted` once not.
             <Text style={[styles.rowSub, tabular]} numberOfLines={1}>
               {row.drive.minutes} min drive +{' '}
-              <Text style={live ? { color: waitTextColor(row.primary!.waitMinutes!) } : undefined}>
+              <Text style={live ? { color: waitTextColor(row.primary!.waitMinutes!, t.status) } : undefined}>
                 {row.primary!.waitMinutes} min border
               </Text>
             </Text>
           )}
+          {row.booths && <BoothStrip booths={row.booths} live={live} />}
           <View style={styles.chipRow}>
             {isBest && <Chip label="BEST" tone="good" />}
             {behind !== null && <Chip label={`+${behind} min`} tone="bad" />}
@@ -745,7 +755,7 @@ function PortRow({
               `muted` — still readable, visibly not current.
             */
             <Text
-              style={[styles.rowTotalNum, { color: numberInk(row.freshness) }, tabular]}
+              style={[styles.rowTotalNum, { color: numberInk(row.freshness, t) }, tabular]}
               numberOfLines={1}
               maxFontSizeMultiplier={DISPLAY_MAX_FONT_SCALE}
             >
@@ -766,10 +776,84 @@ function PortRow({
           isPinned ? `Unpin ${row.port.displayName}` : `Pin ${row.port.displayName}`
         }
       >
-        <PushpinGlyph size={22} color={isPinned ? color.cobalt : color.muted} />
+        <PushpinGlyph size={22} color={isPinned ? color.accent : color.muted} />
       </IconButton>
     </View>
   );
+}
+
+/**
+ * Booth staffing, inline on a crossing card: one pill per booth CBP reports
+ * for this crossing's plaza, plus the count in words.
+ *
+ * THREE states, because `maxLanes` is a whole-plaza figure while `lanesOpen`
+ * is per lane (see `booths.ts`). The accent is a booth on the lane this row is
+ * ranked on; the lighter blue is a booth open on SENTRI or Ready; `line` is a
+ * booth nobody is working. Rendering only the first and last — the obvious
+ * two-state meter — would paint Hidalgo as two booths of twelve when seven
+ * are staffed.
+ *
+ * It states a fact and stops, the same rule the detail screen's meter follows:
+ * no arrow (nothing here stores a previous booth count, so a trend would be
+ * drawn from no data) and no severity colour on the count (status colours are
+ * for wait severity; a staffing fraction is not one).
+ */
+function BoothStrip({ booths, live }: { booths: BoothBreakdown; live: boolean }) {
+  const { color } = useTheme();
+  const styles = useStyles();
+  const { max, onLane, onOther } = booths;
+  /*
+    The accent means "current reading" across the app — it is the one live bar
+    on the TypicalCard for exactly this reason — so a booth count that is no
+    longer live cannot wear it. The ramp steps down to ink greys and the count
+    takes the `~` every non-live number in the app takes. The big step stays
+    between this lane and the others, which is the distinction the row is
+    ranked on; open-vs-closed is the finer one either way.
+  */
+  const onLaneInk = live ? color.accent : color.muted;
+  const onOtherInk = live ? color.cobaltOutline : color.lineStrong;
+
+  return (
+    <View style={styles.boothStrip}>
+      {/* Decorative: the count beside it is the accessible version, and the
+          row's aria-label speaks both. */}
+      <View style={styles.boothTrack} aria-hidden>
+        {Array.from({ length: max }, (_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.boothPill,
+              {
+                backgroundColor:
+                  i < onLane ? onLaneInk : i < onLane + onOther ? onOtherInk : color.line,
+              },
+            ]}
+          />
+        ))}
+      </View>
+      {/*
+        Names the LANE, not just the fraction. "2/12 booths" is read as two of
+        twelve booths being staffed — the very error the three colours are
+        drawn to correct — so the count has to say which of the twelve it is
+        counting. The word is always "standard" because the ranking is always
+        on the standard lane; it is the label's job to make that visible.
+      */}
+      <Text style={[styles.boothCount, tabular]} numberOfLines={1}>
+        {live ? '' : '~'}
+        {onLane}/{max} standard
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * The strip in words. Names the plaza total separately from this lane's share,
+ * so a screen reader gets the distinction the three colours carry — "2 of 12"
+ * alone would hand back the same wrong reading the colours exist to prevent.
+ */
+function spokenBooths({ max, onLane, onOther }: BoothBreakdown): string {
+  const lane = `${onLane} of ${max} booths open on this lane`;
+  return onOther > 0 ? `${lane}, ${onOther} more open on other lanes` : lane;
 }
 
 /**
@@ -795,6 +879,7 @@ function SourceNote({
   online: boolean;
   originIsFallback: boolean;
 }) {
+  const styles = useStyles();
   return (
     <View style={{ paddingHorizontal: space.gutter, marginTop: space.sectionGap, gap: 4 }}>
       {!online && hasWaits ? (
@@ -819,17 +904,16 @@ function SourceNote({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ color, status }) => ({
   header: {
-    paddingHorizontal: space.gutter, flexDirection: 'row', flexWrap: 'wrap',
-    justifyContent: 'space-between', alignItems: 'center', columnGap: 12, rowGap: 8,
+    minHeight: 44, paddingHorizontal: space.gutter, flexDirection: 'row',
+    justifyContent: 'space-between', alignItems: 'center', gap: 12,
   },
   lockup: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   // Wordmark: the brand sheet's lowercase lockup, set in the app's own type.
-  wordmark: { fontSize: 22, lineHeight: 26, fontFamily: font.bold, color: color.navy, letterSpacing: -0.9 },
+  wordmark: { fontSize: 22, lineHeight: 26, fontFamily: font.bold, color: color.ink, letterSpacing: -0.9 },
   tagline: { fontSize: 12, lineHeight: 16, fontFamily: font.regular, color: color.muted },
 
-  controls: { paddingHorizontal: space.gutter, marginTop: space.sectionGap, gap: 8 },
   sectionBlock: { marginHorizontal: space.gutter, marginTop: space.sectionGap },
 
   // Hero surface: the one cobalt per viewport. Radius 24, padding 20.
@@ -845,7 +929,7 @@ const styles = StyleSheet.create({
   // pill squeezed the eyebrow onto four lines at 375pt. A fixed stack costs
   // one line and never moves.
   heroTopRow: { alignItems: 'flex-start', gap: 8 },
-  heroName: { fontSize: 20, lineHeight: 26, fontFamily: font.bold, color: color.surface, letterSpacing: -0.4 },
+  heroName: { fontSize: 20, lineHeight: 26, fontFamily: font.bold, color: color.onCobalt, letterSpacing: -0.4 },
   heroTotalRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
   // Wait hero (§3): 48/48/700, −0.04em. Colour from numberInkOnCobalt. See
   // tightLineHeightFor for iOS.
@@ -858,14 +942,14 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start', backgroundColor: color.surfaceOnCobalt,
     borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 4,
   },
-  heroAdvantageText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.surface },
+  heroAdvantageText: { fontSize: 12, lineHeight: 16, fontFamily: font.semibold, color: color.onCobalt },
   heroSplit: {
     flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center',
     justifyContent: 'space-between', columnGap: 12, rowGap: 4,
   },
   heroSplitItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   heroSplitText: { fontSize: 13, lineHeight: 18, fontFamily: font.semibold, color: color.cobaltLight },
-  heroSplitStrong: { color: color.surface },
+  heroSplitStrong: { color: color.onCobalt },
   heroSplitNote: { fontFamily: font.medium },
   heroApprox: { ...caption, color: color.cobaltLight },
   heroActions: { flexDirection: 'row', gap: 12, marginTop: 4 },
@@ -880,24 +964,36 @@ const styles = StyleSheet.create({
   listHeaderNote: { ...caption, color: color.muted },
 
   list: { marginTop: 8, paddingHorizontal: space.gutter, gap: 12 },
-  // Crossing card: white, 1px line, radius 16, padding 14 16 (the pin button
+  // Crossing card: surface, 1px line, radius 16, padding 14 16 (the pin button
   // brings its own 44pt target to the right edge).
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line,
     borderRadius: radius.card, paddingVertical: 12, paddingLeft: space.cardPad, paddingRight: 4,
   },
-  // Cards get the mist fill when pressed, not a scale.
-  rowPressed: { backgroundColor: color.mist },
+  // Cards get the inset fill when pressed, not a scale.
+  rowPressed: { backgroundColor: color.inset },
   // The card's navigable area; the pin button is its sibling (see PortRow).
   rowBody: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   statusBar: { width: 4, alignSelf: 'stretch', borderRadius: radius.pill },
-  rowName: { ...type.cardTitle, color: color.navy },
+  rowName: { ...type.cardTitle, color: color.ink },
   rowSub: { ...type.metadata, color: color.muted },
   chipRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
+  /*
+    The track is capped rather than allowed to flex: at 375pt this column is
+    ~187px wide, and a 12-booth plaza (Hidalgo) with the detail screen's 8px
+    pills would eat all of it and push the count off the card. Capped, the
+    pills divide the 92px between them, so a 3-booth crossing draws fat pills
+    and a 12-booth one thin ones — the strip always reads as one full plaza,
+    which is what makes the fraction legible at a glance.
+  */
+  boothStrip: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  boothTrack: { flexDirection: 'row', gap: 2, width: 84 },
+  boothPill: { flex: 1, height: 6, borderRadius: radius.pill },
+  boothCount: { ...caption, color: color.muted },
   // Right column: the door-to-door total, which is what the list is sorted by.
   rowTotalCol: { alignItems: 'flex-end', justifyContent: 'center', minWidth: 44 },
-  rowTotalNum: { ...type.metric, color: color.navy },
+  rowTotalNum: { ...type.metric, color: color.inkHero },
   // "m", one step down from its number: 13/500 in muted.
   rowTotalUnit: { fontSize: 13, fontFamily: font.medium, color: color.muted, letterSpacing: 0 },
   rowClosed: { flexDirection: 'row', alignItems: 'center', gap: 6 },
@@ -906,6 +1002,6 @@ const styles = StyleSheet.create({
   retry: { alignSelf: 'flex-start', marginTop: 4 },
   emptyText: { ...type.body, color: color.muted, paddingVertical: 20, textAlign: 'center' },
   sourceText: { ...caption, color: color.muted },
-  sourceStrong: { ...caption, fontFamily: font.semibold, color: color.navy },
+  sourceStrong: { ...caption, fontFamily: font.semibold, color: color.ink },
   errorText: { ...caption, fontFamily: font.semibold, color: status.heavy.ink },
-});
+}));

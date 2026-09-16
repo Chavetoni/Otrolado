@@ -1,6 +1,7 @@
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, Text, View } from 'react-native';
 import type { Port } from '@otrolado/shared';
-import { color, font, radius, space } from '../theme';
+import { font, radius, space } from '../theme';
+import { makeStyles, useTheme } from '../useTheme';
 import { caption } from '../typography';
 import { ArrowUpRightGlyph, CameraGlyph, PinGlyph } from './glyphs';
 
@@ -26,6 +27,8 @@ import { ArrowUpRightGlyph, CameraGlyph, PinGlyph } from './glyphs';
  * I drive to".
  */
 export function GroundTruthCard({ port }: { port: Port }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   // `!= null`, not `!== null`: a /v1/ports response persisted from an app
   // version predating these fields deserializes them as undefined, and a
   // strict null check renders both rows with blank subtitles until the next
@@ -47,7 +50,7 @@ export function GroundTruthCard({ port }: { port: Port }) {
           aria-label={`Watch the line live: ${port.webcamLabel ?? 'webcam'}. Opens the operator's page`}
         >
           <View style={styles.iconTile}>
-            <CameraGlyph size={20} color={color.navy} />
+            <CameraGlyph size={20} color={color.ink} />
           </View>
           <View style={styles.rowBody}>
             <Text style={styles.rowTitle}>Watch the line live</Text>
@@ -62,7 +65,7 @@ export function GroundTruthCard({ port }: { port: Port }) {
       {hasLineStart && (
         <View style={styles.row} accessible>
           <View style={styles.iconTile}>
-            <PinGlyph size={20} color={color.navy} />
+            <PinGlyph size={20} color={color.ink} />
           </View>
           <View style={styles.rowBody}>
             <Text style={styles.rowTitle}>Line usually starts at</Text>
@@ -76,7 +79,7 @@ export function GroundTruthCard({ port }: { port: Port }) {
 
 const TILE = 36;
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ color }) => ({
   card: {
     marginHorizontal: space.gutter,
     marginTop: space.sectionGap,
@@ -84,7 +87,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: color.line,
     borderRadius: radius.card,
-    // Clips the pressed row's mist fill to the card's rounded corners.
+    // Clips the pressed row's inset fill to the card's rounded corners.
     overflow: 'hidden',
   },
   row: {
@@ -95,17 +98,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     minHeight: 60,
   },
-  rowPressed: { backgroundColor: color.mist },
+  rowPressed: { backgroundColor: color.inset },
   divider: { height: 1, backgroundColor: color.line, marginLeft: space.cardPad + TILE + 12 },
   iconTile: {
     width: TILE,
     height: TILE,
     borderRadius: radius.sm,
-    backgroundColor: color.infoTint,
+    backgroundColor: color.iconTile,
     alignItems: 'center',
     justifyContent: 'center',
   },
   rowBody: { flex: 1, gap: 1 },
-  rowTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
+  rowTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.ink },
   rowSub: { ...caption, color: color.muted },
-});
+}));

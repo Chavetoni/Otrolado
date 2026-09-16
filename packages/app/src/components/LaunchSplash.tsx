@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Image, Platform, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Image, Platform, Text, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { color, font, motion } from '../theme';
+import { font, motion } from '../theme';
+import { makeStyles, useTheme } from '../useTheme';
 
 /**
  * The launch sequence — 1.2s, down from the brand sheet's 2.2s (design system
@@ -106,6 +107,8 @@ export function LaunchSplash({
   onDone: () => void;
   reduceMotion?: boolean;
 }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   const arm = useRef(new Animated.Value(0)).current; // 0 = closed, 1 = open
   const word = useRef(new Animated.Value(0)).current;
   const veil = useRef(new Animated.Value(1)).current;
@@ -190,16 +193,16 @@ export function LaunchSplash({
           x2={G1.x}
           y2={G1.y}
         >
-          <Stop offset={0} stopColor={color.surface} />
-          <Stop offset={0.4} stopColor={color.surface} />
+          <Stop offset={0} stopColor={color.onCobalt} />
+          <Stop offset={0.4} stopColor={color.onCobalt} />
           <Stop offset={0.4} stopColor={color.cobalt} />
           <Stop offset={0.52} stopColor={color.cobalt} />
-          <Stop offset={0.52} stopColor={color.surface} />
-          <Stop offset={0.64} stopColor={color.surface} />
+          <Stop offset={0.52} stopColor={color.onCobalt} />
+          <Stop offset={0.64} stopColor={color.onCobalt} />
           <Stop offset={0.64} stopColor={color.cobalt} />
           <Stop offset={0.76} stopColor={color.cobalt} />
-          <Stop offset={0.76} stopColor={color.surface} />
-          <Stop offset={1} stopColor={color.surface} />
+          <Stop offset={0.76} stopColor={color.onCobalt} />
+          <Stop offset={1} stopColor={color.onCobalt} />
         </LinearGradient>
       </Defs>
       <Rect x={0} y={0} width={ARM.w} height={ARM.h} rx={ARM.r} fill="url(#stripes)" />
@@ -268,7 +271,14 @@ export function LaunchSplash({
   );
 }
 
-const styles = StyleSheet.create({
+/**
+ * The splash is a BRAND surface, and these tokens are mode-independent on
+ * purpose: `cobalt`, `onCobalt` and `cobaltLight` hold the same values in
+ * both palettes (cobalt is a fill with white on top — see theme.ts), so the
+ * splash is identical in light and dark, matching the native splash behind it
+ * (app.json), which is cobalt in both. Do not "fix" it to go dark.
+ */
+const useStyles = makeStyles(({ color }) => ({
   veil: {
     position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
     backgroundColor: color.cobalt,
@@ -289,13 +299,13 @@ const styles = StyleSheet.create({
     right: -100,
     alignItems: 'center',
   },
-  // Sheet: 28/700, -0.02em, white; tagline 11/600, 0.14em, cobaltLight.
+  // Sheet: 28/700, -0.02em, white on cobalt (onCobalt); tagline 11/600, 0.14em, cobaltLight.
   name: {
-    fontSize: 28, lineHeight: 28, fontFamily: font.bold, color: color.surface,
+    fontSize: 28, lineHeight: 28, fontFamily: font.bold, color: color.onCobalt,
     letterSpacing: -0.56,
   },
   tagline: {
     fontSize: 11, fontFamily: font.semibold, color: color.cobaltLight,
     letterSpacing: 1.54, marginTop: 8,
   },
-});
+}));

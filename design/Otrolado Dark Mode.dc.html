@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<style>
+body{margin:0;background:#E4E8F0;}
+a{color:#1B45C4;text-decoration:none;}
+a:hover{color:#1638A5;}
+</style>
+</helmet>
+
+<section style="font-family:'Poppins',sans-serif;background:#E4E8F0;padding:48px 44px 64px;display:flex;flex-direction:column;gap:30px;box-sizing:border-box;">
+
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:840px;">
+    <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7E8DB5;text-transform:uppercase;line-height:16px;">Turn 1 · Dark mode · proposal</div>
+    <div style="font-size:34px;font-weight:700;color:#16234A;letter-spacing:-0.02em;line-height:1.1;">Two dark modes, because the navy can't be both brand and background</div>
+    <div style="font-size:14px;color:#5E6D90;line-height:1.55;text-wrap:pretty;"><a href="#1a">1a</a> keeps the navy and pushes it darker, so today's navy cards become the <em>raised</em> surface — continuous with the brand, cheap to ship. <a href="#1b">1b</a> drops the navy for a neutral near-black tuned for a car at night: dimmer, warm-shifted, no pure white. Both need the same structural change — <strong style="color:#16234A;">cobalt can't be text on dark</strong> (2.3:1), so the accent lifts.</div>
+  </div>
+
+  <div style="background:#FFFFFF;border:1px solid #DFE5F3;border-radius:24px;padding:24px 26px;display:flex;flex-direction:column;gap:18px;">
+    <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#5E6D90;text-transform:uppercase;line-height:16px;">Five rules, shared by both</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px 28px;">
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="font-size:13px;font-weight:600;color:#16234A;line-height:19px;">01 · Don't invert</div>
+        <div style="font-size:13px;color:#5E6D90;line-height:1.55;">Light mode's ink ramp flipped gives muddy greys. Dark mode is its own ramp, authored against its own base.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="font-size:13px;font-weight:600;color:#16234A;line-height:19px;">02 · Elevation is lighter, not shadowed</div>
+        <div style="font-size:13px;color:#5E6D90;line-height:1.55;">Shadows are invisible on dark. A card sits above the page by being a step lighter — three steps, no more.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="font-size:13px;font-weight:600;color:#16234A;line-height:19px;">03 · Status text lifts, status fills don't</div>
+        <div style="font-size:13px;color:#5E6D90;line-height:1.55;">Clear and heavy fail as text on dark (4.1:1 and 3.6:1). They stay put as dots and fills; the text gets a lifted twin.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="font-size:13px;font-weight:600;color:#16234A;line-height:19px;">04 · Tints become the dark twin</div>
+        <div style="font-size:13px;color:#5E6D90;line-height:1.55;">The pale notice grounds don't survive. Each tint gets a dark counterpart carrying the lifted ink at full opacity.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="font-size:13px;font-weight:600;color:#16234A;line-height:19px;">05 · Never pure white on a big field</div>
+        <div style="font-size:13px;color:#5E6D90;line-height:1.55;">#FFFFFF body copy on near-black halates. <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;">ink-on-dark</span> #EEF2FB is already the token; white is reserved for the hero number.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start;">
+
+    <div id="1a" style="display:flex;flex-direction:column;gap:14px;width:448px;flex:none;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="background:#1B45C4;color:#FFFFFF;font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px;line-height:17px;">1a</div>
+        <div style="font-size:16px;font-weight:600;color:#16234A;">Deep navy</div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#1B45C4;text-transform:uppercase;line-height:16px;margin-left:auto;">Recommended</div>
+      </div>
+      <div style="font-size:13px;color:#5E6D90;line-height:1.55;">The brand navy drops one step to become the page. Every navy card in the product today — the detail card, the token blocks, the booths indicator — is already the raised surface. Reads as the same app after dark.</div>
+
+      <div style="background:#0E1730;border-radius:24px;padding:22px 24px;display:flex;flex-direction:column;gap:18px;box-sizing:border-box;width:100%;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#8FA0C6;text-transform:uppercase;line-height:16px;">Surface ladder</div>
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;height:36px;border-radius:10px;background:#0E1730;border:1px solid #3B4C7A;flex:none;box-sizing:border-box;"></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#EEF2FB;line-height:17px;">surface-base</div><div style="font-size:11px;color:#8FA0C6;line-height:16px;">The page. New — one step under the brand navy.</div></div>
+            <div style="font-size:11px;font-weight:500;color:#8FA0C6;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">#0E1730</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;height:36px;border-radius:10px;background:#16234A;flex:none;"></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#EEF2FB;line-height:17px;">surface-raised</div><div style="font-size:11px;color:#8FA0C6;line-height:16px;">Cards. Today's <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;">ink</span> navy, unchanged.</div></div>
+            <div style="font-size:11px;font-weight:500;color:#8FA0C6;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">#16234A</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;height:36px;border-radius:10px;background:#24345C;flex:none;"></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#EEF2FB;line-height:17px;">surface-inset</div><div style="font-size:11px;color:#8FA0C6;line-height:16px;">Wells inside cards. <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;">navy-tint</span>.</div></div>
+            <div style="font-size:11px;font-weight:500;color:#8FA0C6;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">#24345C</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;height:36px;border-radius:10px;background:#3B4C7A;flex:none;"></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#EEF2FB;line-height:17px;">line-on-dark</div><div style="font-size:11px;color:#8FA0C6;line-height:16px;">Dividers, closed pills. <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;">navy-step</span>.</div></div>
+            <div style="font-size:11px;font-weight:500;color:#8FA0C6;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">#3B4C7A</div>
+          </div>
+        </div>
+
+        <div style="height:1px;background:#3B4C7A;"></div>
+
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#8FA0C6;text-transform:uppercase;line-height:16px;">Ink &amp; accent · ratio on base</div>
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;flex:none;font-size:20px;font-weight:700;color:#FFFFFF;line-height:26px;text-align:center;">Aa</div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#EEF2FB;line-height:17px;">ink-hero · #FFFFFF</div><div style="font-size:11px;color:#8FA0C6;line-height:16px;">Hero numbers only, 26px and up.</div></div>
+            <div style="font-size:11px;font-weight:600;color:#4FC48C;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">17.7:1</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;flex:none;font-size:20px;font-weight:700;color:#EEF2FB;line-height:26px;text-align:center;">Aa</div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#EEF2FB;line-height:17px;">ink-on-dark · #EEF2FB</div><div style="font-size:11px;color:#8FA0C6;line-height:16px;">All body copy and titles.</div></div>
+            <div style="font-size:11px;font-weight:600;color:#4FC48C;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">15.8:1</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;flex:none;font-size:20px;font-weight:700;color:#8FA0C6;line-height:26px;text-align:center;">Aa</div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#EEF2FB;line-height:17px;">ink-sec-on-dark · #8FA0C6</div><div style="font-size:11px;color:#8FA0C6;line-height:16px;">Metadata, eyebrows, axis labels.</div></div>
+            <div style="font-size:11px;font-weight:600;color:#4FC48C;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">6.8:1</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;flex:none;font-size:20px;font-weight:700;color:#B9CCFF;line-height:26px;text-align:center;">Aa</div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#EEF2FB;line-height:17px;">accent-on-dark · #B9CCFF</div><div style="font-size:11px;color:#8FA0C6;line-height:16px;">Links and emphasis. Replaces cobalt as text.</div></div>
+            <div style="font-size:11px;font-weight:600;color:#4FC48C;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">11.1:1</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;opacity:1;">
+            <div style="width:46px;flex:none;font-size:20px;font-weight:700;color:#1B45C4;line-height:26px;text-align:center;">Aa</div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#EEF2FB;line-height:17px;">cobalt as text · banned</div><div style="font-size:11px;color:#8FA0C6;line-height:16px;">Still the primary <em>fill</em>, with white on top.</div></div>
+            <div style="font-size:11px;font-weight:600;color:#F08571;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">2.3:1</div>
+          </div>
+        </div>
+
+        <div style="height:1px;background:#3B4C7A;"></div>
+
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#8FA0C6;text-transform:uppercase;line-height:16px;">Status · dot stays, text lifts</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#1F8A5B;flex:none;"></div>
+            <div style="flex:1;min-width:0;font-size:13px;font-weight:600;color:#4FC48C;line-height:19px;">Clear · text #4FC48C</div>
+            <div style="background:#123A2B;color:#7FD9AE;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;line-height:16px;flex:none;">tint #123A2B</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#D9932A;flex:none;"></div>
+            <div style="flex:1;min-width:0;font-size:13px;font-weight:600;color:#D9932A;line-height:19px;">Moderate · text unchanged</div>
+            <div style="background:#3D2C0B;color:#F0C173;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;line-height:16px;flex:none;">tint #3D2C0B</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#C4462F;flex:none;"></div>
+            <div style="flex:1;min-width:0;font-size:13px;font-weight:600;color:#F08571;line-height:19px;">Heavy · text #F08571</div>
+            <div style="background:#43190F;color:#F5A594;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;line-height:16px;flex:none;">tint #43190F</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:390px;height:712px;background:#0E1730;border:11px solid #000000;border-radius:48px;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;flex:none;">
+        <div style="padding:14px 24px 6px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;color:#EEF2FB;flex:none;font-variant-numeric:tabular-nums;"><div>9:41</div><div style="width:16px;height:9px;border:1.5px solid #8FA0C6;border-radius:2px;"></div></div>
+        <div style="padding:12px 20px 14px;flex:none;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:11px;">
+            <div style="width:34px;height:34px;border-radius:10px;background:#1B45C4;flex:none;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 20 20" fill="#FFFFFF"><path d="M1.8 8.6 8 3.4l6.2 5.2H12.2V17.4H3.8V8.6Z"></path><rect x="13.4" y="9.8" width="5.6" height="2.4" rx="1.2"></rect></svg></div>
+            <div style="font-size:16px;font-weight:600;color:#EEF2FB;line-height:22px;">Otay Mesa</div>
+          </div>
+          <div style="font-size:12px;font-weight:500;color:#8FA0C6;line-height:17px;">upd. 3 min</div>
+        </div>
+        <div style="padding:0 20px 14px;flex:none;">
+          <div style="background:#16234A;border-radius:24px;padding:20px 22px;display:flex;flex-direction:column;gap:12px;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#8FA0C6;text-transform:uppercase;line-height:16px;">General lanes · total time</div>
+            <div style="display:flex;align-items:flex-end;gap:10px;">
+              <div style="font-size:48px;font-weight:700;color:#FFFFFF;letter-spacing:-0.04em;line-height:48px;font-variant-numeric:tabular-nums;">38</div>
+              <div style="font-size:15px;color:#8FA0C6;padding-bottom:7px;line-height:20px;">min from you</div>
+              <div style="flex:1;"></div>
+              <div style="background:#3D2C0B;color:#F0C173;font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;line-height:17px;margin-bottom:4px;">Moderate</div>
+            </div>
+            <div style="display:flex;gap:3px;height:10px;">
+              <div style="width:42%;background:#5878DB;border-radius:999px;"></div>
+              <div style="flex:1;background:#FFFFFF;border-radius:999px;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:500;color:#8FA0C6;line-height:16px;font-variant-numeric:tabular-nums;">
+              <div>16 min drive</div>
+              <div style="color:#EEF2FB;font-weight:600;">22 min wait</div>
+            </div>
+            <div style="display:flex;gap:9px;padding-top:4px;">
+              <div style="flex:1;background:#1B45C4;color:#FFFFFF;font-size:13px;font-weight:600;padding:13px;border-radius:12px;text-align:center;line-height:18px;">Navigate</div>
+              <div style="border:1.5px solid #5878DB;color:#B9CCFF;font-size:13px;font-weight:600;padding:11.5px 18px;border-radius:12px;text-align:center;line-height:18px;">Alert me</div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 20px 14px;flex:none;">
+          <div style="background:#16234A;border-radius:24px;padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div style="font-size:16px;font-weight:600;color:#EEF2FB;line-height:22px;">General booths</div>
+              <div style="background:#43190F;color:#F5A594;font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;line-height:17px;display:flex;align-items:center;gap:6px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#F5A594" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5.5 12.5 12 19l6.5-6.5"></path></svg>
+                Closing down
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:10px;">
+              <div style="font-size:48px;font-weight:700;color:#FFFFFF;letter-spacing:-0.04em;line-height:48px;font-variant-numeric:tabular-nums;">5</div>
+              <div style="font-size:15px;color:#8FA0C6;padding-bottom:7px;line-height:20px;">of 10 open, down from 8</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;gap:5px;align-items:flex-end;height:52px;">
+                <div style="flex:1;height:42px;border-radius:6px 6px 0 0;background:#3B4C7A;"></div>
+                <div style="flex:1;height:42px;border-radius:6px 6px 0 0;background:#3B4C7A;"></div>
+                <div style="flex:1;height:37px;border-radius:6px 6px 0 0;background:#3B4C7A;"></div>
+                <div style="flex:1;height:37px;border-radius:6px 6px 0 0;background:#5878DB;"></div>
+                <div style="flex:1;height:31px;border-radius:6px 6px 0 0;background:#5878DB;"></div>
+                <div style="flex:1;height:26px;border-radius:6px 6px 0 0;background:#B9CCFF;"></div>
+                <div style="flex:1;height:26px;border-radius:6px 6px 0 0;background:#FFFFFF;"></div>
+              </div>
+              <div style="height:1px;background:#3B4C7A;"></div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:500;color:#8FA0C6;line-height:14px;font-variant-numeric:tabular-nums;">
+                <div>12 pm</div><div>1 pm</div><div>2 pm</div><div style="color:#EEF2FB;font-weight:600;">now</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 20px;flex:none;">
+          <div style="background:#152A56;border-radius:16px;padding:13px 15px;display:flex;gap:11px;align-items:flex-start;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9FBCFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px;"><path d="M12 4 21.5 20.5H2.5Z"></path><path d="M12 10.5v3.8"></path><path d="M12 17.4h0.01"></path></svg>
+            <div style="font-size:13px;color:#DCE6FF;line-height:19px;">Ready lanes are at full strength — 8 min.</div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="flex:none;border-top:1px solid #24345C;padding:12px 20px 18px;display:flex;justify-content:space-around;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="width:20px;height:20px;border-radius:5px;background:#B9CCFF;"></div><div style="font-size:10px;font-weight:600;color:#B9CCFF;line-height:14px;">Now</div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="width:20px;height:20px;border-radius:5px;background:#3B4C7A;"></div><div style="font-size:10px;font-weight:500;color:#8FA0C6;line-height:14px;">Trips</div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="width:20px;height:20px;border-radius:5px;background:#3B4C7A;"></div><div style="font-size:10px;font-weight:500;color:#8FA0C6;line-height:14px;">Alerts</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="1b" style="display:flex;flex-direction:column;gap:14px;width:448px;flex:none;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="background:#16234A;color:#FFFFFF;font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px;line-height:17px;">1b</div>
+        <div style="font-size:16px;font-weight:600;color:#16234A;">Night drive</div>
+      </div>
+      <div style="font-size:13px;color:#5E6D90;line-height:1.55;">Built for the actual condition of use: a phone on a dashboard in a queue at 11pm. Neutral near-black, no pure white anywhere, ink dimmed and warm-shifted so it doesn't wreck night vision. Cobalt gives way to <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;">forecast-line</span> #7EA0F0.</div>
+
+      <div style="background:#0B0F17;border-radius:24px;padding:22px 24px;display:flex;flex-direction:column;gap:18px;box-sizing:border-box;width:100%;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7C879E;text-transform:uppercase;line-height:16px;">Surface ladder</div>
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;height:36px;border-radius:10px;background:#0B0F17;border:1px solid #2A3346;flex:none;box-sizing:border-box;"></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#D3DAE8;line-height:17px;">surface-base</div><div style="font-size:11px;color:#7C879E;line-height:16px;">Near-black, faint blue cast.</div></div>
+            <div style="font-size:11px;font-weight:500;color:#7C879E;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">#0B0F17</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;height:36px;border-radius:10px;background:#141A26;flex:none;"></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#D3DAE8;line-height:17px;">surface-raised</div><div style="font-size:11px;color:#7C879E;line-height:16px;">Cards. Barely above the page.</div></div>
+            <div style="font-size:11px;font-weight:500;color:#7C879E;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">#141A26</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;height:36px;border-radius:10px;background:#1D2534;flex:none;"></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#D3DAE8;line-height:17px;">surface-inset</div><div style="font-size:11px;color:#7C879E;line-height:16px;">Wells and segmented controls.</div></div>
+            <div style="font-size:11px;font-weight:500;color:#7C879E;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">#1D2534</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;height:36px;border-radius:10px;background:#2A3346;flex:none;"></div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#D3DAE8;line-height:17px;">line-on-dark</div><div style="font-size:11px;color:#7C879E;line-height:16px;">Dividers, closed pills, chart ground.</div></div>
+            <div style="font-size:11px;font-weight:500;color:#7C879E;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">#2A3346</div>
+          </div>
+        </div>
+
+        <div style="height:1px;background:#2A3346;"></div>
+
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7C879E;text-transform:uppercase;line-height:16px;">Ink &amp; accent · ratio on base</div>
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;flex:none;font-size:20px;font-weight:700;color:#D3DAE8;line-height:26px;text-align:center;">Aa</div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#D3DAE8;line-height:17px;">ink-night · #D3DAE8</div><div style="font-size:11px;color:#7C879E;line-height:16px;">Everything, hero numbers included.</div></div>
+            <div style="font-size:11px;font-weight:600;color:#5FD6A0;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">13.7:1</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;flex:none;font-size:20px;font-weight:700;color:#7C879E;line-height:26px;text-align:center;">Aa</div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#D3DAE8;line-height:17px;">ink-night-sec · #7C879E</div><div style="font-size:11px;color:#7C879E;line-height:16px;">Metadata. Desaturated, not blue.</div></div>
+            <div style="font-size:11px;font-weight:600;color:#5FD6A0;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">5.3:1</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:13px;">
+            <div style="width:46px;flex:none;font-size:20px;font-weight:700;color:#7EA0F0;line-height:26px;text-align:center;">Aa</div>
+            <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#D3DAE8;line-height:17px;">accent-night · #7EA0F0</div><div style="font-size:11px;color:#7C879E;line-height:16px;">Links, fills, the live reading. Existing token.</div></div>
+            <div style="font-size:11px;font-weight:600;color:#5FD6A0;line-height:16px;font-variant-numeric:tabular-nums;flex:none;">7.5:1</div>
+          </div>
+        </div>
+
+        <div style="height:1px;background:#2A3346;"></div>
+
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7C879E;text-transform:uppercase;line-height:16px;">Status · dimmed one stop</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#46A87B;flex:none;"></div>
+            <div style="flex:1;min-width:0;font-size:13px;font-weight:600;color:#5FD6A0;line-height:19px;">Clear · #5FD6A0</div>
+            <div style="background:#10251C;color:#5FD6A0;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;line-height:16px;flex:none;">tint #10251C</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#D69A45;flex:none;"></div>
+            <div style="flex:1;min-width:0;font-size:13px;font-weight:600;color:#E3B36B;line-height:19px;">Moderate · #E3B36B</div>
+            <div style="background:#2A1E0A;color:#E3B36B;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;line-height:16px;flex:none;">tint #2A1E0A</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:12px;height:12px;border-radius:50%;background:#C4462F;flex:none;"></div>
+            <div style="flex:1;min-width:0;font-size:13px;font-weight:600;color:#E88A76;line-height:19px;">Heavy · #E88A76</div>
+            <div style="background:#2E1310;color:#E88A76;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;line-height:16px;flex:none;">tint #2E1310</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:390px;height:712px;background:#0B0F17;border:11px solid #000000;border-radius:48px;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;flex:none;">
+        <div style="padding:14px 24px 6px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;color:#D3DAE8;flex:none;font-variant-numeric:tabular-nums;"><div>11:24</div><div style="width:16px;height:9px;border:1.5px solid #7C879E;border-radius:2px;"></div></div>
+        <div style="padding:12px 20px 14px;flex:none;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:11px;">
+            <div style="width:34px;height:34px;border-radius:10px;background:#1D2534;flex:none;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 20 20" fill="#7EA0F0"><path d="M1.8 8.6 8 3.4l6.2 5.2H12.2V17.4H3.8V8.6Z"></path><rect x="13.4" y="9.8" width="5.6" height="2.4" rx="1.2"></rect></svg></div>
+            <div style="font-size:16px;font-weight:600;color:#D3DAE8;line-height:22px;">Otay Mesa</div>
+          </div>
+          <div style="font-size:12px;font-weight:500;color:#7C879E;line-height:17px;">upd. 3 min</div>
+        </div>
+        <div style="padding:0 20px 14px;flex:none;">
+          <div style="background:#141A26;border-radius:24px;padding:20px 22px;display:flex;flex-direction:column;gap:12px;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7C879E;text-transform:uppercase;line-height:16px;">General lanes · total time</div>
+            <div style="display:flex;align-items:flex-end;gap:10px;">
+              <div style="font-size:48px;font-weight:700;color:#D3DAE8;letter-spacing:-0.04em;line-height:48px;font-variant-numeric:tabular-nums;">38</div>
+              <div style="font-size:15px;color:#7C879E;padding-bottom:7px;line-height:20px;">min from you</div>
+              <div style="flex:1;"></div>
+              <div style="background:#2A1E0A;color:#E3B36B;font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;line-height:17px;margin-bottom:4px;">Moderate</div>
+            </div>
+            <div style="display:flex;gap:3px;height:10px;">
+              <div style="width:42%;background:#2A3346;border-radius:999px;"></div>
+              <div style="flex:1;background:#7EA0F0;border-radius:999px;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:500;color:#7C879E;line-height:16px;font-variant-numeric:tabular-nums;">
+              <div>16 min drive</div>
+              <div style="color:#D3DAE8;font-weight:600;">22 min wait</div>
+            </div>
+            <div style="display:flex;gap:9px;padding-top:4px;">
+              <div style="flex:1;background:#7EA0F0;color:#0B0F17;font-size:13px;font-weight:600;padding:13px;border-radius:12px;text-align:center;line-height:18px;">Navigate</div>
+              <div style="border:1.5px solid #2A3346;color:#7EA0F0;font-size:13px;font-weight:600;padding:11.5px 18px;border-radius:12px;text-align:center;line-height:18px;">Alert me</div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 20px 14px;flex:none;">
+          <div style="background:#141A26;border-radius:24px;padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div style="font-size:16px;font-weight:600;color:#D3DAE8;line-height:22px;">General booths</div>
+              <div style="background:#2E1310;color:#E88A76;font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;line-height:17px;display:flex;align-items:center;gap:6px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#E88A76" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5.5 12.5 12 19l6.5-6.5"></path></svg>
+                Closing down
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:10px;">
+              <div style="font-size:48px;font-weight:700;color:#D3DAE8;letter-spacing:-0.04em;line-height:48px;font-variant-numeric:tabular-nums;">5</div>
+              <div style="font-size:15px;color:#7C879E;padding-bottom:7px;line-height:20px;">of 10 open, down from 8</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;gap:5px;align-items:flex-end;height:52px;">
+                <div style="flex:1;height:42px;border-radius:6px 6px 0 0;background:#2A3346;"></div>
+                <div style="flex:1;height:42px;border-radius:6px 6px 0 0;background:#2A3346;"></div>
+                <div style="flex:1;height:37px;border-radius:6px 6px 0 0;background:#2A3346;"></div>
+                <div style="flex:1;height:37px;border-radius:6px 6px 0 0;background:#3E5687;"></div>
+                <div style="flex:1;height:31px;border-radius:6px 6px 0 0;background:#3E5687;"></div>
+                <div style="flex:1;height:26px;border-radius:6px 6px 0 0;background:#5B7CC4;"></div>
+                <div style="flex:1;height:26px;border-radius:6px 6px 0 0;background:#7EA0F0;"></div>
+              </div>
+              <div style="height:1px;background:#2A3346;"></div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:500;color:#7C879E;line-height:14px;font-variant-numeric:tabular-nums;">
+                <div>12 pm</div><div>1 pm</div><div>2 pm</div><div style="color:#D3DAE8;font-weight:600;">now</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 20px;flex:none;">
+          <div style="background:#141B2B;border-radius:16px;padding:13px 15px;display:flex;gap:11px;align-items:flex-start;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7EA0F0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px;"><path d="M12 4 21.5 20.5H2.5Z"></path><path d="M12 10.5v3.8"></path><path d="M12 17.4h0.01"></path></svg>
+            <div style="font-size:13px;color:#B8C6E4;line-height:19px;">Ready lanes are at full strength — 8 min.</div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="flex:none;border-top:1px solid #1D2534;padding:12px 20px 18px;display:flex;justify-content:space-around;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="width:20px;height:20px;border-radius:5px;background:#7EA0F0;"></div><div style="font-size:10px;font-weight:600;color:#7EA0F0;line-height:14px;">Now</div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="width:20px;height:20px;border-radius:5px;background:#2A3346;"></div><div style="font-size:10px;font-weight:500;color:#7C879E;line-height:14px;">Trips</div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="width:20px;height:20px;border-radius:5px;background:#2A3346;"></div><div style="font-size:10px;font-weight:500;color:#7C879E;line-height:14px;">Alerts</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="background:#16234A;border-radius:24px;padding:26px 28px;display:flex;flex-direction:column;gap:18px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#8FA0C6;text-transform:uppercase;line-height:16px;">Token flip · what a theme switch actually changes</div>
+      <div style="font-size:11px;color:#8FA0C6;line-height:16px;">Values for <a href="#1a" style="color:#B9CCFF;">1a</a>. Names stay the same in both modes.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;">
+      <div style="padding:0 0 10px;border-bottom:1px solid #3B4C7A;font-size:10px;font-weight:600;letter-spacing:0.08em;color:#8FA0C6;text-transform:uppercase;font-family:'Poppins',sans-serif;">Semantic token</div>
+      <div style="padding:0 0 10px;border-bottom:1px solid #3B4C7A;font-size:10px;font-weight:600;letter-spacing:0.08em;color:#8FA0C6;text-transform:uppercase;font-family:'Poppins',sans-serif;">Light</div>
+      <div style="padding:0 0 10px;border-bottom:1px solid #3B4C7A;font-size:10px;font-weight:600;letter-spacing:0.08em;color:#8FA0C6;text-transform:uppercase;font-family:'Poppins',sans-serif;">Dark</div>
+
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#EEF2FB;">--otr-surface</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#8FA0C6;">#FFFFFF</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#B9CCFF;">#16234A</div>
+
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#EEF2FB;">--otr-page</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#8FA0C6;">#EEF2FB</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#B9CCFF;">#0E1730</div>
+
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#EEF2FB;">--otr-line</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#8FA0C6;">#DFE5F3</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#B9CCFF;">#3B4C7A</div>
+
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#EEF2FB;">--otr-ink</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#8FA0C6;">#16234A</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#B9CCFF;">#EEF2FB</div>
+
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#EEF2FB;">--otr-ink-secondary</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#8FA0C6;">#5E6D90</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#B9CCFF;">#8FA0C6</div>
+
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#EEF2FB;">--otr-accent-text</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#8FA0C6;">#1B45C4</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#B9CCFF;">#B9CCFF</div>
+
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#EEF2FB;">--otr-accent-fill</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#8FA0C6;">#1B45C4</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#B9CCFF;">#1B45C4 · unchanged</div>
+
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#EEF2FB;">--otr-clear-text</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#8FA0C6;">#1A7A50</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#B9CCFF;">#4FC48C</div>
+
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#EEF2FB;">--otr-moderate-text</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#8FA0C6;">#9A6408</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#B9CCFF;">#D9932A</div>
+
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#EEF2FB;">--otr-heavy-text</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#8FA0C6;">#C4462F</div>
+      <div style="padding:9px 0;border-bottom:1px solid #24345C;color:#B9CCFF;">#F08571</div>
+
+      <div style="padding:9px 0;color:#EEF2FB;">--otr-clear/moderate/heavy-tint</div>
+      <div style="padding:9px 0;color:#8FA0C6;">#E4F0EA / #FBF1D9 / #F8E5E1</div>
+      <div style="padding:9px 0;color:#B9CCFF;">#123A2B / #3D2C0B / #43190F</div>
+    </div>
+    <div style="font-size:12px;color:#8FA0C6;line-height:1.6;border-top:1px solid #3B4C7A;padding-top:14px;">Radii, spacing, type and the micro-mark don't flip — only color. The dot colors (<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">clear</span>, <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">moderate</span>, <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">heavy</span>) and <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">accent-fill</span> are deliberately mode-independent, so a status dot means the same thing in a screenshot from either theme.</div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:16px;padding-top:14px;border-top:1px solid #C9D3E9;flex-wrap:wrap;">
+    <div style="width:34px;height:34px;border-radius:10px;background:#1B45C4;display:flex;align-items:center;justify-content:center;flex:none;"><svg width="21" height="21" viewBox="0 0 20 20" fill="#FFFFFF"><path d="M1.8 8.6 8 3.4l6.2 5.2H12.2V17.4H3.8V8.6Z"></path><rect x="13.4" y="9.8" width="5.6" height="2.4" rx="1.2"></rect></svg></div>
+    <div style="font-size:12px;font-weight:500;color:#5E6D90;flex:1;min-width:240px;">Proposal only — not yet in <a href="Otrolado Design System v2.dc.html">Design System v2</a>. Say which direction and I'll fold its tokens into the spec's tokens.css and tokens.json.</div>
+  </div>
+
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}"></script>
+</body>
+</html>

@@ -1,12 +1,15 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeftGlyph, PinGlyph } from '../src/components/glyphs';
 import { IconButton, SectionLabel } from '../src/components/ui';
-import { NEAR_MAX_MILES, PLACES } from '../src/places';
+import { borderCitiesNear, NEAR_MAX_MILES } from '../src/places';
+import { usePorts } from '../src/queries';
 import { setOriginPlace, useOrigin } from '../src/useOrigin';
-import { color, font, radius, space } from '../src/theme';
+import { font, radius, space } from '../src/theme';
+import { makeStyles, useTheme } from '../src/useTheme';
 import { caption, type } from '../src/typography';
 
 /**
@@ -28,8 +31,15 @@ import { caption, type } from '../src/typography';
  * app uses.
  */
 export default function OriginPicker() {
+  const { color } = useTheme();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const origin = useOrigin();
+  const ports = usePorts();
+  const borderCities = useMemo(
+    () => borderCitiesNear(ports.data?.ports ?? [], origin),
+    [ports.data, origin],
+  );
 
   const close = (): void => {
     if (router.canGoBack()) router.back();
@@ -64,13 +74,13 @@ export default function OriginPicker() {
       >
         <View style={styles.card}>
           <Row
-            label="Use my location"
+            label="Use my approximate location"
             sub={
               origin.source === 'gps'
                 ? origin.near
                   ? `In use · nearest town ${origin.label}`
                   : `In use · no town below is within ${NEAR_MAX_MILES} mi`
-                : 'Asks for location permission'
+                : 'Uses your device location; drive times stay approximate'
             }
             selected={origin.source === 'gps'}
             onPress={() => choose(null)}
@@ -78,15 +88,21 @@ export default function OriginPicker() {
           />
         </View>
 
-        <SectionLabel style={styles.sectionLabel}>Or pick a town</SectionLabel>
+        <View style={styles.sectionHeader}>
+          <SectionLabel>Cities near our crossings</SectionLabel>
+          <Text style={styles.sectionNote}>
+            {origin.isFallback ? 'near default start' : 'closest to you'}
+          </Text>
+        </View>
         <View style={styles.card}>
-          {PLACES.map((p, i) => (
+          {borderCities.map(({ place, nearestPort, borderMiles }, i) => (
             <Row
-              key={p.id}
-              label={p.label}
-              selected={origin.place?.id === p.id}
-              onPress={() => choose(p.id)}
-              divider={i < PLACES.length - 1}
+              key={place.id}
+              label={place.label}
+              sub={`${borderMiles < 1 ? '<1' : Math.round(borderMiles)} mi from ${nearestPort.displayName}`}
+              selected={origin.place?.id === place.id}
+              onPress={() => choose(place.id)}
+              divider={i < borderCities.length - 1}
             />
           ))}
         </View>
@@ -121,6 +137,8 @@ function Row({
   divider?: boolean;
   showPin?: boolean;
 }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   return (
     <Pressable
       style={({ pressed }) => [styles.row, divider && styles.rowDivider, pressed && styles.rowPressed]}
@@ -128,9 +146,9 @@ function Row({
       role="radio"
       aria-checked={selected}
     >
-      {showPin && <PinGlyph size={20} color={selected ? color.cobalt : color.muted} />}
+      {showPin && <PinGlyph size={20} color={selected ? color.accent : color.muted} />}
       <View style={{ flex: 1, gap: 1 }}>
-        <Text style={[styles.rowLabel, selected && { color: color.cobalt }]}>{label}</Text>
+        <Text style={[styles.rowLabel, selected && { color: color.accent }]}>{label}</Text>
         {sub && <Text style={styles.rowSub}>{sub}</Text>}
       </View>
       <View style={[styles.check, selected && styles.checkOn]}>
@@ -140,8 +158,8 @@ function Row({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.mist },
+const useStyles = makeStyles(({ color }) => ({
+  screen: { flex: 1, backgroundColor: color.page },
   header: {
     backgroundColor: color.navy,
     paddingHorizontal: space.gutter,
@@ -150,10 +168,19 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   back: { marginLeft: -10 },
-  title: { flex: 1, ...type.screenTitle, color: color.surface },
+  title: { flex: 1, ...type.screenTitle, color: color.inkOnDark },
   headerNote: { fontSize: 13, lineHeight: 19, fontFamily: font.regular, color: color.mutedOnDark },
 
-  sectionLabel: { paddingHorizontal: space.gutter, marginTop: space.sectionGap, marginBottom: 8 },
+  sectionHeader: {
+    paddingHorizontal: space.gutter,
+    marginTop: space.sectionGap,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  sectionNote: { ...caption, color: color.muted },
   card: {
     marginHorizontal: space.gutter,
     backgroundColor: color.surface,
@@ -171,10 +198,10 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   rowDivider: { borderBottomWidth: 1, borderBottomColor: color.line },
-  rowPressed: { backgroundColor: color.mist },
-  rowLabel: { ...type.cardTitle, color: color.navy },
+  rowPressed: { backgroundColor: color.inset },
+  rowLabel: { ...type.cardTitle, color: color.ink },
   rowSub: { ...type.metadata, fontFamily: font.regular, color: color.muted },
-  // The radio: 22px, 1.5px line-strong ring; cobalt ring and dot when chosen.
+  // The radio: 22px, 1.5px line-strong ring; accent ring and dot when chosen.
   check: {
     width: 22,
     height: 22,
@@ -184,12 +211,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkOn: { borderColor: color.cobalt },
-  checkDot: { width: 11, height: 11, borderRadius: 5.5, backgroundColor: color.cobalt },
+  checkOn: { borderColor: color.accent },
+  checkDot: { width: 11, height: 11, borderRadius: 5.5, backgroundColor: color.accent },
   footnote: {
     ...caption,
     color: color.muted,
     paddingHorizontal: space.gutter,
     marginTop: space.sectionGap,
   },
-});
+}));

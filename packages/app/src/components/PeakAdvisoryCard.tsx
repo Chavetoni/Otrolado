@@ -1,6 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { peakAdvisory, type ForecastPoint } from '../peak';
-import { color, font, radius, space } from '../theme';
+import { font, radius, space } from '../theme';
+import { makeStyles, useTheme } from '../useTheme';
 import { type } from '../typography';
 import { ClockGlyph } from './glyphs';
 
@@ -28,22 +29,24 @@ export function PeakAdvisoryCard({
   currentWait: number | null;
   forecast: readonly ForecastPoint[] | null;
 }) {
+  const { color } = useTheme();
+  const styles = useStyles();
   if (currentWait === null || forecast === null) return null;
   const advisory = peakAdvisory(portName, currentWait, forecast);
   if (!advisory) return null;
 
   return (
     <View style={styles.card}>
-      <ClockGlyph size={18} color={color.navy} />
+      <ClockGlyph size={18} color={color.ink} />
       <Text style={styles.text}>
-        <Text style={{ fontFamily: font.semibold, color: color.navy }}>{advisory.head}</Text>{' '}
+        <Text style={{ fontFamily: font.semibold, color: color.ink }}>{advisory.head}</Text>{' '}
         {advisory.body}
       </Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ color }) => ({
   card: {
     marginHorizontal: space.gutter,
     marginTop: space.stackGap,
@@ -58,4 +61,4 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   text: { flex: 1, ...type.metadata, color: color.muted },
-});
+}));

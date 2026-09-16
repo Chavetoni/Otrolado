@@ -1,4 +1,5 @@
 import { haversineMiles } from './drive';
+import type { Port } from '@otrolado/shared';
 
 /**
  * Named starting points in the pilot region.
@@ -43,6 +44,58 @@ export const PLACES: readonly Place[] = [
   { id: 'san-benito', label: 'San Benito, TX', lat: 26.1325, lng: -97.6311 },
   { id: 'brownsville', label: 'Brownsville, TX', lat: 25.9017, lng: -97.4975 },
 ];
+
+/**
+ * Manual starting points are useful only when they are relevant to a crossing
+ * the app can compare. This is intentionally generous: it keeps valley cities
+ * such as Harlingen in the picker while excluding a future place accidentally
+ * added far outside the supported border area.
+ */
+export const BORDER_CITY_MAX_MILES = 30;
+
+export interface BorderCity {
+  readonly place: Place;
+  readonly nearestPort: Port;
+  /** Straight-line distance from the city centroid to the crossing. */
+  readonly borderMiles: number;
+  /** Straight-line distance from the current approximate origin. */
+  readonly originMiles: number;
+}
+
+/**
+ * Cities supported by the crossings currently in the directory, closest to
+ * the user's current origin first. The crossing directory has a bundled
+ * offline value and can also update from the API, so this picker follows the
+ * actual border coverage rather than maintaining a second static grouping.
+ */
+export function borderCitiesNear(
+  ports: readonly Port[],
+  from: { lat: number; lng: number },
+): readonly BorderCity[] {
+  const locatedPorts = ports.filter(
+    (port): port is Port & { lat: number; lng: number } =>
+      port.routable && port.lat !== null && port.lng !== null,
+  );
+
+  return PLACES.flatMap((place): BorderCity[] => {
+    let nearestPort: (Port & { lat: number; lng: number }) | null = null;
+    let borderMiles = Infinity;
+    for (const port of locatedPorts) {
+      const miles = haversineMiles(place, port);
+      if (miles < borderMiles) {
+        nearestPort = port;
+        borderMiles = miles;
+      }
+    }
+    if (!nearestPort || borderMiles > BORDER_CITY_MAX_MILES) return [];
+    return [{ place, nearestPort, borderMiles, originMiles: haversineMiles(from, place) }];
+  }).sort(
+    (a, b) =>
+      a.originMiles - b.originMiles ||
+      a.borderMiles - b.borderMiles ||
+      a.place.label.localeCompare(b.place.label),
+  );
+}
 
 export function findPlace(id: string | null): Place | null {
   if (id === null) return null;

@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import { PILOT_PORTS } from '@otrolado/shared';
 import { haversineMiles } from './drive';
-import { NEAR_MAX_MILES, PLACES, findPlace, nearestPlace } from './places';
+import {
+  BORDER_CITY_MAX_MILES,
+  NEAR_MAX_MILES,
+  PLACES,
+  borderCitiesNear,
+  findPlace,
+  nearestPlace,
+} from './places';
 
 const roma = findPlace('roma')!;
 
@@ -37,5 +45,35 @@ describe('nearestPlace', () => {
 
   it('still names a town for a fix across the river', () => {
     expect(nearestPlace({ lat: 26.0508, lng: -98.2979 })).not.toBeNull(); // Reynosa
+  });
+});
+
+describe('borderCitiesNear', () => {
+  it('keeps only cities near a routable crossing and names the nearest one', () => {
+    const cities = borderCitiesNear(PILOT_PORTS, findPlace('mcallen')!);
+
+    expect(cities).toHaveLength(PLACES.length);
+    expect(cities.every((city) => city.borderMiles <= BORDER_CITY_MAX_MILES)).toBe(true);
+    expect(cities.find((city) => city.place.id === 'roma')?.nearestPort.id).toBe('231001');
+    expect(cities.find((city) => city.place.id === 'brownsville')?.nearestPort.portName).toBe(
+      'Brownsville',
+    );
+  });
+
+  it('orders suggestions from the current approximate origin', () => {
+    const fromMcAllen = borderCitiesNear(PILOT_PORTS, findPlace('mcallen')!);
+    const fromBrownsville = borderCitiesNear(PILOT_PORTS, findPlace('brownsville')!);
+
+    expect(fromMcAllen[0]?.place.id).toBe('mcallen');
+    expect(fromBrownsville[0]?.place.id).toBe('brownsville');
+  });
+
+  it('ignores ports that cannot be routed to', () => {
+    expect(
+      borderCitiesNear(
+        PILOT_PORTS.map((port) => ({ ...port, routable: false })),
+        findPlace('mcallen')!,
+      ),
+    ).toEqual([]);
   });
 });

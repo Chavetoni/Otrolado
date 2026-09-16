@@ -1,5 +1,5 @@
 import { createElement, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { ExpandHint, Legend, LEGEND_BOTTOM, ModeChip } from './MapChrome';
 import {
@@ -16,7 +16,8 @@ import {
 import { boundsOf } from '../map-bounds';
 import type { RankedPort } from '../ranking';
 import type { Origin } from '../useOrigin';
-import { color, font, radius, space } from '../theme';
+import { font, radius, space, type Theme } from '../theme';
+import { makeStyles, useTheme } from '../useTheme';
 // Type-only, so Babel erases it and this file never pulls react-native-maps
 // into the web bundle. tsc resolves the specifier to the native file, which
 // holds the one declaration of the props both platforms implement.
@@ -54,6 +55,25 @@ const MAP_HEIGHT = 260;
  */
 const ZOOM_CONTROL_TOP = 52;
 
+/**
+ * OpenStreetMap only serves light tiles. In dark the tile pane — and ONLY the
+ * tile pane, never the marker pane where the pins carry their own palette —
+ * is inverted and hue-rotated back so land stays land-coloured, then dimmed
+ * and desaturated to sit under dark chrome. Toggled by a class on the map's
+ * container so the rule is injected once and the scheme just flips the class.
+ */
+const DARK_MAP_CLASS = 'otrolado-map-dark';
+const DARK_MAP_STYLE_ID = 'otrolado-map-dark-style';
+const DARK_MAP_CSS = `.${DARK_MAP_CLASS} .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.8); }`;
+
+function ensureDarkTileStyle(): void {
+  if (document.getElementById(DARK_MAP_STYLE_ID)) return;
+  const style = document.createElement('style');
+  style.id = DARK_MAP_STYLE_ID;
+  style.textContent = DARK_MAP_CSS;
+  document.head.appendChild(style);
+}
+
 /* Leaflet is loaded from a CDN, so `window.L` is untyped by design — this is
  * the one boundary where `any` is accepted rather than adding @types. */
 type Leaflet = any;
@@ -61,6 +81,9 @@ type Leaflet = any;
 let leafletPromise: Promise<Leaflet> | null = null;
 
 function loadLeaflet(): Promise<Leaflet> {
+  // Idempotent, and ahead of the early return so a hot reload that finds
+  // Leaflet already on the page still has the dark tile rule.
+  ensureDarkTileStyle();
   const existing = (globalThis as { L?: Leaflet }).L;
   if (existing) return Promise.resolve(existing);
   if (leafletPromise) return leafletPromise;
@@ -101,12 +124,13 @@ function escapeHtml(value: string): string {
  * The prototype's pin, as a Leaflet divIcon: a coloured bubble carrying the
  * wait in tabular numerals, a caret, and the short crossing name beneath.
  */
-function pinIcon(L: Leaflet, row: RankedPort): Leaflet {
-  const fill = pinColor(row);
-  const fg = pinTextColor(row);
+function pinIcon(L: Leaflet, row: RankedPort, t: Theme): Leaflet {
+  const { color } = t;
+  const fill = pinColor(row, t);
+  const fg = pinTextColor(row, t);
   const showName = pinShowsName(row);
   const nameHtml = showName
-    ? `<div style="margin-top:${PIN.nameGap}px;height:${PIN.nameH}px;line-height:${PIN.nameH}px;font-family:${font.semibold},system-ui,sans-serif;font-size:9px;color:${color.navy};background:rgba(255,255,255,.85);border-radius:${radius.sm}px;padding:0 6px;white-space:nowrap">${escapeHtml(pinName(row))}</div>`
+    ? `<div style="margin-top:${PIN.nameGap}px;height:${PIN.nameH}px;line-height:${PIN.nameH}px;font-family:${font.semibold},system-ui,sans-serif;font-size:9px;color:${color.ink};background:${color.overlay};border-radius:${radius.sm}px;padding:0 6px;white-space:nowrap">${escapeHtml(pinName(row))}</div>`
     : '';
   return L.divIcon({
     className: '',
@@ -131,6 +155,8 @@ export default function CrossingsMap({
   onExpand,
   insetBottom = 0,
 }: CrossingsMapProps) {
+  const t = useTheme();
+  const styles = useStyles();
   const bounds = useMemo(() => boundsOf(rows, origin), [rows, origin]);
   const isCard = variant === 'card';
 
@@ -202,7 +228,15 @@ export default function CrossingsMap({
     };
   }, []);
 
-  // Redraw pins and refit whenever the ranked rows (or the origin) change.
+  // The dark tile filter rides a class on the container (see DARK_MAP_CSS).
+  // `classList`, not the `className` prop: Leaflet adds its own classes to
+  // this element and a React-managed className would overwrite them.
+  useEffect(() => {
+    containerRef.current?.classList.toggle(DARK_MAP_CLASS, t.scheme === 'dark');
+  }, [t.scheme]);
+
+  // Redraw pins and refit whenever the ranked rows (or the origin) change —
+  // or the theme, since the pins are baked into divIcon HTML.
   useEffect(() => {
     const L = (globalThis as { L?: Leaflet }).L;
     const map = mapRef.current;
@@ -215,20 +249,20 @@ export default function CrossingsMap({
       if (lat === null || lng === null) continue;
       pins.addLayer(
         L.marker([lat, lng], {
-          icon: pinIcon(L, row),
+          icon: pinIcon(L, row, t),
           zIndexOffset: pinZIndex(row) * 100,
         }).on('click', () => router.push(`/port/${row.port.id}`)),
       );
     }
 
-    // Origin: solid navy only when it is really the device's position. The
+    // Origin: solid cobalt only when it is really the device's position. The
     // permission-denied fallback renders hollow and says what it is.
     pins.addLayer(
       L.circleMarker(
         [origin.lat, origin.lng],
         origin.isFallback
-          ? { radius: 7, color: color.muted, weight: 2, fillOpacity: 0 }
-          : { radius: 7, color: color.surface, weight: 2.5, fillColor: color.cobalt, fillOpacity: 1 },
+          ? { radius: 7, color: t.color.muted, weight: 2, fillOpacity: 0 }
+          : { radius: 7, color: t.color.onAccent, weight: 2.5, fillColor: t.color.accent, fillOpacity: 1 },
       ).bindTooltip(
         origin.isFallback
           ? 'Approximate starting point — location off, not GPS'
@@ -251,7 +285,7 @@ export default function CrossingsMap({
         { paddingTopLeft: [22, PIN_TIP + 6], paddingBottomRight: [22, 20] },
       );
     }
-  }, [mapReady, rows, origin, bounds, isCard]);
+  }, [mapReady, rows, origin, bounds, isCard, t]);
 
   if (!bounds) return null;
 
@@ -280,23 +314,24 @@ export default function CrossingsMap({
   );
 }
 
-const surface = {
-  borderRadius: radius.card,
-  overflow: 'hidden' as const,
-  borderWidth: 1,
-  borderColor: color.line,
-  backgroundColor: color.line,
-};
-
-const styles = StyleSheet.create({
-  card: {
-    ...surface,
-    marginHorizontal: space.gutter,
-    marginTop: space.sectionGap,
-    height: MAP_HEIGHT,
-  },
-  full: { ...surface, flex: 1, borderRadius: 0, borderWidth: 0 },
-  fallback: { justifyContent: 'center', padding: space.cardPad, gap: 4, backgroundColor: color.surface },
-  fallbackTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.navy },
-  fallbackBody: { fontSize: 13, lineHeight: 19, fontFamily: font.regular, color: color.muted },
+const useStyles = makeStyles(({ color }) => {
+  const frame = {
+    borderRadius: radius.card,
+    overflow: 'hidden' as const,
+    borderWidth: 1,
+    borderColor: color.line,
+    backgroundColor: color.line,
+  };
+  return {
+    card: {
+      ...frame,
+      marginHorizontal: space.gutter,
+      marginTop: space.sectionGap,
+      height: MAP_HEIGHT,
+    },
+    full: { ...frame, flex: 1, borderRadius: 0, borderWidth: 0 },
+    fallback: { justifyContent: 'center', padding: space.cardPad, gap: 4, backgroundColor: color.surface },
+    fallbackTitle: { fontSize: 14, lineHeight: 20, fontFamily: font.semibold, color: color.ink },
+    fallbackBody: { fontSize: 13, lineHeight: 19, fontFamily: font.regular, color: color.muted },
+  };
 });

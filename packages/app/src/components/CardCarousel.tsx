@@ -1,13 +1,13 @@
 import { Children, useState, type ReactNode } from 'react';
 import {
   ScrollView,
-  StyleSheet,
   Text,
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { color, font, radius, space, tabular } from '../theme';
+import { font, radius, space, tabular } from '../theme';
+import { makeStyles } from '../useTheme';
 
 /**
  * A windowed, vertically-scrolling card list: shows `visibleCount` cards plus a
@@ -51,6 +51,7 @@ export function CardCarousel({
   gap?: number;
   unit?: string;
 }) {
+  const styles = useStyles();
   const items = Children.toArray(children);
   const total = items.length;
 
@@ -126,7 +127,7 @@ export function CardCarousel({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ color }) => ({
   // Sits in the 20px gutter, clear of the cards themselves.
   rail: {
     position: 'absolute',
@@ -140,13 +141,15 @@ const styles = StyleSheet.create({
     backgroundColor: color.line,
   },
   /*
-   * Cobalt, deliberately — a second one in the viewport alongside the hero.
-   * theme.ts's "one cobalt per viewport" rule is real and this is a considered
-   * exception to it, not an oversight: the thumb is the only moving element on
-   * the screen and reads as inert in muted grey. Do not "restore" this to a
-   * neutral without checking first.
+   * The `accent` role (cobalt in light, the lifted blue in dark), deliberately
+   * — a second cobalt in the viewport alongside the hero. theme.ts's "one
+   * cobalt per viewport" rule is real and this is a considered exception to
+   * it, not an oversight: the thumb is the only moving element on the screen
+   * and reads as inert in muted grey. It is `accent` rather than `cobalt`
+   * because nothing sits on top of it — a mark, not a fill. Do not "restore"
+   * this to a neutral without checking first.
    */
-  thumb: { width: RAIL_WIDTH, borderRadius: radius.pill, backgroundColor: color.cobalt },
+  thumb: { width: RAIL_WIDTH, borderRadius: radius.pill, backgroundColor: color.accent },
   caption: {
     marginTop: 8,
     textAlign: 'center',
@@ -155,4 +158,4 @@ const styles = StyleSheet.create({
     fontFamily: font.regular,
     color: color.muted,
   },
-});
+}));

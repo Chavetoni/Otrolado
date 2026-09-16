@@ -1,8 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { PinGlyph } from './glyphs';
 import type { Origin } from '../useOrigin';
-import { color, font, radius, status } from '../theme';
+import { font, radius } from '../theme';
+import { makeStyles, useTheme } from '../useTheme';
 
 /**
  * "Starting near McAllen, TX" — the origin, stated and tappable.
@@ -20,6 +21,8 @@ import { color, font, radius, status } from '../theme';
  * supplied is the one case a user should want to fix.
  */
 export function OriginChip({ origin }: { origin: Origin }) {
+  const { color, status } = useTheme();
+  const styles = useStyles();
   const eyebrow =
     origin.source === 'chosen'
       ? 'Starting from'
@@ -32,14 +35,14 @@ export function OriginChip({ origin }: { origin: Origin }) {
 
   return (
     <Pressable
-      // A card-like control: pressed takes the mist fill, not a scale.
+      // A card-like control: pressed takes the inset fill, not a scale.
       style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
       onPress={() => router.push('/origin')}
       role="button"
       aria-label={`${eyebrow} ${origin.label}. Change starting point`}
     >
       <View style={styles.iconWrap}>
-        <PinGlyph size={16} color={color.cobalt} />
+        <PinGlyph size={16} color={color.accent} />
         <View style={[styles.dot, { backgroundColor: dot }]} />
       </View>
       <View style={{ flexShrink: 1 }}>
@@ -54,7 +57,7 @@ export function OriginChip({ origin }: { origin: Origin }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(({ color }) => ({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -73,7 +76,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingVertical: 4,
   },
-  chipPressed: { backgroundColor: color.mist },
+  chipPressed: { backgroundColor: color.inset },
   iconWrap: { position: 'relative' },
   // A 6px status dot on the pin's shoulder: fallback vs. real start, without
   // a second line of text in a chip this small.
@@ -93,5 +96,5 @@ const styles = StyleSheet.create({
     fontSize: 10, lineHeight: 14, fontFamily: font.semibold, color: color.muted,
     letterSpacing: 0.8, textTransform: 'uppercase',
   },
-  label: { fontSize: 13, lineHeight: 17, fontFamily: font.bold, color: color.navy, letterSpacing: -0.2 },
-});
+  label: { fontSize: 13, lineHeight: 17, fontFamily: font.bold, color: color.ink, letterSpacing: -0.2 },
+}));

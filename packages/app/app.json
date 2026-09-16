@@ -6,7 +6,7 @@
     "version": "0.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "plugins": [
       "expo-router",
@@ -36,7 +36,10 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.otrolado.app",
       "infoPlist": {
-        "LSApplicationQueriesSchemes": ["comgooglemaps", "waze"]
+        "LSApplicationQueriesSchemes": [
+          "comgooglemaps",
+          "waze"
+        ]
       }
     },
     "android": {
